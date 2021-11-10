@@ -19,11 +19,14 @@ class RobotEnvironment(Environment):
 
 
 class StringEnvironment(Environment):
+    """Environment for string manipulation."""
     def __init__(self, string: str, pos: int):
+        """Creates new StringEnvironment given an initial """
         self.string = string
         self.pos = pos
 
     def _levenshtein(self, a: str, b: str, i: int, j: int):
+        """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters) that need to be made to transform one into the other."""
         if i == 0:
             return j
         if j == 0:
