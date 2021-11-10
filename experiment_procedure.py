@@ -11,14 +11,15 @@ from invent import invent2
 from typing import List
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_SEARCH_TIME_PER_CASE_IN_SECONDS = 120
+MAX_NUMBER_OF_ITERATIONS = 120
 
+
+class Example
 
 class TestCase:
     def __init__(self, training_examples, test_examples, distance_function, tokens, boolean_tokens):
-        self.training_examples = training_examples
-        self.test_examples = test_examples
-        self.distance_function = distance_function
+        self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
+        self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
         self.tokens = tokens
         self.boolean_tokens = boolean_tokens
 
@@ -35,13 +36,12 @@ def test_performance_single_case(test_case: TestCase):
     start_time = time.time()
     token_functions = invent2(test_case.tokens, test_case.boolean_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
-    program = search(token_functions, test_case.training_examples, test_case.distance_function,
-                     MAX_SEARCH_TIME_PER_CASE_IN_SECONDS)
+    program = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
     execution_time_in_seconds = start_time - finish_time
     successes = 0
     for (in_state, out_state) in test_case.test_examples:
-        result = interpret(program, in_state)
+        result = program.interp(program, in_state)
         if test_case.distance_function(result, out_state) == 0:
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
@@ -86,5 +86,12 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
     file.close()
 
 
+def get_experiments():
+    # TODO get experiments from correct files
+    experiment = ()
+
 if __name__ == "__main__":
-    write_performances_of_experiments_to_file([Experiment("test", [TestCase([[1, 2], [2, 3]], [[1, 2], [2, 3]], 0, [], [])])], "performance_results/results.txt")
+    write_performances_of_experiments_to_file(
+        get_experiments(),
+        "performance_results/results.txt"
+    )
