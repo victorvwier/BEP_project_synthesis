@@ -24,13 +24,13 @@ def inventTokens(tokenSet, maxLength) -> list:
 # Also generates Invented tokens with if statements
 def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     # Normal invention step
-    out = generatePermutations(tokenSet, maxLength)
+    out = inventTokens(tokenSet, maxLength)
 
     # Generating if statements
     if maxLength > 3:
         if_list = []
         conditions = boolTokenSet
-        bodies = generatePermutations(tokenSet, int(maxLength / 2))  # TODO Arbitrary length!!
+        bodies = inventTokens(tokenSet, int(maxLength / 2))  # TODO Arbitrary length!!
         for c in conditions:
             for lb in bodies:
                 for rb in bodies:
