@@ -26,7 +26,6 @@ class TestCase:
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
 
-
 class Experiment:
     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
         self.name = name
@@ -44,9 +43,6 @@ def extract_domain_from_environment(environment):
         domain_name = "pixel"
     # else thr
     return domain_name
-
-def extract_bool_tokens_from_domain_name(domain_name):
-    if domain_name == ""
 
 
 # a single case exists of several examples which should be solved by one single program
