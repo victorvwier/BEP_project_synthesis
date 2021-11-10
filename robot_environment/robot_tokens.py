@@ -19,29 +19,87 @@ Grab
 		  -	MoveLeft (robots/strings/pixels)
 		  -	MoveUp (robots/pixels)
 		  -	MoveDown (robots/pixels)
-		  -	MakeUppercase (strings) - make the character at the current position uppercase 
-								  -	if it is already uppercase, no changes
-		  -	MakeLowercase (string) - opposite of MakeUppercase
-		  -	Drop (strings) - drop the current character
-					  -	if the last char, then delete and move one position to the left 
-		  -	DrawPixel (pixels)- set the pixel at the current position to 1
 """
 
 from common_environment.abstract_tokens import *
 from common_environment.environment import *
 
+
 class AtTop(BoolToken):
-    pass 
+    def apply(self, env: Environment) -> bool:
+        return env.ry == 0
+
 
 class AtBottom(BoolToken):
-    pass
+    def apply(self, env: Environment) -> bool:
+        return env.ry == env.size - 1
+
 
 class AtLeft(BoolToken):
-    pass
+    def apply(self, env: Environment) -> bool:
+        return env.rx == 0
+
 
 class AtRight(BoolToken):
-    pass
+    def apply(self, env: Environment) -> bool:
+        return env.rx == env.size - 1
 
 
+class MoveRight(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(env.rx == env.size - 1):
+            raise InvalidTransition()
+        env.rx += 1
+        if(env.holding):
+            env.bx += 1
+        return env
 
 
+class MoveLeft(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(env.rx == 0):
+            raise InvalidTransition()
+        env.rx -= 1
+        if(env.holding):
+            env.bx -= 1
+        return env
+
+
+class MoveUp(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(env.ry == 0):
+            raise InvalidTransition()
+        env.ry -= 1
+        if(env.holding):
+            env.by -= 1
+        return env
+
+
+class MoveDown(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(env.ry == env.size - 1):
+            raise InvalidTransition()
+        env.ry += 1
+        if(env.holding):
+            env.by += 1
+        return env
+
+
+class Drop(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(not env.holding):
+            raise InvalidTransition()
+        env.holding = False
+        env.bx = env.rx
+        env.by = env.ry
+
+
+class Grab(TransToken):
+    def apply(self, env: Environment) -> RobotEnvironment:
+        if(env.holding):
+            raise InvalidTransition()
+        env.holding = True
+
+
+BoolTokens = set(AtTop, AtBottom, AtLeft, AtRight)
+TransTokens = set(MoveRight, MoveDown, MoveLeft, MoveUp, Drop, Grab)
