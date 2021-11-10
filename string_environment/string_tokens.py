@@ -93,8 +93,7 @@ class MoveRight(TransToken):
 		return env
 
 class MoveLeft(TransToken):
-	def apply(self, env):
-		assert isinstance(env, StringEnvironment)
+	def apply(self, env: StringEnvironment) -> StringEnvironment:
 		if env.pos == 0:
 			raise InvalidTransition()
 		env.pos -= 1
@@ -102,22 +101,19 @@ class MoveLeft(TransToken):
 		return env
 
 class MakeUppercase(TransToken):
-	def apply(self, env):
-		assert isinstance(env, StringEnvironment)
+	def apply(self, env: StringEnvironment) -> StringEnvironment:
 		env.string[env.pos] = env.string[env.pos].upper()
 
 		return env
 
 class MakeLowercase(TransToken):
-	def apply(self, env):
-		assert isinstance(env, StringEnvironment)
+	def apply(self, env: StringEnvironment) -> StringEnvironment:
 		env.string[env.pos] = env.string[env.pos].lower()
 
 		return env
 
 class Drop(TransToken):
-	def apply(self, env):
-		assert isinstance(env, StringEnvironment)
+	def apply(self, env: StringEnvironment) -> StringEnvironment:
 		nstr = env.string
 		i = env.pos
 
