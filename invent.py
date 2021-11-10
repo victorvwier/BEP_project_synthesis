@@ -28,6 +28,7 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
 
 if __name__ == "__main__":
     iftoken = "IF"
+    bool_tokens = {"TRUE", "FALSE", "MAYBE"}
     normal_tokens = {"UP", "DOWN", "LEFT", "RIGHT", "PICKUP", "DROP"}
     for t in invent2(normal_tokens, bool_tokens, 7):
         print(type(invent2(normal_tokens, bool_tokens, 8)))
