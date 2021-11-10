@@ -17,6 +17,12 @@ class ControlToken(Token):
     pass
 
 class InventedToken(Token):
+    def __init__(self, tokens: list):
+        self.tokens = tokens
+        
+    def apply(self, env: Environment) -> Environment:
+        for t in self.tokens:
+            t.apply()
     pass
 
 class InvalidTransition(Exception):

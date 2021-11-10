@@ -2,18 +2,26 @@ import itertools
 from common_environment.control_tokens import If
 from string_environment.string_tokens import *
 
-# Takes a list of tokens and returns a list of all permutations where len(tokenSet) > len(per) > 1
-def generatePermutations(tokenSet, maxLength) -> list:
-    if (maxLength <= 1):
+# Generates all permutations of elements in a set where maxLength > len(per) > 1
+def generatePermutations(set, maxLength) -> list:
+    if (maxLength <= 0):
         return []
-    return list(itertools.permutations(tokenSet, maxLength)) + generatePermutations(tokenSet, maxLength - 1)
+    return list(itertools.permutations(set, maxLength)) + generatePermutations(set, maxLength - 1)
 
+# Composes tokens into Invented tokens
+# Returns a list of Invented tokens
 def inventTokens(tokenSet, maxLength) -> list:
     perms = generatePermutations(tokenSet, maxLength)
     out = []
-    # convert these into "invented tokens"
-    
 
+    # convert these into "invented tokens"
+    for p in perms:
+        out.append(InventedToken(p))
+    
+    return out
+    
+# Composes tokens into more elaborate Invented tokens
+# Also generates Invented tokens with if statements
 def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     # Normal invention step
     out = generatePermutations(tokenSet, maxLength)
