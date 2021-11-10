@@ -20,7 +20,7 @@ class RobotEnvironment(Environment):
 
 class StringEnvironment(Environment):
     """Environment for string manipulation."""
-    def __init__(self, string: str, pos: int):
+    def __init__(self, string: str, pos: int = 0):
         """Creates new StringEnvironment given an initial """
         self.string = string
         self.pos = pos
