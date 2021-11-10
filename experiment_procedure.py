@@ -13,11 +13,12 @@ MAX_SEARCH_TIME_PER_CASE_IN_SECONDS = 120
 
 
 class TestCase:
-    def __init__(self, training_examples, test_examples, distance_function, tokens):
+    def __init__(self, training_examples, test_examples, distance_function, tokens, boolean_tokens):
         self.training_examples = training_examples
         self.test_examples = test_examples
         self.distance_function = distance_function
         self.tokens = tokens
+        self.boolean_tokens = boolean_tokens
 
 
 class Experiment:
@@ -30,7 +31,7 @@ class Experiment:
 def test_performance_single_case(test_case: TestCase):
     # generate different token combinations
     start_time = time.time()
-    token_functions = invent(test_case.tokens, MAX_TOKEN_FUNCTION_DEPTH)
+    token_functions = invent(test_case.tokens, test_case.boolean_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
     program = search(token_functions, test_case.training_examples, test_case.distance_function,
                      MAX_SEARCH_TIME_PER_CASE_IN_SECONDS)
@@ -75,7 +76,7 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
         lines_to_write.append("Average_success_percentage: " + str(average_success_percentage) + "\n")
         lines_to_write.append("Average_execution_time: " + str(average_execution_time) + "\n")
         lines_to_write.append("Percentage_of_completely_successful_programs: "
-                           + str(percentage_of_completely_successful_programs) + "\n")
+                              + str(percentage_of_completely_successful_programs) + "\n")
         lines_to_write.append("\n")
 
     file = open(output_file, "w")
