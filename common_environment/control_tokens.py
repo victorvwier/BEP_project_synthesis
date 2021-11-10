@@ -1,5 +1,5 @@
-from ..common_environment.abstract_tokens import *
-from ..common_environment.environment import *
+from common_environment.abstract_tokens import *
+from common_environment.environment import *
 
 class If(ControlToken):
     def __init__(self, cond: BoolToken, e1: Token, e2: Token):
