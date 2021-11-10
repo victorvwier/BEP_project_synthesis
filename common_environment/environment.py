@@ -1,3 +1,6 @@
+from typing import get_type_hints
+
+
 class Environment:
     """Abstract Environment class."""
 
@@ -15,15 +18,19 @@ class RobotEnvironment(Environment):
         self.ry = ry
         self.bx = bx
         self.by = by
+        self.gy = gy
         self.holding = holding
 
 
 class StringEnvironment(Environment):
-    def __init__(self, string: str, pos: int):
+    """Environment for string manipulation."""
+    def __init__(self, string: str, pos: int = 0):
+        """Creates new StringEnvironment given an initial """
         self.string = string
         self.pos = pos
 
     def _levenshtein(self, a: str, b: str, i: int, j: int):
+        """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters) that need to be made to transform one into the other."""
         if i == 0:
             return j
         if j == 0:

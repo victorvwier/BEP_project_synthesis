@@ -1,29 +1,3 @@
-"""
-
-Bool
-
-            AtStart 
-		  -	AtEnd
-		  -	isLetter
-		  -	notLetter
-		  -	isUpperCase
-		  -	NotUpperCase
-		  -	IsLowerCase
-		  -	NotLowercase
-		  -	IsNumber
-		  -	NotNumber
-		  -	isSpace
-		  -	NotSpace
-
-Trans
-
-MoveRight
-MoveLeft
-MakeUppercase
-MakeLowercase
-Drop
-"""
-
 from common_environment.abstract_tokens import *
 from common_environment.environment import *
 
@@ -139,5 +113,5 @@ class Drop(TransToken):
         return env
 
 
-BoolTokens = set(AtEnd, AtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace)
-TransTokens = set(MoveRight, MoveLeft, MakeUppercase, MakeLowercase, Drop)
+BoolTokens = {AtEnd, AtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}
+TransTokens = {MoveRight, MoveLeft, MakeUppercase, MakeLowercase, Drop}
