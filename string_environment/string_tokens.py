@@ -137,3 +137,7 @@ class Drop(TransToken):
         env.string = nstr[0:i:] + nstr[i+1::]
 
         return env
+
+
+BoolTokens = set(AtEnd, AtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace)
+TransTokens = set(MoveRight, MoveLeft, MakeUppercase, MakeLowercase, Drop)

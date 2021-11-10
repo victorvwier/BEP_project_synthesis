@@ -1,6 +1,7 @@
 from common_environment.abstract_tokens import *
 from common_environment.environment import *
 
+
 class AtTop(BoolToken):
     def apply(self, env: PixelEnvironment) -> bool:
         return env.y == 0
@@ -49,3 +50,6 @@ class MoveDown(TransToken):
 			raise InvalidTransition()
 		env.y += 1
 		return env
+
+BoolTokens = set(AtTop, AtBottom, AtLeft, AtRight)
+TransTokens = set(MoveRight, MoveDown, MoveLeft, MoveUp, Draw)
