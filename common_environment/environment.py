@@ -18,7 +18,6 @@ class RobotEnvironment(Environment):
         self.ry = ry
         self.bx = bx
         self.by = by
-        self.gy = gy
         self.holding = holding
 
 
