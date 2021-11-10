@@ -1,2 +1,6 @@
-*/__pycache__/
+.idea/
+common_environment/
+__pycache__
+common_environment
+*.pyc
 .vscode/
