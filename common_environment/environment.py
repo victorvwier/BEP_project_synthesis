@@ -19,7 +19,7 @@ class RobotEnvironment(Environment):
 
 
 class StringEnvironment(Environment):
-    def __init__(self, string: str, pos: int):
+    def __init__(self, string: str, pos: int = 0):
         self.string = string
         self.pos = pos
 

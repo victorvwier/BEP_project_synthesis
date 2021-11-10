@@ -1,4 +1,4 @@
-from ..common_environment.environment import *
+from common_environment.environment import *
 
 class Token:
     """Abstract Token. Enforces that all tokens have an apply method."""

@@ -1,8 +1,8 @@
 from typing import Union
 
-from ..common_environment.abstract_tokens import *
-from ..common_environment.environment import *
-from ..interpreter import *
+from common_environment.abstract_tokens import *
+from common_environment.environment import *
+from interpreter import *
 
 class If(ControlToken):
     """If statement ControlToken."""
