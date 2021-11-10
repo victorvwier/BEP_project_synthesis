@@ -42,8 +42,11 @@ def extract_domain_from_environment(environment):
         domain_name = "string"
     elif isinstance(environment, PixelEnvironment): 
         domain_name = "pixel"
+    # else thr
     return domain_name
 
+def extract_bool_tokens_from_domain_name(domain_name):
+    if domain_name == ""
 
 
 # a single case exists of several examples which should be solved by one single program
@@ -54,7 +57,7 @@ def test_performance_single_case(test_case: TestCase):
     token_functions = invent2(test_case.tokens, test_case.boolean_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
     program: Program
-    program, best_loss, solved  = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
+    program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
 
     execution_time_in_seconds = start_time - finish_time
