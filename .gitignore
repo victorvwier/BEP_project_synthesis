@@ -1,4 +1,5 @@
 .idea/
 common_environment/
-__pycache__/
+__pycache__
 common_environment
+*.pyc
