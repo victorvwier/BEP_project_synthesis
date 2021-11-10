@@ -94,7 +94,6 @@ class IsNotSpace(BoolToken):
 
 """
 		TransTokens
-
 """
 
 

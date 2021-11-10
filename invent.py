@@ -43,11 +43,11 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
 
 if __name__ == "__main__":
     # Test for string environment
-    bool_tokens = {AtStart,	AtEnd, IsLetter, IsNotLetter, IsUppercase,	IsNotUppercase,
-                   IsLowercase,	IsNotLowercase,	IsNumber,	IsNotNumber,	IsSpace,	IsNotSpace}
+    bool_tokens = {AtStart,	AtEnd, IsLetter, IsNotLetter, IsUppercase,	IsNotUppercase, IsLowercase, IsNotLowercase,	IsNumber, IsNotNumber, IsSpace, IsNotSpace}
     normal_tokens = {MoveRight, MoveLeft, Drop, MakeLowercase, MakeUppercase}
 
     out = invent2(normal_tokens, bool_tokens, 5)
     print(len(out))
-    # for t in out:
-    #     print(t)
+    for t in out:
+        if(not isinstance(t, Token)):
+            print(t)
