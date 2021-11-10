@@ -1,5 +1,6 @@
 import itertools
 
+# Takes a list of tokens and returns a list of all permutations where len(tokenSet) > len(per) > 1 
 def invent(tokenSet, maxLength):
     if (maxLength <= 1):
         return []
