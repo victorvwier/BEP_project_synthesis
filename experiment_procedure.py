@@ -6,6 +6,8 @@
 
 import time
 
+# TODO check if i still call the correct invent method (invent vs invent2)
+from invent import invent2
 from typing import List
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
@@ -31,7 +33,7 @@ class Experiment:
 def test_performance_single_case(test_case: TestCase):
     # generate different token combinations
     start_time = time.time()
-    token_functions = invent(test_case.tokens, test_case.boolean_tokens, MAX_TOKEN_FUNCTION_DEPTH)
+    token_functions = invent2(test_case.tokens, test_case.boolean_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
     program = search(token_functions, test_case.training_examples, test_case.distance_function,
                      MAX_SEARCH_TIME_PER_CASE_IN_SECONDS)
@@ -82,3 +84,7 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
     file = open(output_file, "w")
     file.writelines(lines_to_write)
     file.close()
+
+
+if __name__ == "__main__":
+    write_performances_of_experiments_to_file([Experiment("test", [TestCase([[1, 2], [2, 3]], [[1, 2], [2, 3]], 0, [], [])])], "performance_results/results.txt")
