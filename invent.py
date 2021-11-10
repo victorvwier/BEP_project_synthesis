@@ -10,7 +10,7 @@ def invent2(tokenSet, boolTokenSet, maxLength):
     # Normal invention step
     out = invent(tokenSet, maxLength)
     
-    # Generating If statements
+    # Generating if statements
     if maxLength > 3:
         if_list = []
         conditions = boolTokenSet
