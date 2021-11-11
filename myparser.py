@@ -1,6 +1,9 @@
-from typing import List, Tuple
+from os import X_OK
 from common_environment.environment import Environment, PixelEnvironment, RobotEnvironment, StringEnvironment
+from robot_environment import robot_tokens
+from pixel_environment import pixel_tokens
 import re
+from typing import List, Tuple
 from os import walk
 from os import listdir
 from os.path import isfile, join
@@ -11,7 +14,8 @@ class Example:
         self.output_environment = output_environment
 
 class TestCase:
-    def __init__(self, training_examples: List[Example], test_examples: List[Example]):
+    def __init__(self, path_to_result_file: str, training_examples: List[Example], test_examples: List[Example]):
+        self.path_to_result_file = path_to_result_file
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
 
@@ -27,10 +31,14 @@ class Experiment:
     def __repr__(self):
         return "Experiment: " + self.name + "<TestCases: " + str(self.test_cases) + ">"
 
-
 class Parser():
     def parse(filename: str) -> TestCase:
         raise NotImplementedError()
+    
+    def openFile(filename: str) -> str:
+        f = open(filename, 'r')
+        data = f.read()
+        return data
 
     def extract_domain_from_environment(environment):
         domain_name = "unknown"
@@ -42,17 +50,73 @@ class Parser():
             domain_name = "pixel"
         return domain_name
 
-# Parses a single file containing a test case for the Robot
-class RobotParser():
-    def parse(filename: str) -> TestCase:
-        # open the file
-        f = open(filename, 'r')
 
-        # construct examples from the input
-        data = f.read()
-        regex = re.compile("\([^w]([^)]+?)\)")
-        for p in regex.findall(data):
-            print(p)
+# Parses a single file containing a test case for the Robot
+class RobotParser(Parser):
+    PATH = "programs/e1-robots/data/"
+    def parseEnvironment(data: 'list[str]') -> Environment:
+        return RobotEnvironment(data[5], data[0], data[1], data[2], data[3], data[4] == "0")            
+
+    def parse(filename: str) -> TestCase:
+        data = Parser.openFile(filename)
+        regex = re.compile(r"\([^)]*\)")
+        in_out = regex.findall(data)
+        in_out[0] = in_out[0][2::]
+        
+        # split 
+        in_data = in_out[0][1:-1].split(",")
+        out_data = in_out[1][1:-1].split(",")
+
+        in_env = [RobotParser.parseEnvironment(in_data)]
+        out_env = [RobotParser.parseEnvironment(out_data)]
+        ex = Example(in_env, out_env)    
+
+        TestCase(ex, ex, robot_tokens.TransTokens, robot_tokens.BoolTokens)
+
+class PixelParse(Parser):
+    PATH = "programs/e3-pixels/data/"
+    def parseEnvironment(data:str) -> Environment:
+        tokens = data.split(',')
+        x = tokens[0]
+        y = tokens[1]
+        width = int(tokens[2])
+        height = int(tokens[3])
+
+        if(x == '_'):
+            x = 0
+        else:
+            x = int(x)
+
+        if(y == '_'):
+            y = 0
+        else:
+            y = int(y)
+
+        pixeldata = ''.join(''.join(tokens[4::])[1:-1].split(' ')) ## converts {'[0',' 0',' 0',' 0',' 0',' 1']} into 000001
+        pixels = [[False for _ in range(height)] for _ in range(width)]
+        
+        for x in range(0, width):
+            for y in range(0, height):
+                pixels[x][y] = pixeldata[x*width + y]
+
+        return PixelEnvironment(int(width),int(height), int(x),int(y), pixels)
+
+    def parse(filename:str) -> TestCase:
+        data = Parser.openFile(filename)
+        regex = re.compile(r"\([^)]*\)")
+
+        in_out = regex.findall(data)
+        in_out[0] = in_out[0][2::]
+
+        # split
+        in_data = in_out[0][1:-1]
+        out_data = in_out[1][1:-1]
+
+        in_env = PixelParse.parseEnvironment(in_data)
+        out_env = PixelParse.parseEnvironment(out_data)
+
+        ex = Example(in_env, out_env)    
+        TestCase(ex, ex, pixel_tokens.TransTokens, pixel_tokens.BoolTokens)
 
 class StringParser():
         
@@ -111,13 +175,15 @@ class StringParser():
         training_examples = StringParser.parse_single_example_file(file_name_training_data)
         test_examples = StringParser.parse_single_example_file(file_name_test_data)
 
-        test_case = TestCase(training_examples, test_examples)
+        test_case = TestCase("programs/e2-strings/results" + file_name_training_data.split("/")[-1] , training_examples, test_examples)
         return test_case
 
     
     def parse_single_example_file(file_name) -> List[Example]: 
         file = open(file_name, "r")
         lines = file.readlines()
+
+        print(file_name)
         
         examples = []
         for line in lines:
@@ -133,6 +199,7 @@ class StringParser():
         if start_pos > 0:
             start_pos -= 1
 
+        
         input_string = StringParser.extract_string(input_data)
         output_string = StringParser.extract_string(output_data)
 
@@ -163,25 +230,21 @@ class StringParser():
             string += char
         return string
 
-
-    def parse_single_example_file(file_name) -> List[Example]: 
-        file = open(file_name, "r")
-        lines = file.readlines()
+    # def parse_single_example_file(file_name) -> List[Example]: 
+    #     file = open(file_name, "r")
+    #     lines = file.readlines()
         
-        examples = []
-        for line in lines:
-            examples.append(StringParser.parse_single_line(line))
+
+
+    #     examples = []
+    #     for line in lines:
+    #         examples.append(StringParser.parse_single_line(line))
     
     
-
-
-
-
 
 # if __name__ == "__main__":
-#     rp = RobotParser()
-#     RobotParser.parse("programs/e1-robots/data/2-0-0.pl")
-#     StringParser.parse_single_example_file("programs/e2-strings/data/test/1-222-10.pl")
+#     PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
+
 
 
     

@@ -34,7 +34,7 @@ class StringEnvironment(Environment):
         self._string = list(string)
         self.pos = pos
         
-        assert 0 <= pos < len(str)
+        assert len(string) == 0 or 0 <= pos < len(string)
 
     def toString(self) -> str:
         return "".join(self._string)

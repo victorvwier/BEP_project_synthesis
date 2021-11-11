@@ -69,7 +69,7 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 
 # a single case exists of several examples which should be solved by one single program
-def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens):
+def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens):
     
     start_time = time.time()
     # generate different token combinations
@@ -88,6 +88,14 @@ def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens)
         if out_state.solve(result) == True:
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+    file = open(test_case.path_to_result_file, "w+")
+    file.writelines([
+        "succes_percentage: " + str(success_percentage),
+        "execution_time_in_seconds" + str(execution_time_in_seconds)
+    ])
+    file.close()
+
     return success_percentage, execution_time_in_seconds
 
 
@@ -104,7 +112,7 @@ def test_performance_single_experiment(experiment: Experiment):
     trans_tokens = extract_trans_tokens_from_domain_name(experiment.domain_name)
 
     for test_case in test_cases:
-        success_percentage, execution_time_in_seconds = test_performance_single_case(test_case, trans_tokens, bool_tokens)
+        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case, trans_tokens, bool_tokens)
         sum_of_success_percentages += success_percentage
         sum_of_execution_times_in_seconds += execution_time_in_seconds
         if success_percentage == 100.0:
