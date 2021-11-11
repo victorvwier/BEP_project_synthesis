@@ -19,7 +19,7 @@ import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 120
+MAX_NUMBER_OF_ITERATIONS = 40
 
 
 # class Example:
@@ -74,6 +74,7 @@ def extract_trans_tokens_from_domain_name(domain_name):
 def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens):
     
     start_time = time.time()
+
     # generate different token combinations
     token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
@@ -84,12 +85,21 @@ def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens)
 
     execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for (in_state, out_state) in test_case.test_examples:
-        result = program.interp(program, in_state)
+    for e in test_case.test_examples:
+        in_state = e.input_environment
+        out_state = e.output_environment
+        try:
+            result = program.interp(in_state)
+        except:
+            result = in_state
         ## TODO solve needs to be implemented
-        if out_state.solve(result) == True:
+        if out_state.correct(result):
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+    print(test_case.file_name, end="  ")
+    print(success_percentage)
+
     return success_percentage, execution_time_in_seconds
 
 
@@ -131,7 +141,7 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
         lines_to_write.append("Percentage_of_completely_successful_programs: "
                               + str(percentage_of_completely_successful_programs) + "\n")
         lines_to_write.append("\n")
-
+        print("Experiment: {} finished with status: {}".format(experiment.name, average_success_percentage))
     file = open(output_file, "w")
     file.writelines(lines_to_write)
     file.close()
@@ -146,7 +156,11 @@ def get_all_experiments():
     return experiments
 
 if __name__ == "__main__":
+    
+    print("Start reading in all experiments")
     experiments = get_all_experiments()
+
+    print("Done reading in all experiments")
     write_performances_of_experiments_to_file(
         experiments,
         "performance_results/results.txt"
