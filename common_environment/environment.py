@@ -36,6 +36,8 @@ class RobotEnvironment(Environment):
         self.by = by
         self.holding = holding
 
+        assert (not holding or (rx == bx and ry == by))
+        
     def __str__(self):
         return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
                (self.rx, self.ry, self.bx, self.by, self.holding)
@@ -60,6 +62,8 @@ class StringEnvironment(Environment):
         # Manipulating strings as a list of characters is more efficient.
         self.string_array = list(string)
         self.pos = pos
+        
+        assert 0 <= pos < len(string)
 
     def to_string(self) -> str:
         """Returns the string of this Environment. For efficiency strings are internally stored as an array instead of
@@ -99,6 +103,9 @@ class PixelEnvironment(Environment):
         self.pixels = pixels
         if not pixels:
             self.pixels = [[False for _ in range(height)] for _ in range(width)]
+
+        assert 0 <= x < width
+        assert 0 <= y < height
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
