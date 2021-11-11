@@ -10,14 +10,14 @@ class AtEnd(BoolToken):
     """Token that returns whether the pointer is at the end of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env.pos == len(env._string) - 1
+        return env.pos == len(env.string_array) - 1
 
 
 class NotAtEnd(BoolToken):
     """Token that returns whether the pointer is not at the end of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env.pos != len(env._string) - 1
+        return env.pos != len(env.string_array) - 1
 
 
 class AtStart(BoolToken):
@@ -38,70 +38,70 @@ class IsLetter(BoolToken):
     """Token that returns whether the character at the pointers position is an alphabetical letter."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env._string[env.pos].isalpha()
+        return env.string_array[env.pos].isalpha()
 
 
 class IsNotLetter(BoolToken):
     """Token that returns whether the character at the pointers position is not an alphabetical letter."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return not env._string[env.pos].isalpha()
+        return not env.string_array[env.pos].isalpha()
 
 
 class IsUppercase(BoolToken):
     """Token that returns whether the character at the pointers position is in uppercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env._string[env.pos].isupper()
+        return env.string_array[env.pos].isupper()
 
 
 class IsNotUppercase(BoolToken):
     """Token that returns whether the character at the pointers position is not in uppercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return not env._string[env.pos].isupper()
+        return not env.string_array[env.pos].isupper()
 
 
 class IsLowercase(BoolToken):
     """Token that returns whether the character at the pointers position is in lowercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env._string[env.pos].islower()
+        return env.string_array[env.pos].islower()
 
 
 class IsNotLowercase(BoolToken):
     """Token that returns whether the character at the pointers position is not in lowercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return not env._string[env.pos].islower()
+        return not env.string_array[env.pos].islower()
 
 
 class IsNumber(BoolToken):
     """Token that returns whether the character at the pointers position is a number."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env._string[env.pos].isnumeric()
+        return env.string_array[env.pos].isnumeric()
 
 
 class IsNotNumber(BoolToken):
     """Token that returns whether the character at the pointers position is not a number."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return not env._string[env.pos].isnumeric()
+        return not env.string_array[env.pos].isnumeric()
 
 
 class IsSpace(BoolToken):
     """Token that returns whether the character at the pointers position is a space character."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return env._string[env.pos] == " "
+        return env.string_array[env.pos] == " "
 
 
 class IsNotSpace(BoolToken):
     """Token that returns whether the character at the pointers position is not a space character."""
 
     def apply(self, env: StringEnvironment) -> bool:
-        return not env._string[env.pos] == " "
+        return not env.string_array[env.pos] == " "
 
 
 #                           #
@@ -113,7 +113,7 @@ class MoveRight(TransToken):
     string."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        if env.pos == len(env._string) - 1:
+        if env.pos == len(env.string_array) - 1:
             raise InvalidTransition()
         env.pos += 1
 
@@ -136,7 +136,7 @@ class MakeUppercase(TransToken):
     """Token that transforms the character at the pointers position into an uppercase character."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        env._string[env.pos] = env._string[env.pos].upper()
+        env.string_array[env.pos] = env.string_array[env.pos].upper()
 
         return env
 
@@ -145,7 +145,7 @@ class MakeLowercase(TransToken):
     """Token that transforms the character at the pointers position into a lowercase character."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        env._string[env.pos] = env._string[env.pos].lower()
+        env.string_array[env.pos] = env.string_array[env.pos].lower()
 
         return env
 
@@ -155,15 +155,15 @@ class Drop(TransToken):
     to the left. If the string is empty an InvalidTransition exception will be raised."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        nstr = env._string
+        nstr = env.string_array
 
         if len(nstr) == 0:
             raise InvalidTransition
 
         i = env.pos
 
-        env._string = nstr[0:i] + nstr[i + 1:]
+        env.string_array = nstr[0:i] + nstr[i + 1:]
 
-        env.pos = min(len(env._string) - 1, env.pos)
+        env.pos = min(len(env.string_array) - 1, env.pos)
 
         return env

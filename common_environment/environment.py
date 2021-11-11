@@ -12,11 +12,14 @@ class Environment:
         """Returns whether this state is the desired one given a desired output Environment."""
         raise NotImplementedError()
 
+
 class RobotEnvironment(Environment):
-    """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere in that same matrix."""
+    """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
+    in that same matrix."""
 
     def __init__(self, size: int, rx: int, ry: int, bx: int, by: int, holding=False):
-        """Creates new RobotEnvironment given a size, initial position of the robot (rx, ry), position of the ball (bx, by) and whether the robot is holding the ball."""
+        """Creates new RobotEnvironment given a size, initial position of the robot (rx, ry), position of the ball
+        (bx, by) and whether the robot is holding the ball."""
         super().__init__()
 
         self.size = size
@@ -34,13 +37,13 @@ class StringEnvironment(Environment):
         super().__init__()
 
         # Manipulating strings as a list of characters is more efficient.
-        self._string = list(string)
+        self.string_array = list(string)
         self.pos = pos
 
     def to_string(self) -> str:
         """Returns the string of this Environment. For efficiency strings are internally stored as an array instead of
         string, therefore this conversion method exists."""
-        return "".join(self._string)
+        return "".join(self.string_array)
 
     def _levenshtein(self, a: list[str], b: list[str]) -> int:
         """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters)
@@ -58,7 +61,7 @@ class StringEnvironment(Environment):
         )
 
     def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein(self._string.copy(), other._string.copy())
+        return self._levenshtein(self.string_array.copy(), other.string_array.copy())
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
