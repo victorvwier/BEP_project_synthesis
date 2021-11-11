@@ -29,15 +29,20 @@ class Recurse(ControlToken):
         self.calls = 0
 
     def apply(self, env: Environment) -> Environment:
+        # Raise exception if recursive call limit is reached
         if self.calls >= env.program.recursive_call_limit:
             raise RecursiveCallLimitReached()
 
         self.calls += 1
 
+        # if the condition is None or true, make recursive call
         if self.cond is None or self.cond.apply(env):
             env = Program(self.recursive_case).interp(env, False)
             return env.program.interp(env)
+
+        # else, base case
         return Program(self.base_case).interp(env, False)
 
 class RecursiveCallLimitReached(Exception):
+    """"Exception raised when the recursive call limit, set in the Program constructor is reached."""
     pass

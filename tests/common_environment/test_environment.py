@@ -10,11 +10,11 @@ class TestStringEnvironment(TestCase):
     def test_to_string(self):
         s1 = "Hello World"
         e1 = StringEnvironment(s1)
-        self.assertEqual(e1.toString(), s1)
+        self.assertEqual(e1.to_string(), s1)
 
         s2 = "String!"
         e1 = StringEnvironment(s2)
-        self.assertEqual(e1.toString(), s2)
+        self.assertEqual(e1.to_string(), s2)
 
     def _dist(self, a, b):
         a1 = StringEnvironment(a)

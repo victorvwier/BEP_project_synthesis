@@ -1,5 +1,6 @@
 from common_environment.abstract_tokens import Token, Environment
 
+
 class Program:
     """Wrapper class for a list of Tokens, a program."""
 
@@ -8,7 +9,7 @@ class Program:
         self.sequence = tokens
         self.recursive_call_limit = recurse_limit
 
-    def interp(self, env: Environment, top_level_program = True) -> Environment:
+    def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
 
         # Setup for recursive calls
@@ -20,5 +21,5 @@ class Program:
             env = tokens.pop(0).apply(env)
         return env
 
-    #def interp_cast(self, env: Environment):
+    # def interp_cast(self, env: Environment):
     #   return cast(env, self.interp(env))
