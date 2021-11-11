@@ -175,7 +175,7 @@ class StringParser():
         training_examples = StringParser.parse_single_example_file(file_name_training_data)
         test_examples = StringParser.parse_single_example_file(file_name_test_data)
 
-        test_case = TestCase("programs/e2-strings/results" + file_name_training_data.split("/")[-1] , training_examples, test_examples)
+        test_case = TestCase("programs/e2-strings/results/" + file_name_training_data.split("/")[-1] , training_examples, test_examples)
         return test_case
 
     
