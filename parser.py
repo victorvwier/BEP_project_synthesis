@@ -60,7 +60,7 @@ class PixelParse(Parser):
         
         for x in range(0, width):
             for y in range(0, height):
-                pixels[x][y] = pixeldata[x*width + y]
+                pixels[x][y] = pixeldata[x*width + y] == '1'
 
         return PixelEnvironment(int(width),int(height), int(x),int(y), pixels)
 
@@ -83,7 +83,8 @@ class PixelParse(Parser):
 
 
 if __name__ == "__main__":
-    PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
+    p = PixelParse.parse("programs/e3-pixels/data/0-0-1.pl")
+    print(p)
 
 
 

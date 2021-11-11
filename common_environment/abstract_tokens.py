@@ -36,7 +36,7 @@ class InventedToken(Token):
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            t.apply()
+            t.apply(t, env)
     pass
 
 class InvalidTransition(Exception):

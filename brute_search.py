@@ -44,13 +44,16 @@ def find_best_program(programs, sample_inputs, sample_outputs):
                 used_input = copy.deepcopy(input)
                 program_output = program.interp(used_input)
                 program_outputs.append(program_output)
+                program_output = program.interp(used_input)
+
             output_pairs = list(zip(program_outputs, sample_outputs))
             cum_loss = loss(output_pairs)
             solved = problem_solved(output_pairs)
             if(solved):
                 return program, cum_loss, solved
             ordered_programs.append((program, cum_loss, solved))
-        except:
+        except InvalidTransition:
+            # program.interp(used_input)
             ordered_programs.append((program, float("inf"), False))
     ordered_programs = sorted(ordered_programs, key=lambda x: x[1])
     best_program, best_loss, solved = ordered_programs[0]
@@ -58,7 +61,7 @@ def find_best_program(programs, sample_inputs, sample_outputs):
 
 def synth_loop(programs, sample_inputs, sample_outputs, iteration, num_iterations):
     best_program, best_loss, solved = find_best_program(programs, sample_inputs, sample_outputs)
-
+    print("The best loss currently is {}".format(best_loss))
     if(iteration >= num_iterations or solved):
         return best_program, best_loss, solved
 
@@ -67,9 +70,10 @@ def synth_loop(programs, sample_inputs, sample_outputs, iteration, num_iteration
     iteration = iteration + 1
     return synth_loop(updated_programs, sample_inputs, sample_outputs, iteration, num_iterations)
 
-def search(tokens, samples, num_iterations):
-    sample_inputs = list(map(lambda x: x[0], samples))
-    sample_outputs = list(map(lambda x: x[1], samples))
+def search(tokens, examples, num_iterations):
+    sample_inputs = list(map(lambda x: x.input_environment, examples))
+
+    sample_outputs = list(map(lambda x: x.output_environment, examples))
 
     initial_programs = list(map(lambda x: Program([x]), tokens))
     iteration = 0
