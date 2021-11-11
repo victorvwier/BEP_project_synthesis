@@ -44,7 +44,7 @@ def find_best_program(programs, sample_inputs, sample_outputs):
                 used_input = copy.deepcopy(input)
                 program_output = program.interp(used_input)
                 program_outputs.append(program_output)
-                program_output = program.interp(used_input)
+               # program_output = program.interp(used_input)
 
             output_pairs = list(zip(program_outputs, sample_outputs))
             cum_loss = loss(output_pairs)

@@ -4,6 +4,7 @@
 # apply(P, TestExamples)
 # Output -> Perf
 
+import copy
 import time
 from brute_search import search
 
@@ -59,11 +60,13 @@ def test_performance_single_case(test_case: TestCase):
     program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
 
-    execution_time_in_seconds = start_time - finish_time
+    execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for (in_state, out_state) in test_case.test_examples:
-        result = program.interp(program, in_state)
-        if test_case.distance_function(result, out_state) == 0:
+    for e in test_case.test_examples:
+        in_state = e.input_environment
+        out_state = e.output_environment
+        result = program.interp(in_state)
+        if in_state.distance(out_state) == 0:
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
     return success_percentage, execution_time_in_seconds

@@ -10,6 +10,10 @@ class Environment:
     def distance(self, other: "Environment") -> float:
         """Returns the distance from this Environment to some other object."""
         raise NotImplementedError()
+    
+    def equivalent(self, other: "Environment") -> bool:
+        """Returns the true if the distance between self and other = 0"""
+        raise NotImplementedError()
 
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere in that same matrix."""
@@ -63,3 +67,21 @@ class PixelEnvironment(Environment):
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
+
+    def distance(self, other: "PixelEnvironment") -> int:
+        assert self.width == other.width
+        assert self.height == other.height
+        count = 0
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                if(self.pixels[x][y] != other.pixels[x][y]):
+                    count += 1
+        return count
+
+    def equivalent(self, other: "PixelEnvironment") -> bool:
+        dist= 0
+        try:
+            dist = self.distance(other)
+            return dist == 0
+        except:
+            return False

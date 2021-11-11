@@ -16,7 +16,8 @@ class Program:
 
         tokens = self.sequence.copy()
         while tokens:
-            env = tokens.pop(0).apply(env)
+            token = tokens.pop(0)
+            env = token.apply(env)
         return env
 
     #def interp_cast(self, env: Environment):
