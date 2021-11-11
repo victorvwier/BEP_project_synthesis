@@ -91,10 +91,11 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
         in_state = e.input_environment
         out_state = e.output_environment
 
-        if isinstance(out_state, StringEnvironment):
-            file.writelines(["output: " + out_state.to_string() + "\n"])
-
         result = program.interp(in_state)
+
+        if isinstance(result, StringEnvironment):
+            file.writelines(["output: " + result.to_string() + "\n"])
+
         if out_state.correct(result):
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
