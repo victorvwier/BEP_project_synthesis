@@ -42,8 +42,14 @@ class StringEnvironment(Environment):
 
 
 class PixelEnvironment(Environment):
-    def __init__(self, size, x, y, pixels):
-        self.size = size
+    def __init__(self, width, height, x, y, pixels=None):
+        self.width = width
+        self.height = height
         self.x = x
         self.y = y
         self.pixels = pixels
+        if not pixels:
+            self.pixels = [[False for _ in range(height)] for _ in range(width)]
+
+    def __str__(self):
+        return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
