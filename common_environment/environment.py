@@ -1,4 +1,4 @@
-from typing import get_type_hints
+from typing import List, get_type_hints
 
 
 class Environment:
@@ -66,7 +66,7 @@ class StringEnvironment(Environment):
         string, therefore this conversion method exists."""
         return "".join(self.string_array)
 
-    def _levenshtein(self, a: list[str], b: list[str]) -> int:
+    def _levenshtein(self, a: List[str], b: List[str]) -> int:
         """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters)
         that need to be made to transform one into the other."""
         if len(b) == 0:
@@ -106,7 +106,7 @@ class PixelEnvironment(Environment):
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
 
-    def _hamming_distance(self, matrix1: list[list[bool]], matrix2: list[list[bool]]) -> int:
+    def _hamming_distance(self, matrix1: List[List[bool]], matrix2: List[List[bool]]) -> int:
         assert len(matrix1) == len(matrix2)
         assert len(matrix1[0]) == len(matrix2[0])
         element_list1 = [e for row in matrix1 for e in row]
