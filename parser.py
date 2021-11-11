@@ -32,10 +32,24 @@ class RobotParser():
 
         TestCase(ex, ex, robot_tokens.TransTokens, robot_tokens.BoolTokens)
 
+class PixelParse():
+    def parse(filename:str) -> TestCase:
+        f = open(filename, 'r')
+
+        data = f.read()
+        regex = re.compile(r"\([^)]*\)")
+
+        in_out = regex.findall(data)
+        in_out[0] = in_out[0][2::]
+
+        # split
+        in_data = in_out[0][1:-1]
+        out_data = in_out[1][1:-1]
+
+        print(in_data)
 
 if __name__ == "__main__":
-    rp = RobotParser()
-    RobotParser.parse("programs/e1-robots/data/2-0-0.pl")
+    PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
 
 
 
