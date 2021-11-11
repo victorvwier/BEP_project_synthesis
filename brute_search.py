@@ -1,18 +1,32 @@
-import heapq as hp
-from common_environment.environment import *
+import copy
+from interpreter.interpreter import *
+from pixel_environment.pixel_tokens import *
 
+
+def print_p(p):
+    print(p.sequence)
+
+def print_ps(ps):
+    l = []
+    for p in ps:
+        l.append(p.sequence)
+    print(l)
+
+# check
 def loss(output_pairs):
     cum_loss = 0.0
     for output_pair in output_pairs:
         cum_loss = cum_loss + output_pair[0].distance(output_pair[1])
     return cum_loss
 
+# check
 def problem_solved(output_pairs):
-    solved = False
+    solved = True
     for output_pair in output_pairs:
         solved = solved and output_pair[0].equivalent(output_pair[1])
     return solved
 
+# check
 def extend_program(best_program, programs):
     updated_programs = programs.copy()
     for program in programs:
@@ -20,31 +34,29 @@ def extend_program(best_program, programs):
         updated_programs.append(potentially_better_program)
     return updated_programs
 
+# check
 def find_best_program(programs, sample_inputs, sample_outputs):
-    ordered_programs = []  # [(cum_loss, Program)]
+    ordered_programs = []
     for program in programs:
         program_outputs = []
         for input in sample_inputs:
-            program_output = program.interp(input)
+            used_input = copy.deepcopy(input)
+            program_output = program.interp(used_input)
             program_outputs.append(program_output)
-        output_pairs = zip(program_outputs, sample_outputs)
+        output_pairs = list(zip(program_outputs, sample_outputs))
         cum_loss = loss(output_pairs)
         solved = problem_solved(output_pairs)
         if(solved):
             return program, cum_loss, solved
-        hp.heappush(ordered_programs, (cum_loss, program, solved))
-
-    best_program, best_loss, solved = hp.heappop(ordered_programs)
-    return best_program, best_loss, solved, ordered_programs
+        ordered_programs.append((program, cum_loss, solved))
+    ordered_programs = sorted(ordered_programs, key=lambda x: x[1])
+    best_program, best_loss, solved = ordered_programs[0]
+    return best_program, best_loss, solved
 
 def synth_loop(programs, sample_inputs, sample_outputs, iteration, num_iterations):
-    if(iteration >= num_iterations):
-        best_program, best_loss, solved, _ = find_best_program(programs, sample_inputs, sample_outputs)
-        return best_program, best_loss, solved
+    best_program, best_loss, solved = find_best_program(programs, sample_inputs, sample_outputs)
 
-    best_program, best_loss, solved, ordered_programs = find_best_program(programs, sample_inputs, sample_outputs)
-    # If the best program is solved, stop and return
-    if(solved):
+    if(iteration >= num_iterations or solved):
         return best_program, best_loss, solved
 
     updated_programs = extend_program(best_program, programs)
@@ -61,5 +73,4 @@ def search(tokens, samples, num_iterations):
     best_program, best_loss, solved = synth_loop(initial_programs, sample_inputs, sample_outputs, iteration, num_iterations)
 
     return best_program, best_loss, solved
-
 
