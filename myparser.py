@@ -189,6 +189,7 @@ class StringParser():
         examples = []
         for line in lines:
             examples.append(StringParser.parse_single_line(line))
+        return examples
     
     # def parse(filename_traindata: str, filename_testdata) -> TestCase:
     def parse_single_line(line: str) -> Example:
