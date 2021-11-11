@@ -39,16 +39,19 @@ def find_best_program(programs, sample_inputs, sample_outputs):
     ordered_programs = []
     for program in programs:
         program_outputs = []
-        for input in sample_inputs:
-            used_input = copy.deepcopy(input)
-            program_output = program.interp(used_input)
-            program_outputs.append(program_output)
-        output_pairs = list(zip(program_outputs, sample_outputs))
-        cum_loss = loss(output_pairs)
-        solved = problem_solved(output_pairs)
-        if(solved):
-            return program, cum_loss, solved
-        ordered_programs.append((program, cum_loss, solved))
+        try:
+            for input in sample_inputs:
+                used_input = copy.deepcopy(input)
+                program_output = program.interp(used_input)
+                program_outputs.append(program_output)
+            output_pairs = list(zip(program_outputs, sample_outputs))
+            cum_loss = loss(output_pairs)
+            solved = problem_solved(output_pairs)
+            if(solved):
+                return program, cum_loss, solved
+            ordered_programs.append((program, cum_loss, solved))
+        except:
+            ordered_programs.append((program, float("inf"), False))
     ordered_programs = sorted(ordered_programs, key=lambda x: x[1])
     best_program, best_loss, solved = ordered_programs[0]
     return best_program, best_loss, solved

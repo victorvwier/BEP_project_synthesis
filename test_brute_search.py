@@ -21,11 +21,12 @@ def test_search():
     tokens = [MoveDown(), MoveRight(), Draw()]
     start_state = PixelEnvironment(2, 0, 0, [[False, False], [False, False]])
     end_state = PixelEnvironment(2, 1, 1, [[False, False], [False, True]])
-    num_iterations = 4
+    num_iterations = 3
     best_program, _, solved = search(tokens, [(start_state, end_state)], num_iterations)
     print_p(best_program)
+    print(solved)
 
 
 # test_extend_program()
 # test_find_best_program()
-test_search()
+# test_search()
