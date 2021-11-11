@@ -6,29 +6,55 @@ class AtTop(BoolToken):
     def apply(self, env: PixelEnvironment) -> bool:
         return env.y == 0
 
+
 class AtBottom(BoolToken):
     def apply(self, env: PixelEnvironment) -> bool:
-        return env.y == env.size - 1
+        return env.y == env.height - 1
+
 
 class AtLeft(BoolToken):
     def apply(self, env: PixelEnvironment) -> bool:
         return env.x == 0
 
+
 class AtRight(BoolToken):
-    def apply(self, env: PixelEnvironment) -> bool:
-        return env.x == env.size - 1
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.x == env.width - 1
+
+
+class NotAtTop(BoolToken):
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.y != 0
+
+
+class NotAtBottom(BoolToken):
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.y != env.height - 1
+
+
+class NotAtLeft(BoolToken):
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.x != 0
+
+
+class NotAtRight(BoolToken):
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.x != env.width - 1
+
 
 class Draw(TransToken):
-    def apply(self, env: PixelEnvironment) -> PixelEnvironment:
-        env.pixels[env.x][env.y] = True
-        return env
+	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
+		env.pixels[env.x][env.y] = True
+		return env
+
 
 class MoveRight(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
-		if env.x == env.size - 1:
+		if env.x == env.width - 1:
 			raise InvalidTransition()
 		env.x += 1
 		return env
+
 
 class MoveLeft(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
@@ -37,6 +63,7 @@ class MoveLeft(TransToken):
 		env.x -= 1
 		return env
 
+
 class MoveUp(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
 		if env.y == 0:
@@ -44,9 +71,10 @@ class MoveUp(TransToken):
 		env.y -= 1
 		return env
 
+
 class MoveDown(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
-		if env.y == env.size - 1:
+		if env.y == env.height - 1:
 			raise InvalidTransition()
 		env.y += 1
 		return env

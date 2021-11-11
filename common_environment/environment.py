@@ -4,7 +4,10 @@ from typing import get_type_hints
 class Environment:
     """Abstract Environment class."""
 
-    def distance(self, other) -> float:
+    def __init__(self):
+        self.program = None
+
+    def distance(self, other: "Environment") -> float:
         """Returns the distance from this Environment to some other object."""
         raise NotImplementedError()
 
@@ -24,9 +27,13 @@ class RobotEnvironment(Environment):
 class StringEnvironment(Environment):
     """Environment for string manipulation."""
     def __init__(self, string: str, pos: int = 0):
-        """Creates new StringEnvironment given an initial """
-        self.string = string
+        """Creates new StringEnvironment given an initial string and a starting position of the pointer, 0 by default."""
+        # Manipulating strings as a list of characters is more efficient.
+        self._string = list(string)
         self.pos = pos
+
+    def toString(self) -> str:
+        return "".join(self._string)
 
     def _levenshtein(self, a: str, b: str, i: int, j: int):
         """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters) that need to be made to transform one into the other."""
@@ -40,13 +47,19 @@ class StringEnvironment(Environment):
             self._levenshtein(a, b, i - 1, j - 1) + (1 if a[i] == a[j] else 0)
         )
 
-    def distance(self, other: str):
-        return self._levenshtein(self.string, other, len(self.string) - 1, len(other) - 1)
+    def distance(self, other: "StringEnvironment"):
+        return self._levenshtein(self.string(), other.string(), len(self._string) - 1, len(other._string) - 1)
 
 
 class PixelEnvironment(Environment):
-    def __init__(self, size, x, y, pixels):
-        self.size = size
+    def __init__(self, width, height, x, y, pixels=None):
+        self.width = width
+        self.height = height
         self.x = x
         self.y = y
         self.pixels = pixels
+        if not pixels:
+            self.pixels = [[False for _ in range(height)] for _ in range(width)]
+
+    def __str__(self):
+        return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
