@@ -97,7 +97,7 @@ class PixelParse(Parser):
         
         for x in range(0, width):
             for y in range(0, height):
-                pixels[x][y] = pixeldata[x*width + y] == '1'
+                pixels[x][y] = pixeldata[y*width + x] == '1'
 
         return PixelEnvironment(int(width),int(height), int(x),int(y), pixels)
 
@@ -115,12 +115,12 @@ class PixelParse(Parser):
         in_env = PixelParse.parseEnvironment(in_data)
         out_env = PixelParse.parseEnvironment(out_data)
 
-        ex = Example(in_env, out_env)
-        return TestCase(filename, [ex], [ex])
+        ex = Example(in_env, out_env)    
+        return TestCase("1", [ex], [ex])
 
 class StringParser():
         
-    @staticmethod
+
     def get_all_string_experiments():
 
         # get list of all filenames in "programs/e2-strings/data/test" directory
@@ -244,7 +244,8 @@ class StringParser():
     
 
 if __name__ == "__main__":
-    PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
+    p = PixelParse.parse("programs/e3-pixels/data/0-0-1.pl")
+    print(p)
 
 
 
