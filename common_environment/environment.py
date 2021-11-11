@@ -8,6 +8,10 @@ class Environment:
         """Returns the distance from this Environment to some other object."""
         raise NotImplementedError()
 
+    def correct(self, other: "Environment") -> bool:
+        """Returns whether this state is the desired one given a desired output Environment."""
+        raise NotImplementedError()
+
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere in that same matrix."""
 
@@ -32,20 +36,25 @@ class StringEnvironment(Environment):
     def toString(self) -> str:
         return "".join(self._string)
 
-    def _levenshtein(self, a: str, b: str, i: int, j: int):
+    def _levenshtein(self, a: list[str], b: list[str]) -> int:
         """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters) that need to be made to transform one into the other."""
-        if i == 0:
-            return j
-        if j == 0:
-            return i
-        return min(
-            self._levenshtein(a, b, i - 1, j) + 1,
-            self._levenshtein(a, b, i, j - 1) + 1,
-            self._levenshtein(a, b, i - 1, j - 1) + (1 if a[i] == a[j] else 0)
+        if len(b) == 0:
+            return len(a)
+        if len(a) == 0:
+            return len(b)
+        if a[0] == b[0]:
+            return self._levenshtein(a[1:], b[1:])
+        return 1 + min(
+            self._levenshtein(a[1:], b),
+            self._levenshtein(a, b[1:]),
+            self._levenshtein(a[1:], b[1:])
         )
 
-    def distance(self, other: "StringEnvironment"):
-        return self._levenshtein(self.string(), other.string(), len(self._string) - 1, len(other._string) - 1)
+    def distance(self, other: "StringEnvironment") -> int:
+        return self._levenshtein(self._string.copy(), other._string.copy())
+
+    def correct(self, other: "StringEnvironment") -> bool:
+        return self.toString() == other.toString()
 
 
 class PixelEnvironment(Environment):

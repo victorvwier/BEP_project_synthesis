@@ -26,9 +26,18 @@ class Recurse(ControlToken):
         self.cond = cond
         self.base_case = base_case
         self.recursive_case = recursive_case
+        self.calls = 0
 
     def apply(self, env: Environment) -> Environment:
+        if self.calls >= env.program.recursive_call_limit:
+            raise RecursiveCallLimitReached()
+
+        self.calls += 1
+
         if self.cond is None or self.cond.apply(env):
-            self.env = Program(self.recursive_case).interp(env, False)
+            env = Program(self.recursive_case).interp(env, False)
             return env.program.interp(env)
         return Program(self.base_case).interp(env, False)
+
+class RecursiveCallLimitReached(Exception):
+    pass
