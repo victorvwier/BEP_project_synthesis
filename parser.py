@@ -34,7 +34,7 @@ class RobotParser(Parser):
         out_env = [RobotParser.parseEnvironment(out_data)]
         ex = Example(in_env, out_env)    
 
-        TestCase(ex, ex, robot_tokens.TransTokens, robot_tokens.BoolTokens)
+        TestCase([ex], [ex], robot_tokens.TransTokens, robot_tokens.BoolTokens)
 
 class PixelParse(Parser):
     PATH = "programs/e3-pixels/data/"
