@@ -3,6 +3,7 @@ from unittest import TestCase
 from common_environment.control_tokens import *
 from interpreter.interpreter import Program
 from string_environment.string_tokens import *
+from common_environment.environment import StringEnvironment
 
 
 class TestStringTransTokens(TestCase):
@@ -43,14 +44,14 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string")
 
         env = p1.interp(env)
-        assert env._string == list("StRIng")
+        assert env.string_array == list("StRIng")
 
     def test_make_lowercase(self):
         p1 = Program([MakeLowercase(), MoveLeft(), MoveLeft(), MakeLowercase(), MoveLeft(), MakeLowercase()])
         env = StringEnvironment("STRING", pos = 5)
 
         env = p1.interp(env)
-        assert env._string == list("STriNg")
+        assert env.string_array == list("STriNg")
 
     def test_drop(self):
         p1 = Program([MoveLeft(), Drop()])
@@ -58,12 +59,12 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string", pos=5)
 
         env = p1.interp(env)
-        print(env.toString())
-        assert env._string == list("strig")
+        print(env.to_string())
+        assert env.string_array == list("strig")
         assert env.pos == 4
 
         env = p2.interp(env)
-        assert env._string == list("str")
+        assert env.string_array == list("str")
         assert env.pos == 2
 
     def test_drop_empty(self):
@@ -191,4 +192,4 @@ class TestComplexPrograms(TestCase):
 
         env = StringEnvironment("capitalize first letter of each word.")
         env = p.interp(env)
-        assert env.toString() == "Capitalize First Letter Of Each Word."
+        assert env.to_string() == "Capitalize First Letter Of Each Word."
