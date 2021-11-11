@@ -31,8 +31,13 @@ class ControlToken(Token):
         raise NotImplementedError()
 
 class InventedToken(Token):
+    def __init__(self, tokens: list):
+        self.tokens = tokens
+        
     def apply(self, env: Environment) -> Environment:
-        raise NotImplementedError()
+        for t in self.tokens:
+            t.apply()
+    pass
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""

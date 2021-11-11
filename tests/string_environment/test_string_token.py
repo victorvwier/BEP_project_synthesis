@@ -73,6 +73,7 @@ class TestStringTransTokens(TestCase):
 
         self.assertRaises(InvalidTransition, lambda : p.interp(env))
 
+
 class TestStringBoolTokens(TestCase):
 
     def test_at_end(self):
@@ -173,6 +174,7 @@ class TestStringBoolTokens(TestCase):
         p.interp(env)
         print(env.to_string())
         assert env.to_string() == "      "
+
 
 class TestComplexPrograms(TestCase):
 

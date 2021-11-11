@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+.idea/
+common_environment/
+__pycache__
+common_environment
+*.pyc
+.vscode/
+=======
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
@@ -145,3 +153,4 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 .idea/
+>>>>>>> small_merge

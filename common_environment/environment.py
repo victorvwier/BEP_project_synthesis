@@ -1,3 +1,6 @@
+from typing import get_type_hints
+
+
 class Environment:
     """Abstract Environment class."""
 
@@ -28,6 +31,10 @@ class RobotEnvironment(Environment):
         self.bx = bx
         self.by = by
         self.holding = holding
+
+    def __str__(self):
+        return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
+               (self.rx, self.ry, self.bx, self.by, self.holding)
 
 
 class StringEnvironment(Environment):

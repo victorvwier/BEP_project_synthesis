@@ -78,3 +78,6 @@ class MoveDown(TransToken):
 			raise InvalidTransition()
 		env.y += 1
 		return env
+
+BoolTokens = {AtTop, AtBottom, AtLeft, AtRight}
+TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw}
