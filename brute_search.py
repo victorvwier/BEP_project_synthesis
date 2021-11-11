@@ -35,9 +35,10 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         cum_loss = loss(output_pairs)
         solved = problem_solved(output_pairs)
         if (solved):
-            return (program, cum_loss, 1)
+            return (program, cum_loss, 0)
+        return (program, cum_loss, 1)
     except InvalidTransition:
-        return (program, float("inf"), 0)
+        return (program, float("inf"), 1)
 
 def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
     updated_programs = programs
@@ -58,9 +59,15 @@ def find_best_program(programs, sample_inputs, sample_outputs):
     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
 def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
+    for (p,l,s) in programs:
+        print_p(p)
+    print("Best:")
     (best_program, best_loss, solved) = programs[0]
-    print("The best loss currently is {}".format(best_loss))
-    if(iteration >= num_iterations or solved == 1):
+    print_p(best_program)
+    print(best_loss, solved)
+    print("------------------------------------")
+    #print("The best loss currently is {}".format(best_loss))
+    if(iteration >= num_iterations or solved == 0):
         return best_program, best_loss, solved
 
     updated_programs = extend_program(best_program, programs[1:], program_dictionary, sample_inputs, sample_outputs)
@@ -69,9 +76,9 @@ def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iter
     return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
 def search(tokens, examples, num_iterations):
-    sample_inputs = list(map(lambda x: x.input_environment, examples))
+    sample_inputs = list(map(lambda x: x[0], examples))
 
-    sample_outputs = list(map(lambda x: x.output_environment, examples))
+    sample_outputs = list(map(lambda x: x[1], examples))
 
     initial_programs = list(map(lambda x: Program([x]), tokens))
     program_dictionary = copy.deepcopy(initial_programs)
