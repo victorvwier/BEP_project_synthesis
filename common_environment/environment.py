@@ -31,11 +31,10 @@ class StringEnvironment(Environment):
     def __init__(self, string: str, pos: int = 0):
         """Creates new StringEnvironment given an initial string and a starting position of the pointer, 0 by default."""
         # Manipulating strings as a list of characters is more efficient.
-        print("pos: " + str(pos) + "string: " + string)
         self._string = list(string)
         self.pos = pos
         
-        assert 0 <= pos < len(string)
+        assert len(string) == 0 or 0 <= pos < len(string)
 
     def toString(self) -> str:
         return "".join(self._string)
