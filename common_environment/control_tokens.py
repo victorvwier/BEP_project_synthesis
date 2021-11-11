@@ -1,13 +1,13 @@
 from typing import List, Union
 
-from common_environment.abstract_tokens import ControlToken, BoolToken, Token, Environment
+from common_environment.abstract_tokens import *
 from interpreter.interpreter import Program
 
 
 class If(ControlToken):
     """If statement ControlToken."""
 
-    def __init__(self, cond: BoolToken, e1: List[Token], e2: List[Token]):
+    def __init__(self, cond: BoolToken, e1: List[EnvToken], e2: List[EnvToken]):
         """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute, otherwise 'e2'."""
         self.cond = cond
         self.e1 = e1
@@ -21,7 +21,7 @@ class If(ControlToken):
 class Recurse(ControlToken):
     """Recursive calling ControlToken."""
 
-    def __init__(self, cond: Union[None, BoolToken], base_case: List[Token], recursive_case: List[Token]):
+    def __init__(self, cond: Union[None, BoolToken], base_case: List[EnvToken], recursive_case: List[EnvToken]):
         """Creates a new Recurse ControlToken. When applied, 'cond' is executed. If that yields true, 'recursive_case' is executed and the whole program is called recursively, otherwise 'base_case' is executed. Note that this Token needs a pointer to its parent program to be able to call it recursively."""
         self.cond = cond
         self.base_case = base_case

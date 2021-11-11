@@ -14,7 +14,16 @@ class BoolToken(Token):
         """Applies this BoolToken on a given Environment. Returns a boolean value."""
         raise NotImplementedError()
 
-class TransToken(Token):
+
+class EnvToken(Token):
+    """Abstract Token that returns an Environment."""
+
+    def apply(self, env: Environment) -> Environment:
+        """Applies this BoolToken on a given Environment. Returns a boolean value."""
+        raise NotImplementedError()
+
+
+class TransToken(EnvToken):
     """Abstract Token that can transform an Environment."""
 
     def apply(self, env: Environment) -> Environment:
@@ -22,7 +31,7 @@ class TransToken(Token):
 
         raise NotImplementedError()
 
-class ControlToken(Token):
+class ControlToken(EnvToken):
     """Abstract Token used for flow control."""
 
     def apply(self, env: Environment) -> Environment:
@@ -30,14 +39,15 @@ class ControlToken(Token):
 
         raise NotImplementedError()
 
-class InventedToken(Token):
+class InventedToken(EnvToken):
     def __init__(self, tokens: list):
         self.tokens = tokens
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            t.apply()
-    pass
+            env = t.apply()
+        return env
+
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""
