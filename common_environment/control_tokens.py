@@ -18,6 +18,9 @@ class If(ControlToken):
             return Program(self.e1).interp(env, False)
         return Program(self.e2).interp(env, False)
 
+    def __str__(self):
+        return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
+
 class Recurse(ControlToken):
     """Recursive calling ControlToken."""
 
@@ -42,6 +45,11 @@ class Recurse(ControlToken):
 
         # else, base case
         return Program(self.base_case).interp(env, False)
+
+    def __str__(self):
+        return "Recurse(%s [%s] [%s])" %\
+               (self.cond, ", ".join(list(map(str, self.base_case))), ", ".join(list(map(str, self.recursive_case))))
+
 
 class RecursiveCallLimitReached(Exception):
     """"Exception raised when the recursive call limit, set in the Program constructor is reached."""
