@@ -14,11 +14,10 @@ class Example:
         self.output_environment = output_environment
 
 class TestCase:
-    def __init__(self, file_name: str, training_examples: List[Example], test_examples: List[Example]):
-        self.file_name = file_name
+    def __init__(self, path_to_result_file: str, training_examples: List[Example], test_examples: List[Example]):
+        self.path_to_result_file = path_to_result_file
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
-
 
 
 class Experiment:
@@ -176,7 +175,7 @@ class StringParser():
         training_examples = StringParser.parse_single_example_file(file_name_training_data)
         test_examples = StringParser.parse_single_example_file(file_name_test_data)
 
-        test_case = TestCase(file_name_training_data.split("/")[-1] , training_examples, test_examples)
+        test_case = TestCase("programs/e2-strings/results" + file_name_training_data.split("/")[-1] , training_examples, test_examples)
         return test_case
 
     
