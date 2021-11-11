@@ -116,12 +116,12 @@ class PixelParse(Parser):
         in_env = PixelParse.parseEnvironment(in_data)
         out_env = PixelParse.parseEnvironment(out_data)
 
-        ex = Example(in_env, out_env)    
-        return TestCase([ex], [ex], pixel_tokens.TransTokens, pixel_tokens.BoolTokens)
+        ex = Example(in_env, out_env)
+        return TestCase(filename, [ex], [ex])
 
 class StringParser():
         
-
+    @staticmethod
     def get_all_string_experiments():
 
         # get list of all filenames in "programs/e2-strings/data/test" directory
@@ -243,14 +243,8 @@ class StringParser():
     
     
 
-<<<<<<< HEAD:parser.py
 if __name__ == "__main__":
-    p = PixelParse.parse("programs/e3-pixels/data/0-0-1.pl")
-    print(p)
-=======
-# if __name__ == "__main__":
-#     PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
->>>>>>> merge-attempt:myparser.py
+    PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
 
 
 

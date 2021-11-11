@@ -59,5 +59,5 @@ class TestRobotTokens(TestCase):
 class TestRobotDistance(TestCase):
     def test_robot_distance(self):
         env1 = RobotEnvironment(2, 0, 0, 1, 0, False)
-        env2 = RobotEnvironment(2, 1, 1, 0, 0, True)
+        env2 = RobotEnvironment(2, 1, 1, 1, 1, True)
         self.assertEqual(4, env1.distance(env2))

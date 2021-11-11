@@ -23,7 +23,7 @@ def loss(output_pairs):
 def problem_solved(output_pairs):
     solved = True
     for output_pair in output_pairs:
-        solved = solved and output_pair[0].equivalent(output_pair[1])
+        solved = solved and output_pair[0].correct(output_pair[1])
     return solved
 
 # check

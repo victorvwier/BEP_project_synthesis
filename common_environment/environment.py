@@ -10,10 +10,6 @@ class Environment:
     def distance(self, other: "Environment") -> float:
         """Returns the distance from this Environment to some other object."""
         raise NotImplementedError()
-    
-    def equivalent(self, other: "Environment") -> bool:
-        """Returns the true if the distance between self and other = 0"""
-        raise NotImplementedError()
 
     def correct(self, other: "Environment") -> bool:
         """Returns whether this state is the desired one given a desired output Environment."""
@@ -63,7 +59,7 @@ class StringEnvironment(Environment):
         self.string_array = list(string)
         self.pos = pos
         
-        assert 0 <= pos < len(string)
+        assert 0 <= pos < len(string) or len(string) == 0
 
     def to_string(self) -> str:
         """Returns the string of this Environment. For efficiency strings are internally stored as an array instead of

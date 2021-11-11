@@ -59,13 +59,20 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string", pos=5)
 
         env = p1.interp(env)
-        print(env.to_string())
         assert env.string_array == list("strig")
         assert env.pos == 4
 
         env = p2.interp(env)
         assert env.string_array == list("str")
         assert env.pos == 2
+
+    def test_drop_all(self):
+        p1 = Program([Drop()])
+        ei = StringEnvironment("s")
+        eo = StringEnvironment("")
+
+        ei = p1.interp(ei)
+        assert ei.correct(eo)
 
     def test_drop_empty(self):
         p = Program([Drop()])
