@@ -23,6 +23,8 @@ class RobotEnvironment(Environment):
         self.by = by
         self.holding = holding
 
+        assert (not holding or (rx == bx and ry == by))
+
 
 class StringEnvironment(Environment):
     """Environment for string manipulation."""
@@ -31,6 +33,8 @@ class StringEnvironment(Environment):
         # Manipulating strings as a list of characters is more efficient.
         self._string = list(string)
         self.pos = pos
+        
+        assert 0 <= pos < len(str)
 
     def toString(self) -> str:
         return "".join(self._string)
@@ -60,6 +64,9 @@ class PixelEnvironment(Environment):
         self.pixels = pixels
         if not pixels:
             self.pixels = [[False for _ in range(height)] for _ in range(width)]
+
+        assert 0 <= x < width
+        assert 0 <= y < height
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
