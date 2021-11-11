@@ -19,7 +19,7 @@ def inventTokens(tokenSet, maxLength) -> list:
         if len(p) > 1:
             out.append(InventedToken(p))
         else: 
-            out.append(p[0])
+            out.append(p[0]())
     
     return out
     
@@ -36,7 +36,7 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     for c in conditions:
         for lb in bodies:
             for rb in bodies:
-                if_list.append(If(c, lb, rb))
+                if_list.append(If(c(), [lb], [rb]))
         out = out + if_list
     return out
 

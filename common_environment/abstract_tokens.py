@@ -45,9 +45,9 @@ class InventedToken(EnvToken):
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            env = t.apply()
-        return env
+            env = t.apply(t, env)
 
+        return env
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""

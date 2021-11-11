@@ -4,7 +4,9 @@
 # apply(P, TestExamples)
 # Output -> Perf
 
+import copy
 import time
+from brute_search import search
 
 # TODO check if i still call the correct invent method (invent vs invent2)
 from invent import invent2
@@ -25,6 +27,8 @@ class TestCase:
     def __init__(self, training_examples: List[Example], test_examples: List[Example], tokens, boolean_tokens):
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
+        self.tokens = tokens
+        self.boolean_tokens = boolean_tokens
 
 class Experiment:
     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
@@ -56,11 +60,13 @@ def test_performance_single_case(test_case: TestCase):
     program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
 
-    execution_time_in_seconds = start_time - finish_time
+    execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for (in_state, out_state) in test_case.test_examples:
-        result = program.interp(program, in_state)
-        if test_case.distance_function(result, out_state) == 0:
+    for e in test_case.test_examples:
+        in_state = e.input_environment
+        out_state = e.output_environment
+        result = program.interp(in_state)
+        if in_state.distance(out_state) == 0:
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
     return success_percentage, execution_time_in_seconds
@@ -106,12 +112,12 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
 
 def get_all_experiments():
     # TODO get experiments from correct files using get_single_experiments
-    return experiments
+    return None
     
 
 def get_single_experiment(): 
     # TODO get single experiment
-    return experiment
+    return None
 
 if __name__ == "__main__":
     write_performances_of_experiments_to_file(
