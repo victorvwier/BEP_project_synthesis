@@ -19,7 +19,7 @@ import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 120
+MAX_NUMBER_OF_ITERATIONS = 4
 
 
 # class Example:
@@ -74,6 +74,7 @@ def extract_trans_tokens_from_domain_name(domain_name):
 def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens):
     
     start_time = time.time()
+
     # generate different token combinations
     token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
@@ -92,6 +93,9 @@ def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens)
         if out_state.correct(result):
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+    print(test_case.file_name)
+
     return success_percentage, execution_time_in_seconds
 
 
@@ -148,7 +152,11 @@ def get_all_experiments():
     return experiments
 
 if __name__ == "__main__":
+    
+    print("Start reading in all experiments")
     experiments = get_all_experiments()
+
+    print("Done reading in all experiments")
     write_performances_of_experiments_to_file(
         experiments,
         "performance_results/results.txt"
