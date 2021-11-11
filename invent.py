@@ -1,5 +1,5 @@
 import itertools
-from common_environment.control_tokens import If
+from common_environment.control_tokens import If, Recurse
 from string_environment.string_tokens import *
 
 # Generates all permutations of elements in a set where maxLength > len(per) > 1
@@ -38,6 +38,20 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
             for rb in bodies:
                 if_list.append(If(c(), [lb], [rb]))
         out = out + if_list
+
+    # Generating recurse statements
+    recurse_list = []
+    conditions = boolTokenSet
+    conditions
+    bodies = inventTokens(tokenSet, max(1, int(maxLength / 2)))  # TODO Arbitrary length!!
+    for c in conditions:
+        for lb in bodies:
+            for rb in bodies:
+                recurse_list.append(Recurse(c(), [lb], [rb]))
+    for lb in bodies:
+        for rb in bodies:
+            recurse_list.append(Recurse(None, [lb], [rb]))
+    out = out + recurse_list
     return out
 
 
