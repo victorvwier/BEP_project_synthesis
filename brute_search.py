@@ -1,7 +1,7 @@
 import copy
 from interpreter.interpreter import *
 from pixel_environment.pixel_tokens import *
-
+from myparser import Example
 
 def print_p(p):
     print(p.sequence)
@@ -59,13 +59,13 @@ def find_best_program(programs, sample_inputs, sample_outputs):
     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
 def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
-    for (p,l,s) in programs:
-        print_p(p)
-    print("Best:")
+    # for (p,l,s) in programs:
+    #     print_p(p)
+    #print("Best:")
     (best_program, best_loss, solved) = programs[0]
-    print_p(best_program)
-    print(best_loss, solved)
-    print("------------------------------------")
+    # print_p(best_program)
+    # print(best_loss, solved)
+    # print("------------------------------------")
     #print("The best loss currently is {}".format(best_loss))
     if(iteration >= num_iterations or solved == 0):
         return best_program, best_loss, solved
@@ -75,10 +75,10 @@ def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iter
     iteration = iteration + 1
     return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
-def search(tokens, examples, num_iterations):
-    sample_inputs = list(map(lambda x: x[0], examples))
+def search(tokens, examples: List[Example], num_iterations):
+    sample_inputs = list(map(lambda x: x.input_environment, examples))
 
-    sample_outputs = list(map(lambda x: x[1], examples))
+    sample_outputs = list(map(lambda x: x.output_environment, examples))
 
     initial_programs = list(map(lambda x: Program([x]), tokens))
     program_dictionary = copy.deepcopy(initial_programs)

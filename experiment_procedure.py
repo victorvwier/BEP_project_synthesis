@@ -84,10 +84,12 @@ def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens)
 
     execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for (in_state, out_state) in test_case.test_examples:
-        result = program.interp(program, in_state)
+    for e in test_case.test_examples:
+        in_state = e.input_environment
+        out_state = e.output_environment
+        result = program.interp(in_state)
         ## TODO solve needs to be implemented
-        if out_state.solve(result) == True:
+        if out_state.correct(result):
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
     return success_percentage, execution_time_in_seconds
