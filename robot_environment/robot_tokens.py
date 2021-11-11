@@ -47,58 +47,60 @@ class AtRight(BoolToken):
 
 class MoveRight(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(env.rx == env.size - 1):
+        if env.rx == env.size - 1:
             raise InvalidTransition()
         env.rx += 1
-        if(env.holding):
+        if env.holding:
             env.bx += 1
         return env
 
 
 class MoveLeft(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(env.rx == 0):
+        if env.rx == 0:
             raise InvalidTransition()
         env.rx -= 1
-        if(env.holding):
+        if env.holding:
             env.bx -= 1
         return env
 
 
 class MoveUp(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(env.ry == 0):
+        if env.ry == 0:
             raise InvalidTransition()
         env.ry -= 1
-        if(env.holding):
+        if env.holding:
             env.by -= 1
         return env
 
 
 class MoveDown(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(env.ry == env.size - 1):
+        if env.ry == env.size - 1:
             raise InvalidTransition()
         env.ry += 1
-        if(env.holding):
+        if env.holding:
             env.by += 1
         return env
 
 
 class Drop(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(not env.holding):
+        if not env.holding:
             raise InvalidTransition()
         env.holding = False
         env.bx = env.rx
         env.by = env.ry
+        return env
 
 
 class Grab(TransToken):
     def apply(self, env: Environment) -> RobotEnvironment:
-        if(env.holding):
+        if env.holding or env.rx != env.bx or env.ry != env.by:
             raise InvalidTransition()
         env.holding = True
+        return env
 
 
 BoolTokens = {AtTop, AtBottom, AtLeft, AtRight}

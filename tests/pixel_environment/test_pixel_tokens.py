@@ -4,7 +4,7 @@ from interpreter.interpreter import Program
 from pixel_environment.pixel_tokens import *
 
 
-class TestMoveRight(TestCase):
+class TestPixelTokens(TestCase):
     def setUp(self):
         self.env1 = PixelEnvironment(1, 1, 0, 0, [[False]])
         self.env2 = PixelEnvironment(3, 2, 0, 0)
