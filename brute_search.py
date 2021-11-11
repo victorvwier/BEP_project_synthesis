@@ -1,4 +1,5 @@
 import copy
+from common_environment.control_tokens import RecursiveCallLimitReached
 from interpreter.interpreter import *
 from pixel_environment.pixel_tokens import *
 
@@ -52,7 +53,7 @@ def find_best_program(programs, sample_inputs, sample_outputs):
             if(solved):
                 return program, cum_loss, solved
             ordered_programs.append((program, cum_loss, solved))
-        except InvalidTransition:
+        except (InvalidTransition, RecursiveCallLimitReached) as e:
             # program.interp(used_input)
             ordered_programs.append((program, float("inf"), False))
     ordered_programs = sorted(ordered_programs, key=lambda x: x[1])
