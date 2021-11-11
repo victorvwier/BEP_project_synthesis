@@ -36,6 +36,16 @@ class RobotEnvironment(Environment):
         return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
                (self.rx, self.ry, self.bx, self.by, self.holding)
 
+    def distance(self, other: "RobotEnvironment") -> int:
+        assert self.size == other.size
+        return abs(self.rx - other.rx) + abs(self.ry - other.ry) +\
+               abs(self.bx - other.bx) + abs(self.by - other.by) + \
+               abs(int(self.holding) - int(other.holding))
+
+    def correct(self, other: "RobotEnvironment") -> bool:
+        return (self.rx, self.ry, self.bx, self.by, self.holding) \
+               == (other.rx, other.ry, other.rx, other.ry, other.holding)
+
 
 class StringEnvironment(Environment):
     """Environment for string manipulation."""
@@ -88,3 +98,17 @@ class PixelEnvironment(Environment):
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
+
+    def _hamming_distance(self, matrix1: list[list[bool]], matrix2: list[list[bool]]) -> int:
+        assert len(matrix1) == len(matrix2)
+        assert len(matrix1[0]) == len(matrix2[0])
+        element_list1 = [e for row in matrix1 for e in row]
+        element_list2 = [e for row in matrix2 for e in row]
+        diff = [abs(int(e1) - int(e2)) for (e1, e2) in zip(element_list1, element_list2)]
+        return sum(diff)
+
+    def correct(self, other: "PixelEnvironment") -> bool:
+        return self._hamming_distance(self.pixels, other.pixels) == 0
+
+    def distance(self, other: "PixelEnvironment") -> int:
+        return self._hamming_distance(self.pixels, other.pixels)

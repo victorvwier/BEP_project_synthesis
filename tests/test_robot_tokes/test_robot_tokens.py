@@ -54,3 +54,10 @@ class TestRobotTokens(TestCase):
 
     def test_double_drop(self):
         self.assertRaises(Exception, lambda: Program([Drop(), Drop()]).interp(self.env2))
+
+
+class TestRobotDistance(TestCase):
+    def test_robot_distance(self):
+        env1 = RobotEnvironment(2, 0, 0, 1, 0, False)
+        env2 = RobotEnvironment(2, 1, 1, 0, 0, True)
+        self.assertEqual(4, env1.distance(env2))

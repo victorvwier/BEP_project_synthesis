@@ -38,3 +38,12 @@ class TestPixelTokens(TestCase):
         result = p1.interp(self.env2)
         expected = [[False, False], [True, False], [False, True]]
         self.assertEqual(expected, result.pixels)
+
+
+class TestPixelDistance(TestCase):
+    def test_robot_distance(self):
+        env1 = PixelEnvironment(2, 3, 0, 0, [[False, True, False], [True, False, False]])
+        env2 = PixelEnvironment(2, 3, 1, 2, [[False, True, False], [True, False, False]])
+        env3 = PixelEnvironment(2, 3, 1, 2, [[False, False, False], [True, True, False]])
+        self.assertEqual(0, env1.distance(env2))
+        self.assertEqual(2, env1.distance(env3))
