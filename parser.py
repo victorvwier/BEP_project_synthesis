@@ -8,19 +8,20 @@ import re
 class Parser():
     def parse(filename: str) -> TestCase:
         raise NotImplementedError()
+    
+    def openFile(filename: str) -> str:
+        f = open(filename, 'r')
+        data = f.read()
+        return data
 
 # Parses a single file containing a test case for the Robot
-class RobotParser():
+class RobotParser(Parser):
     PATH = "programs/e1-robots/data/"
     def parseEnvironment(data: 'list[str]') -> Environment:
         return RobotEnvironment(data[5], data[0], data[1], data[2], data[3], data[4] == "0")            
 
     def parse(filename: str) -> TestCase:
-        # open the file
-        f = open(filename, 'r')
-
-        # construct examples from the input
-        data = f.read()
+        data = Parser.openFile(filename)
         regex = re.compile(r"\([^)]*\)")
         in_out = regex.findall(data)
         in_out[0] = in_out[0][2::]
@@ -35,7 +36,7 @@ class RobotParser():
 
         TestCase(ex, ex, robot_tokens.TransTokens, robot_tokens.BoolTokens)
 
-class PixelParse():
+class PixelParse(Parser):
     PATH = "programs/e3-pixels/data/"
     def parseEnvironment(data:str) -> Environment:
         tokens = data.split(',')
@@ -61,12 +62,10 @@ class PixelParse():
             for y in range(0, height):
                 pixels[x][y] = pixeldata[x*width + y]
 
-        return PixelEnvironment(int(x),int(y),int(width),int(height), pixels)
+        return PixelEnvironment(int(width),int(height), int(x),int(y), pixels)
 
     def parse(filename:str) -> TestCase:
-        f = open(filename, 'r')
-
-        data = f.read()
+        data = Parser.openFile(filename)
         regex = re.compile(r"\([^)]*\)")
 
         in_out = regex.findall(data)
