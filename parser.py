@@ -79,7 +79,7 @@ class PixelParse(Parser):
         out_env = PixelParse.parseEnvironment(out_data)
 
         ex = Example(in_env, out_env)    
-        TestCase(ex, ex, pixel_tokens.TransTokens, pixel_tokens.BoolTokens)
+        return TestCase([ex], [ex], pixel_tokens.TransTokens, pixel_tokens.BoolTokens)
 
 
 if __name__ == "__main__":

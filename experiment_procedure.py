@@ -5,6 +5,7 @@
 # Output -> Perf
 
 import time
+from brute_search import search
 
 # TODO check if i still call the correct invent method (invent vs invent2)
 from invent import invent2
@@ -25,6 +26,8 @@ class TestCase:
     def __init__(self, training_examples: List[Example], test_examples: List[Example], tokens, boolean_tokens):
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
+        self.tokens = tokens
+        self.boolean_tokens = boolean_tokens
 
 class Experiment:
     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
@@ -106,12 +109,12 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
 
 def get_all_experiments():
     # TODO get experiments from correct files using get_single_experiments
-    return experiments
+    return None
     
 
 def get_single_experiment(): 
     # TODO get single experiment
-    return experiment
+    return None
 
 if __name__ == "__main__":
     write_performances_of_experiments_to_file(
