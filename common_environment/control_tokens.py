@@ -21,6 +21,17 @@ class If(ControlToken):
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
 
+    def to_formatted_string(self):
+        result = "if %s:\n\t%s" % (
+            self.cond.to_formatted_string(),
+            "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.e1])
+        )
+        if self.e2:
+            result += "\nelse:\n\t%s" % (
+                "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.e2])
+            )
+        return result
+
 class Recurse(ControlToken):
     """Recursive calling ControlToken."""
 
@@ -49,6 +60,17 @@ class Recurse(ControlToken):
     def __str__(self):
         return "Recurse(%s [%s] [%s])" %\
                (self.cond, ", ".join(list(map(str, self.base_case))), ", ".join(list(map(str, self.recursive_case))))
+
+    def to_formatted_string(self):
+        result = "while %s do:\n\t%s" % (
+            self.cond.to_formatted_string(),
+            "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.recursive_case])
+        )
+        if self.base_case:
+            result += "\nfinally:\n\t%s" % (
+                "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.base_case])
+            )
+        return result
 
 
 class RecursiveCallLimitReached(Exception):

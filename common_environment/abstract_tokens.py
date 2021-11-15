@@ -11,6 +11,9 @@ class Token:
     def __str__(self):
         return str(type(self).__name__)
 
+    def to_formatted_string(self):
+        return str(self)
+
 
 class BoolToken(Token):
     """Abstract Token that returns a boolean value."""
@@ -57,7 +60,10 @@ class InventedToken(EnvToken):
         return env
 
     def __str__(self):
-        return "[%s]" % ", ".join(list(map(str, self.tokens)))
+        return "[%s]" % ", ".join([str(t) for t in self.tokens])
+
+    def to_formatted_string(self):
+        return "[%s]" % "\n".join([t.to_formatted_string() for t in self.tokens])
 
 
 class InvalidTransition(Exception):

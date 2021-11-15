@@ -22,5 +22,11 @@ class Program:
             env = token.apply(env)
         return env
 
+    def __str__(self):
+        return "Program([%s])" % ", ".join([str(t) for t in self.sequence])
+
+    def to_formatted_string(self):
+        return "Program:\n\t%s" % "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.sequence])
+
     # def interp_cast(self, env: Environment):
     #   return cast(env, self.interp(env))
