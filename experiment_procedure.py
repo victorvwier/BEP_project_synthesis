@@ -8,7 +8,6 @@ import copy
 import time
 from brute_search import search
 
-# TODO check if i still call the correct invent method (invent vs invent2)
 from invent import invent2
 from typing import List 
 from common_environment.environment import *
@@ -19,29 +18,8 @@ import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 40
-
-
-# class Example:
-#     def __init__(self, input_environment: Environment, output_environment: Environment):
-#         self.input_environment = input_environment
-#         self.output_environment = output_environment
-
-# class TestCase:
-#     def __init__(self, training_examples: List[Example], test_examples: List[Example]):
-#         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
-#         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
-
-
-# class Experiment:
-#     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
-#         self.name = name
-#         self.domain_name = domain_name
-#         self.test_cases = test_cases
-    
-#     def __str__(self):
-#         return "Experiment: " + self.name + "<TestCases: " + str(self.test_cases) + ">"
-
+MAX_NUMBER_OF_ITERATIONS = 20
+# MAX_EXECUTION_TIME_IN_SECONDS = 30
 
 def extract_domain_from_environment(environment):
     domain_name = "unknown"
@@ -79,7 +57,6 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
     program: Program
-    # TODO search still needs to be imported
     program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
 
@@ -94,20 +71,21 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
             result = program.interp(in_state)
         except:
             result = in_state
-        ## TODO solve needs to be implemented
 
+    	# TODO write results to file for Pixel and Robot environments
         if isinstance(result, StringEnvironment):
             file.writelines(["output: " + result.to_string() + "\n"])
-
+        
         if out_state.correct(result):
             successes += 1
+
     success_percentage = 100.0 * successes / len(test_case.test_examples)
 
     print(test_case.path_to_result_file, end="  ")
     print(success_percentage)
 
 
-    file = open(test_case.path_to_result_file, "w+")
+    # file = open(test_case.path_to_result_file, "a+")
     file.writelines([
         "succes_percentage: " + str(success_percentage) + "\n",
         "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
