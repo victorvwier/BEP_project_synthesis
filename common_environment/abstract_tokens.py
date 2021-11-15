@@ -1,11 +1,16 @@
 from common_environment.environment import *
 
+
 class Token:
     """Abstract Token. Enforces that all tokens have an apply method."""
 
     def apply(self, env: Environment):
         """Applies this Token on a given Environment."""
         raise NotImplementedError()
+
+    def __str__(self):
+        return str(type(self).__name__)
+
 
 class BoolToken(Token):
     """Abstract Token that returns a boolean value."""
@@ -31,6 +36,7 @@ class TransToken(EnvToken):
 
         raise NotImplementedError()
 
+
 class ControlToken(EnvToken):
     """Abstract Token used for flow control."""
 
@@ -39,15 +45,20 @@ class ControlToken(EnvToken):
 
         raise NotImplementedError()
 
+
 class InventedToken(EnvToken):
     def __init__(self, tokens: list):
         self.tokens = tokens
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            env = t.apply(t, env)
+            env = t.apply(env)
 
         return env
+
+    def __str__(self):
+        return "[%s]" % ", ".join(list(map(str, self.tokens)))
+
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""
