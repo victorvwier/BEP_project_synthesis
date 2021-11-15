@@ -8,7 +8,6 @@ import copy
 import time
 from brute_search import search
 
-# TODO check if i still call the correct invent method (invent vs invent2)
 from invent import invent2
 from typing import List 
 from common_environment.environment import *
@@ -19,29 +18,8 @@ import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 120
-
-
-# class Example:
-#     def __init__(self, input_environment: Environment, output_environment: Environment):
-#         self.input_environment = input_environment
-#         self.output_environment = output_environment
-
-# class TestCase:
-#     def __init__(self, training_examples: List[Example], test_examples: List[Example]):
-#         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
-#         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
-
-
-# class Experiment:
-#     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
-#         self.name = name
-#         self.domain_name = domain_name
-#         self.test_cases = test_cases
-    
-#     def __str__(self):
-#         return "Experiment: " + self.name + "<TestCases: " + str(self.test_cases) + ">"
-
+MAX_NUMBER_OF_ITERATIONS = 20
+# MAX_EXECUTION_TIME_IN_SECONDS = 30
 
 def extract_domain_from_environment(environment):
     domain_name = "unknown"
@@ -71,26 +49,50 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 
 # a single case exists of several examples which should be solved by one single program
-def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens):
+def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens):
     
     start_time = time.time()
+
     # generate different token combinations
     token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # find program that satisfies training_examples
     program: Program
-    # TODO search still needs to be imported
     program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
     finish_time = time.time()
 
+    file = open(test_case.path_to_result_file, "w+")
+
     execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for example in test_case.test_examples:
-        result = program.interp(example.input_environment)
-        ## TODO solve needs to be implemented
-        if example.output_environment.correct(result) == True:
+    for e in test_case.test_examples:
+        in_state = e.input_environment
+        out_state = e.output_environment
+        try:
+            result = program.interp(in_state)
+        except:
+            result = in_state
+
+    	# TODO write results to file for Pixel and Robot environments
+        if isinstance(result, StringEnvironment):
+            file.writelines(["output: " + result.to_string() + "\n"])
+        
+        if out_state.correct(result):
             successes += 1
+
     success_percentage = 100.0 * successes / len(test_case.test_examples)
-    return success_percentage, execution_time_in_seconds, program
+
+    print(test_case.path_to_result_file, end="  ")
+    print(success_percentage)
+
+
+    # file = open(test_case.path_to_result_file, "a+")
+    file.writelines([
+        "succes_percentage: " + str(success_percentage) + "\n",
+        "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
+    ])
+    file.close()
+
+    return success_percentage, execution_time_in_seconds
 
 
 # An experiment exists of different cases in the same domain.
@@ -106,7 +108,7 @@ def test_performance_single_experiment(experiment: Experiment):
     trans_tokens = extract_trans_tokens_from_domain_name(experiment.domain_name)
 
     for test_case in test_cases:
-        success_percentage, execution_time_in_seconds = test_performance_single_case(test_case, trans_tokens, bool_tokens)
+        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case, trans_tokens, bool_tokens)
         sum_of_success_percentages += success_percentage
         sum_of_execution_times_in_seconds += execution_time_in_seconds
         if success_percentage == 100.0:
@@ -131,7 +133,7 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
         lines_to_write.append("Percentage_of_completely_successful_programs: "
                               + str(percentage_of_completely_successful_programs) + "\n")
         lines_to_write.append("\n")
-
+        print("Experiment: {} finished with status: {}".format(experiment.name, average_success_percentage))
     file = open(output_file, "w")
     file.writelines(lines_to_write)
     file.close()
@@ -146,7 +148,11 @@ def get_all_experiments():
     return experiments
 
 if __name__ == "__main__":
+    
+    print("Start reading in all experiments")
     experiments = get_all_experiments()
+
+    print("Done reading in all experiments")
     write_performances_of_experiments_to_file(
         experiments,
         "performance_results/results.txt"

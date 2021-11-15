@@ -16,8 +16,8 @@ class Example:
         self.output_environment = output_environment
 
 class TestCase:
-    def __init__(self, file_name: str, training_examples: List[Example], test_examples: List[Example]):
-        self.file_name = file_name
+    def __init__(self, path_to_result_file: str, training_examples: List[Example], test_examples: List[Example]):
+        self.path_to_result_file = path_to_result_file
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
 
@@ -98,7 +98,7 @@ class PixelParse(Parser):
         
         for x in range(0, width):
             for y in range(0, height):
-                pixels[x][y] = pixeldata[x*width + y] == '1'
+                pixels[x][y] = pixeldata[y*width + x] == '1'
 
         return PixelEnvironment(int(width),int(height), int(x),int(y), pixels)
 
@@ -116,8 +116,8 @@ class PixelParse(Parser):
         in_env = PixelParse.parseEnvironment(in_data)
         out_env = PixelParse.parseEnvironment(out_data)
 
-        ex = Example(in_env, out_env)
-        return TestCase(filename, [ex], [ex])
+        ex = Example(in_env, out_env)    
+        return TestCase("1", [ex], [ex])
 
 class StringParser():
     @staticmethod
@@ -173,7 +173,7 @@ class StringParser():
         training_examples = StringParser.parse_single_example_file(file_name_training_data)
         test_examples = StringParser.parse_single_example_file(file_name_test_data)
 
-        test_case = TestCase(file_name_training_data.split("/")[-1] , training_examples, test_examples)
+        test_case = TestCase("programs/e2-strings/results/" + file_name_training_data.split("/")[-1] , training_examples, test_examples)
         return test_case
 
     
@@ -186,6 +186,7 @@ class StringParser():
         examples = []
         for line in lines:
             examples.append(StringParser.parse_single_line(line))
+        return examples
     
     # def parse(filename_traindata: str, filename_testdata) -> TestCase:
     def parse_single_line(line: str) -> Example:
@@ -240,7 +241,8 @@ class StringParser():
     
 
 if __name__ == "__main__":
-    PixelParse.parse("programs/e3-pixels/data/1-0-1.pl")
+    p = PixelParse.parse("programs/e3-pixels/data/0-0-1.pl")
+    print(p)
 
 
 

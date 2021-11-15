@@ -10,6 +10,8 @@ class AtEnd(BoolToken):
     """Token that returns whether the pointer is at the end of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.pos == len(env.string_array) - 1
 
 
@@ -17,6 +19,8 @@ class NotAtEnd(BoolToken):
     """Token that returns whether the pointer is not at the end of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.pos != len(env.string_array) - 1
 
 
@@ -24,6 +28,8 @@ class AtStart(BoolToken):
     """Token that returns whether the pointer is at the start of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.pos == 0
 
 
@@ -31,6 +37,8 @@ class NotAtStart(BoolToken):
     """Token that returns whether the pointer is not at the start of the string."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.pos != 0
 
 
@@ -38,6 +46,8 @@ class IsLetter(BoolToken):
     """Token that returns whether the character at the pointers position is an alphabetical letter."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.string_array[env.pos].isalpha()
 
 
@@ -45,6 +55,8 @@ class IsNotLetter(BoolToken):
     """Token that returns whether the character at the pointers position is not an alphabetical letter."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return not env.string_array[env.pos].isalpha()
 
 
@@ -52,6 +64,8 @@ class IsUppercase(BoolToken):
     """Token that returns whether the character at the pointers position is in uppercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.string_array[env.pos].isupper()
 
 
@@ -59,6 +73,8 @@ class IsNotUppercase(BoolToken):
     """Token that returns whether the character at the pointers position is not in uppercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return not env.string_array[env.pos].isupper()
 
 
@@ -66,6 +82,8 @@ class IsLowercase(BoolToken):
     """Token that returns whether the character at the pointers position is in lowercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.string_array[env.pos].islower()
 
 
@@ -73,6 +91,8 @@ class IsNotLowercase(BoolToken):
     """Token that returns whether the character at the pointers position is not in lowercase."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return not env.string_array[env.pos].islower()
 
 
@@ -80,6 +100,8 @@ class IsNumber(BoolToken):
     """Token that returns whether the character at the pointers position is a number."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.string_array[env.pos].isnumeric()
 
 
@@ -87,6 +109,8 @@ class IsNotNumber(BoolToken):
     """Token that returns whether the character at the pointers position is not a number."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return not env.string_array[env.pos].isnumeric()
 
 
@@ -94,6 +118,8 @@ class IsSpace(BoolToken):
     """Token that returns whether the character at the pointers position is a space character."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return env.string_array[env.pos] == " "
 
 
@@ -101,6 +127,8 @@ class IsNotSpace(BoolToken):
     """Token that returns whether the character at the pointers position is not a space character."""
 
     def apply(self, env: StringEnvironment) -> bool:
+        if len(env.string_array) == 0:
+            raise InvalidTransition
         return not env.string_array[env.pos] == " "
 
 
