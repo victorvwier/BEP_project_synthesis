@@ -8,6 +8,9 @@ class Token:
         """Applies this Token on a given Environment."""
         raise NotImplementedError()
 
+    def to_formatted_string(self):
+        return str(self)
+
     def __str__(self):
         return str(type(self).__name__)
 
@@ -60,10 +63,13 @@ class InventedToken(EnvToken):
         return env
 
     def __str__(self):
-        return "[%s]" % ", ".join(list(map(str, self.tokens)))
+        return "[%s]" % ", ".join([str(t) for t in self.tokens])
+
+    def to_formatted_string(self):
+        return "[%s]" % "\n".join([t.to_formatted_string() for t in self.tokens])
 
     def __repr__(self):
-        return "[%s]" % ", ".join(list(map(str, self.tokens)))
+        return "[%s]" % ", ".join([str(t) for t in self.tokens])
 
 
 class InvalidTransition(Exception):
