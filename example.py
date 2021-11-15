@@ -6,9 +6,10 @@ from robot_environment import robot_tokens
 from string_environment import string_tokens
 
 if __name__ == "__main__":
-    testcase = PixelParser().parse_file("0-0-1.pl")
-    (succesper, time) = test_performance_single_case_and_write_to_file(testcase, pixel_tokens.TransTokens, pixel_tokens.BoolTokens)
-    print("Test case worked for {}% of the time, running time: {}".format(succesper, time))
+    experiment = StringParser().parse_all()#file_prefix="1-4-")
+    (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment)
+    print("Experiment had an average success rate of {}%, average running time: {}, and {}% of programs were "
+          "completely successful".format(ave_suc, ave_time, com_suc))
 
     """
     Use this to run groups of test case defined by file prefix
