@@ -15,7 +15,7 @@ import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 20
+MAX_NUMBER_OF_ITERATIONS = 30
 # MAX_EXECUTION_TIME_IN_SECONDS = 30
 
 def extract_domain_from_environment(environment):
@@ -88,8 +88,9 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     success_percentage = 100.0 * successes / len(test_case.test_examples)
 
-    print(test_case.path_to_result_file, end="  ")
-    print(success_percentage)
+    print(test_case.path_to_result_file, end=" \t")
+    print(success_percentage, end=" \t")
+    print(program)
 
 
     # file = open(test_case.path_to_result_file, "a+")
