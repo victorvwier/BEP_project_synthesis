@@ -12,7 +12,7 @@ class RobotParser(Parser):
             result_folder_path=result_folder_path or "results/e1-robots/"
         )
 
-    def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
+    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
         # gets first line and removes unneeded characters
         line = lines[0][4:-2]
 
