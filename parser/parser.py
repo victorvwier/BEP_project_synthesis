@@ -31,7 +31,10 @@ class Parser:
         files = self.file_names
 
         if file_prefix != "":
-            files = filter(lambda x : x.startswith(file_prefix), self.file_names)
+            files = list(filter(lambda x : x.startswith(file_prefix), self.file_names))
+
+        if len(files) == 0:
+            raise Exception("No files were found with prefix \"{}\" at path \"{}\".".format(file_prefix, self.path))
 
         return Experiment(
             experiment_name,
