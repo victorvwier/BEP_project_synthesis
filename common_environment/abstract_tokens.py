@@ -11,6 +11,9 @@ class Token:
     def __str__(self):
         return str(type(self).__name__)
 
+    def __repr__(self):
+        return str(type(self).__name__)
+
 
 class BoolToken(Token):
     """Abstract Token that returns a boolean value."""
@@ -57,6 +60,9 @@ class InventedToken(EnvToken):
         return env
 
     def __str__(self):
+        return "[%s]" % ", ".join(list(map(str, self.tokens)))
+
+    def __repr__(self):
         return "[%s]" % ", ".join(list(map(str, self.tokens)))
 
 
