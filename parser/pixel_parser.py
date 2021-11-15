@@ -17,7 +17,7 @@ class PixelParser(Parser):
 
         # splits into input and output
         entries = line.split("w(")[1:]
-        print(file_name)
+        
         example = Example(
             PixelParser._parse_entry(entries[0]),
             PixelParser._parse_entry(entries[1]),
@@ -47,11 +47,10 @@ class PixelParser(Parser):
 
         # fills up array
         for a in arr:
-            if i == e[3]:
+            if i == e[2]:
                 i = 0
-                j += 1
 
-            pixels[j].append(a)
+            pixels[i].append(a)
             i += 1
 
         return PixelEnvironment(
