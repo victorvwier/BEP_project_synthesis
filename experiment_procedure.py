@@ -1,9 +1,3 @@
-# Experiment procedure:
-# Input: Token, Examples,
-# P <- synth()
-# apply(P, TestExamples)
-# Output -> Perf
-
 import copy
 import time
 from brute_search import search
@@ -65,21 +59,29 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     file = open(test_case.path_to_result_file, "w+")
 
-    file.writelines([str(program.sequence) + "\n"])
+    file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
 
     execution_time_in_seconds = finish_time - start_time
     successes = 0
     for e in test_case.test_examples:
         in_state = e.input_environment
         out_state = e.output_environment
+
+        file.writelines([
+            "input: " + str(in_state) + "\n",
+            "wanted output" + str(out_state) + "\n"
+        ])
+
         try:
             result = program.interp(in_state)
         except:
+            print("interpreting the program threw an error")
             result = in_state
 
-    	# TODO write results to file for Pixel and Robot environments
-        if isinstance(result, StringEnvironment):
-            file.writelines(["output: " + result.to_string() + "\n"])
+        file.writelines([
+            "output: " + str(result) + "\n \n"
+        ])
+        
         
         if out_state.correct(result):
             successes += 1
