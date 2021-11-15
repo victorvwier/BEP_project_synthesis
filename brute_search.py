@@ -1,5 +1,5 @@
 import copy
-from common_environment.control_tokens import RecursiveCallLimitReached
+from common_environment.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
 from interpreter.interpreter import *
 from parser.experiment import Example
 from pixel_environment.pixel_tokens import *
@@ -33,7 +33,7 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         if (solved):
             return (cum_loss, 0, program)
         return ( cum_loss, 1, program)
-    except (InvalidTransition, RecursiveCallLimitReached) as e:
+    except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
         return (float("inf"), 1, program)
 
 def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
