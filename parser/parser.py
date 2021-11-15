@@ -26,7 +26,7 @@ class Parser:
         file = open(self.path + file_name, 'r')
         return self._parse_file_lines(file_name, file.readlines())
 
-    def parse(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "") -> Experiment:
+    def parse_all(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "") -> Experiment:
         """Parses all files with a given prefix. If none is given, parses all files."""
         files = self.file_names
 
