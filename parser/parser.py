@@ -21,10 +21,15 @@ class Parser:
         file = open(self.path + file_name, 'r')
         return self._parse_file_lines(file_name, file.readlines())
 
-    def parse(self, experiment_name: str = "unnamed_experiment") -> Experiment:
+    def parse(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "") -> Experiment:
+        files = self.file_names
+
+        if file_prefix != "":
+            files = filter(lambda x : x.startswith(file_prefix), self.file_names)
+
         return Experiment(
             experiment_name,
             self.domain_name,
-            list(map(self.parse_file, self.file_names)),
+            list(map(self.parse_file, files)),
         )
 
