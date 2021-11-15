@@ -3,6 +3,7 @@ from common_environment.control_tokens import RecursiveCallLimitReached
 from interpreter.interpreter import *
 from parser.experiment import Example
 from pixel_environment.pixel_tokens import *
+import heapq
 
 def print_p(p):
     print(p.sequence)
@@ -14,16 +15,10 @@ def print_ps(ps):
     print(l)
 
 def loss(output_pairs):
-    cum_loss = 0.0
-    for output_pair in output_pairs:
-        cum_loss = cum_loss + output_pair[0].distance(output_pair[1])
-    return cum_loss
+    return sum([p[0].distance(p[1]) for p in output_pairs])
 
 def problem_solved(output_pairs):
-    solved = True
-    for output_pair in output_pairs:
-        solved = solved and output_pair[0].correct(output_pair[1])
-    return solved
+    return all(map(lambda p : p[0].correct(p[1]), output_pairs))
 
 def evaluate_program(program, sample_inputs, sample_outputs):
     program_outputs = []
@@ -36,55 +31,52 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         cum_loss = loss(output_pairs)
         solved = problem_solved(output_pairs)
         if (solved):
-            return (program, cum_loss, 0)
-        return (program, cum_loss, 1)
+            return (cum_loss, 0, program)
+        return ( cum_loss, 1, program)
     except (InvalidTransition, RecursiveCallLimitReached) as e:
-        return (program, float("inf"), 1)
+        return (float("inf"), 1, program)
 
 def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
-    updated_programs = programs
-    for program in program_dictionary:
-        potentially_better_program = Program(best_program.sequence + program.sequence)
-        updated_programs.append(evaluate_program(potentially_better_program, sample_inputs, sample_outputs))
-    updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
-    return updated_programs
+    for token in program_dictionary:
+        potentially_better_program = Program(best_program.sequence + token.sequence)
+        program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
+        if program_new[0] != float('inf'):
+            heapq.heappush(programs, program_new)
+    #updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
+    return programs
 
-def prioritize_programs(programs, sample_inputs, sample_outputs):
-    ordered_programs = []
-    for program in programs:
-        ordered_programs.append(evaluate_program(program, sample_inputs, sample_outputs))
-    ordered_programs = sorted(ordered_programs, key=lambda x: (x[2], x[1]))
-    return ordered_programs
+# def prioritize_programs(programs, sample_inputs, sample_outputs):
+#     ordered_programs = []
+#     for program in programs:
+#         ordered_programs.append(evaluate_program(program, sample_inputs, sample_outputs))
+#     ordered_programs = sorted(ordered_programs, key=lambda x: (x[2], x[1]))
+#     return ordered_programs
 
-def find_best_program(programs, sample_inputs, sample_outputs):
-    return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
+# def find_best_program(programs, sample_inputs, sample_outputs):
+#     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
 def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
-    # for (p,l,s) in programs:
-    #     print_p(p)
-    #print("Best:")
-    (best_program, best_loss, solved) = programs[0]
-    # print_p(best_program)
-    # print(best_loss, solved)
-    # print("------------------------------------")
-    #print("The best loss currently is {}".format(best_loss))
+    (best_loss, solved, best_program) = heapq.heappop(programs)
+
     if(iteration >= num_iterations or solved == 0):
-        return best_program, best_loss, solved
+        return best_loss, solved, best_program
 
-    updated_programs = extend_program(best_program, programs[1:], program_dictionary, sample_inputs, sample_outputs)
+    updated_programs = extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs)
 
-    iteration = iteration + 1
+    iteration += 1
     return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
 def search(tokens, examples: List[Example], num_iterations):
-    sample_inputs = list(map(lambda x: x.input_environment, examples))
-
-    sample_outputs = list(map(lambda x: x.output_environment, examples))
-
-    initial_programs = list(map(lambda x: Program([x]), tokens))
+    sample_inputs = [e.input_environment for e in examples]
+    sample_outputs = [e.output_environment for e in examples]
+    initial_programs = [Program([t]) for t in tokens]
+    
     program_dictionary = copy.deepcopy(initial_programs)
-    programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
-    iteration = 0
-    best_program, best_loss, solved = synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
+    program = Program([])
+    #programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
+    
+    starting_heap = [(float('inf'), 1, program)]
+    heapq.heapify(starting_heap)
+    best_loss, solved, best_program = synth_loop(starting_heap, program_dictionary, sample_inputs, sample_outputs, 0, num_iterations)
 
     return best_program, best_loss, solved

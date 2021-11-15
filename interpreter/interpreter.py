@@ -8,6 +8,12 @@ class Program:
         """Creates a new program given a sequence of Tokens."""
         self.sequence = tokens
         self.recursive_call_limit = recurse_limit
+    
+    def __gt__(self, other):
+        if(len(self.sequence)>len(other.sequence)):
+            return True
+        else:
+            return False
 
     def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
