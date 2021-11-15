@@ -1,3 +1,4 @@
+import copy
 from common_environment.abstract_tokens import *
 
 
@@ -19,14 +20,16 @@ class Program:
     def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
 
+        nenv = copy.deepcopy(env)
+
         # Setup for recursive calls
         if top_level_program:
-            env.program = self
+            nenv.program = self
 
         for t in self.sequence:
-            env = t.apply(env)
+            nenv = t.apply(nenv)
 
-        return env
+        return nenv
 
     def number_of_tokens(self) -> int:
         return sum([t.number_of_tokens() for t in self.sequence])
