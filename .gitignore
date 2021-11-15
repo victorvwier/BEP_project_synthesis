@@ -1,7 +1,5 @@
 .idea/
-common_environment/
 __pycache__
-common_environment
 *.pyc
 .vscode/
 
@@ -150,5 +148,4 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
-.idea/
 results/*

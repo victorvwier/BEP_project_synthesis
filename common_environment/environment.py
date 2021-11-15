@@ -66,25 +66,8 @@ class StringEnvironment(Environment):
         string, therefore this conversion method exists."""
         return "".join(self.string_array)
 
-    def _levenshtein(self, a: List[str], b: List[str]) -> int:
-        """Calculates Levenshtein distance between two string; the amount of changes (add, remove, alter characters)
-        that need to be made to transform one into the other."""
-        # if len(b) == 0:
-        #     return len(a)
-        # if len(a) == 0:
-        #     return len(b)
-        # if a[0] == b[0]:
-        #     return self._levenshtein(a[1:], b[1:])
-        # return 1 + min(
-        #     self._levenshtein(a[1:], b),
-        #     self._levenshtein(a, b[1:]),
-        #     self._levenshtein(a[1:], b[1:])
-        # )
-        str1 = "".join(a)
-        str2 = "".join(b)
-        return StringEnvironment._levenshtein2(str1, str2)
-
-    def _levenshtein2(str1, str2):
+    @staticmethod
+    def _levenshtein(str1, str2):
         m = len(str1)
         n = len(str2)
         d = [[i] for i in range(1, m + 1)]   # d matrix rows
@@ -101,7 +84,7 @@ class StringEnvironment(Environment):
         return d[-1][-1]
 
     def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein(self.string_array.copy(), other.string_array.copy())
+        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
