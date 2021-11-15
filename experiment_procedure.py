@@ -12,7 +12,7 @@ from invent import invent2
 from typing import List 
 from common_environment.environment import *
 from interpreter.interpreter import *
-from myparser import Experiment, StringParser, TestCase
+from parser.experiment import Experiment, TestCase
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
@@ -142,8 +142,8 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
 def get_all_experiments():
     experiments = []
     string_experiments = StringParser.get_all_string_experiments()
-    # TODO get experiments for robot
-    # TODO get experiments for pixel
+    # TODO get parser for robot
+    # TODO get parser for pixel
     experiments.extend(string_experiments)
     return experiments
 

@@ -166,6 +166,7 @@ class MakeUppercase(TransToken):
     def apply(self, env: StringEnvironment) -> StringEnvironment:
         if len(env.string_array) == 0:
             raise InvalidTransition
+
         env.string_array[env.pos] = env.string_array[env.pos].upper()
 
         return env
@@ -175,7 +176,6 @@ class MakeLowercase(TransToken):
     """Token that transforms the character at the pointers position into a lowercase character."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-         
         if len(env.string_array) == 0:
             raise InvalidTransition
 
