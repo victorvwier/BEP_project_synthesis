@@ -35,8 +35,8 @@ class RobotParser(Parser):
         e = list(map(int, entry[:-2].split(',')))
 
         return RobotEnvironment(
-            rx=e[0], ry=e[1],
-            bx=e[2], by=e[3],
+            rx=e[0]-1, ry=e[1]-1,
+            bx=e[2]-1, by=e[3]-1,
             holding=e[4],
             size=e[5],
         )

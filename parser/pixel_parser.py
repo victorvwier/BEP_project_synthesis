@@ -55,7 +55,7 @@ class PixelParser(Parser):
             i += 1
 
         return PixelEnvironment(
-            x=e[0], y=e[1],
+            x=e[0]-1, y=e[1]-1,
             width=e[2],
             height=e[3],
             pixels=pixels
