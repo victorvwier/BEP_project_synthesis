@@ -22,11 +22,13 @@ class Program:
         if top_level_program:
             env.program = self
 
-        tokens = self.sequence.copy()
-        while tokens:
-            token = tokens.pop(0)
-            env = token.apply(env)
+        for t in self.sequence:
+            env = t.apply(env)
+
         return env
+
+    def number_of_tokens(self) -> int:
+        return sum([t.number_of_tokens() for t in self.sequence])
 
     def __str__(self):
         return "Program([%s])" % ", ".join([str(t) for t in self.sequence])

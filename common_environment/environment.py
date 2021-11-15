@@ -40,9 +40,24 @@ class RobotEnvironment(Environment):
 
     def distance(self, other: "RobotEnvironment") -> int:
         assert self.size == other.size
-        return abs(self.rx - other.rx) + abs(self.ry - other.ry) +\
-               abs(self.bx - other.bx) + abs(self.by - other.by) + \
-               abs(int(self.holding) - int(other.holding))
+
+        def d(xy1: tuple[int, int], xy2: tuple[int, int]):
+            return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+        # position robot and position ball
+        pr = (self.rx, self.ry)
+        pb = (self.bx, self.by)
+
+        # position goal robot and position goal bal
+        pgr = (other.rx, other.ry)
+        pgb = (other.bx, other.by)
+
+        if pr != pb and pb != pgb:
+            return d(pr, pb) + d(pb, pgb) + d(pgb, pgr) + 2
+        elif pr == pb and pb != pgb:
+            return d(pr, pgb) + d(pgb, pgr) + 1
+        else:
+            return d(pr, pgr)
 
     def correct(self, other: "RobotEnvironment") -> bool:
         return (self.rx, self.ry, self.bx, self.by, self.holding) \
