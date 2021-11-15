@@ -69,7 +69,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
         file.writelines([
             "input: " + str(in_state) + "\n",
-            "wanted output" + str(out_state) + "\n"
+            "wanted output: " + str(out_state) + "\n"
         ])
 
         try:
@@ -151,15 +151,15 @@ def get_all_experiments():
     experiments = []
 
     for i in range(2, 12, 2):
-        robot_experiment = RobotParser().parse_all(file_prefix=str(i))
+        robot_experiment = RobotParser().parse_all(experiment_name="Robot - starting with " + str(i), file_prefix=str(i))
         experiments.append(robot_experiment)
 
     for i in range(6):
-        pixel_experiment = PixelParser().parse_all(file_prefix=str(i))
+        pixel_experiment = PixelParser().parse_all(experiment_name="Pixel - starting with " + str(i), file_prefix=str(i))
         experiments.append(pixel_experiment)
 
     for i in range(1,10):
-        string_experiment = StringParser().parse_all(file_prefix=str(i))
+        string_experiment = StringParser().parse_all(experiment_name="String - starting with " + str(i), file_prefix=str(i))
         experiments.append(string_experiment)
         
     return experiments
