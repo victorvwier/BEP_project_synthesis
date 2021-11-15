@@ -23,7 +23,10 @@ class StringParser(Parser):
 
     @staticmethod
     def _parse_single_line(line: str) -> Example:
+        # remove unneeded characters
         line = line[4:-1]
+
+        # split input and output
         entries = line.split("w(")[1:]
 
         return Example(
@@ -33,9 +36,13 @@ class StringParser(Parser):
 
     @staticmethod
     def _parse_entry(entry: str) -> StringEnvironment:
+        # first entry before ',' is pointer position.
         pos = entry.split(",")[0]
+
+        # gets data between ',[' and '])' and picks every fourth character starting at index 1, which is the string.
         string = entry.split(",[")[1].split("])")[0][1::4]
 
+        # for output data the position is not defined, however Environment needs one.
         if not pos.isnumeric():
             pos = 1
 

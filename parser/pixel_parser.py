@@ -11,7 +11,10 @@ class PixelParser(Parser):
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
+        # get first line and remove unneeded characters.
         line = lines[0][4:-2]
+
+        # splits into input and output
         entries = line.split("w(")[1:]
         print(file_name)
         example = Example(
@@ -27,17 +30,21 @@ class PixelParser(Parser):
 
     @staticmethod
     def _parse_entry(entry: str) -> PixelEnvironment:
+        # parses first four entries about position of pointer and width and height.
         e = list(map(
             PixelParser._parse_value,
             entry[:-2].split(',')[:4]
         ))
 
+        # retries the actual array and split by ','
         arr = entry.split("[")[1].split("]")[0].split(",")
 
+        # empty array
         pixels = [[] for i in range(e[2])]
         i = 0
         j = 0
 
+        # fills up array
         for a in arr:
             if i == e[3]:
                 i = 0
@@ -55,6 +62,7 @@ class PixelParser(Parser):
 
     @staticmethod
     def _parse_value(val: str) -> int:
+        # casts to int if numeric, 0 otherwise.
         if val.isnumeric():
             return int(val)
         return 0

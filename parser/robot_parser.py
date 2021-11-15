@@ -12,7 +12,10 @@ class RobotParser(Parser):
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
+        # gets first line and removes unneeded characters
         line = lines[0][4:-2]
+
+        # split into input and output entry
         entries = line.split("w(")[1:]
 
         example = Example(
@@ -27,6 +30,7 @@ class RobotParser(Parser):
 
     @staticmethod
     def _parse_entry(entry: str) -> RobotEnvironment:
+        # splits entry by ',' and casts all items to integers
         e = list(map(int, entry[:-2].split(',')))
 
         return RobotEnvironment(
