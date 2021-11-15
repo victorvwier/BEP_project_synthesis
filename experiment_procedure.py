@@ -65,6 +65,8 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     file = open(test_case.path_to_result_file, "w+")
 
+    file.writelines([str(program.sequence) + "\n"])
+
     execution_time_in_seconds = finish_time - start_time
     successes = 0
     for e in test_case.test_examples:
