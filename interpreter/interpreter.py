@@ -22,9 +22,9 @@ class Program:
 
         nenv = copy.deepcopy(env)
 
-        # Setup for recursive calls
-        if top_level_program:
-            nenv.program = self
+        # # Setup for recursive calls
+        # if top_level_program:
+        #     nenv.program = self
 
         for t in self.sequence:
             nenv = t.apply(nenv)

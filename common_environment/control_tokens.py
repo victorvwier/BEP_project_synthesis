@@ -92,19 +92,18 @@ class LoopWhile(ControlToken):
         """Creates a new Loop ControlToken. 'loop_body' will run as long as 'cond' is true."""
         self.cond = cond
         self.loop_body = loop_body
-        self.calls = 0
 
     def apply(self, env: Environment) -> Environment:
         # Raise exception if recursive call limit is reached
-        if self.calls >= env.program.loop_limit:
-            raise LoopIterationLimitReached()
-
-        self.calls += 1
-
         # if the condition is None or true, make recursive call
-        if self.cond.apply(env):
-            env = Program(self.loop_body).interp(env, False)
-            return self.apply(env)
+        self.calls = 0
+        while self.cond.apply(env):
+            if self.calls >= 100:
+                raise LoopIterationLimitReached()
+            self.calls += 1
+
+            for token in self.loop_body:
+                token.apply(env)
 
         return env
 
