@@ -52,7 +52,7 @@ class InventedToken(EnvToken):
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            env = t.apply(t, env)
+            env = t.apply(env)
 
         return env
 
