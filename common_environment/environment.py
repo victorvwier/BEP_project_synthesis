@@ -106,6 +106,9 @@ class StringEnvironment(Environment):
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
 
+    def __str__(self):
+        return "StringEnvironment(Pointer at {pos} in \"{string_array}\")".format(pos=self.pos, string_array=self.to_string())
+
 
 class PixelEnvironment(Environment):
     def __init__(self, width, height, x, y, pixels=None):
