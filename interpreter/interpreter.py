@@ -10,7 +10,7 @@ class Program:
         self.recursive_call_limit = recurse_limit
     
     def __gt__(self, other):
-        if(len(self.sequence)>len(other.sequence)):
+        if(self.number_of_tokens()>other.number_of_tokens()):
             return True
         else:
             return False

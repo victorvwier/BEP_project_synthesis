@@ -6,7 +6,7 @@ from robot_environment import robot_tokens
 from string_environment import string_tokens
 
 if __name__ == "__main__":
-    experiment = RobotParser().parse_all(file_prefix="2-0-0")
+    experiment = RobotParser().parse_all(file_prefix="2")
     (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment)
     print("Experiment had an average success rate of {}%, average running time: {}, and {}% of programs were "
           "completely successful".format(ave_suc, ave_time, com_suc))

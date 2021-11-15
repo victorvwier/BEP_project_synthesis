@@ -41,7 +41,7 @@ class RobotEnvironment(Environment):
     def distance(self, other: "RobotEnvironment") -> int:
         assert self.size == other.size
 
-        def d(xy1: tuple[int, int], xy2: tuple[int, int]):
+        def d(xy1: 'tuple[int, int]', xy2: 'tuple[int, int]'):
             return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
         # position robot and position ball

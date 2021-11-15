@@ -18,6 +18,9 @@ class If(ControlToken):
             return Program(self.e1).interp(env, False)
         return Program(self.e2).interp(env, False)
 
+    def number_of_tokens(self) -> int:
+        return 2 + len(self.e1) + len(self.e2)
+
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
 
@@ -59,6 +62,9 @@ class Recurse(ControlToken):
 
         # else, base case
         return Program(self.base_case).interp(env, False)
+
+    def number_of_tokens(self) -> int:
+        return 2 + len(self.base_case) + len(self.recursive_case)
 
     def __str__(self):
         return "Recurse(%s [%s] [%s])" %\
