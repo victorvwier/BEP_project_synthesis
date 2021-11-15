@@ -46,7 +46,7 @@ class RobotEnvironment(Environment):
 
     def correct(self, other: "RobotEnvironment") -> bool:
         return (self.rx, self.ry, self.bx, self.by, self.holding) \
-               == (other.rx, other.ry, other.rx, other.ry, other.holding)
+               == (other.rx, other.ry, other.bx, other.by, other.holding)
 
 
 class StringEnvironment(Environment):
