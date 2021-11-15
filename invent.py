@@ -17,6 +17,7 @@ def inventTokens(tokenSet, maxLength) -> list:
     # convert these into "invented tokens"
     for p in perms:
         if len(p) > 1:
+            p = list(map(lambda x: x(), p))
             out.append(InventedToken(p))
         else: 
             out.append(p[0]())
@@ -48,9 +49,14 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
         for lb in bodies:
             for rb in bodies:
                 recurse_list.append(Recurse(c(), [lb], [rb]))
+            recurse_list.append(Recurse(c(), [lb], []))
+            recurse_list.append(Recurse(c(), [], [lb]))
+            
     for lb in bodies:
         for rb in bodies:
             recurse_list.append(Recurse(None, [lb], [rb]))
+        recurse_list.append(Recurse(None, [lb], []))
+        recurse_list.append(Recurse(None, [], [lb]))
     out = out + recurse_list
     return out
 

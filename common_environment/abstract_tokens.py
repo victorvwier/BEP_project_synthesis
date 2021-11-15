@@ -8,11 +8,14 @@ class Token:
         """Applies this Token on a given Environment."""
         raise NotImplementedError()
 
+    def to_formatted_string(self):
+        return str(self)
+
     def __str__(self):
         return str(type(self).__name__)
 
-    def to_formatted_string(self):
-        return str(self)
+    def __repr__(self):
+        return str(type(self).__name__)
 
 
 class BoolToken(Token):
@@ -55,7 +58,7 @@ class InventedToken(EnvToken):
         
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
-            env = t.apply(t, env)
+            env = t.apply(env)
 
         return env
 
@@ -64,6 +67,9 @@ class InventedToken(EnvToken):
 
     def to_formatted_string(self):
         return "[%s]" % "\n".join([t.to_formatted_string() for t in self.tokens])
+
+    def __repr__(self):
+        return "[%s]" % ", ".join([str(t) for t in self.tokens])
 
 
 class InvalidTransition(Exception):

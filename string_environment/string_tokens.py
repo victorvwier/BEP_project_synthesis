@@ -166,6 +166,7 @@ class MakeUppercase(TransToken):
     def apply(self, env: StringEnvironment) -> StringEnvironment:
         if len(env.string_array) == 0:
             raise InvalidTransition
+
         env.string_array[env.pos] = env.string_array[env.pos].upper()
 
         return env
@@ -175,7 +176,6 @@ class MakeLowercase(TransToken):
     """Token that transforms the character at the pointers position into a lowercase character."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-         
         if len(env.string_array) == 0:
             raise InvalidTransition
 
@@ -203,5 +203,6 @@ class Drop(TransToken):
         return env
 
 
-BoolTokens = {AtEnd, AtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}
+BoolTokens = {AtEnd, NotAtEnd, AtStart, NotAtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase,
+              IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}
 TransTokens = {MoveRight, MoveLeft, MakeUppercase, MakeLowercase, Drop}
