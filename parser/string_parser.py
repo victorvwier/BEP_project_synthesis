@@ -1,15 +1,15 @@
 from common_environment.environment import StringEnvironment
-from experiments.experiment import TestCase, Example
-from experiments.parser import Parser
+from parser.experiment import TestCase, Example
+from parser.parser import Parser
 
 
 class StringParser(Parser):
-    test_path = "../programs/e2-strings/data/test/"
+    test_path = "programs/e2-strings/data/test/"
 
     def __init__(self, path: str = None):
         super().__init__(
             domain_name="string",
-            path=path or "../programs/e2-strings/data/train/",
+            path=path or "programs/e2-strings/data/train/",
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
@@ -42,6 +42,9 @@ class StringParser(Parser):
         return StringEnvironment(string, int(pos) - 1)
 
 if __name__ == "__main__":
+    p = StringParser(path="../programs/e2-strings/data/train/")
+    p.test_path = "../programs/e2-strings/data/test/"
+
     res1 = StringParser().parse()
 
     for res in res1.test_cases:

@@ -1,6 +1,6 @@
 from common_environment.environment import RobotEnvironment
-from experiments.experiment import Example, TestCase
-from experiments.parser import Parser
+from parser.experiment import Example, TestCase
+from parser.parser import Parser
 
 
 class RobotParser(Parser):
@@ -8,7 +8,7 @@ class RobotParser(Parser):
     def __init__(self, path: str = None):
         super().__init__(
             domain_name="robot",
-            path=path or "../programs/e1-robots/data/",
+            path=path or "programs/e1-robots/data/",
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
@@ -22,7 +22,7 @@ class RobotParser(Parser):
         return TestCase(
             file_name=file_name,
             training_examples=[example],
-            test_examples=[]
+            test_examples=[example]
         )
 
     @staticmethod
@@ -37,7 +37,7 @@ class RobotParser(Parser):
         )
 
 if __name__ == "__main__":
-    res1 = RobotParser().parse()
+    res1 = RobotParser(path="../programs/e1-robots/data/").parse()
     n = 10
     for res in res1.test_cases:
         n -= 1

@@ -1,13 +1,13 @@
 from common_environment.environment import PixelEnvironment
-from experiments.experiment import Example, TestCase
-from experiments.parser import Parser
+from parser.experiment import Example, TestCase
+from parser.parser import Parser
 
 class PixelParser(Parser):
 
     def __init__(self, path: str = None):
         super().__init__(
             domain_name="pixel",
-            path=path or "../programs/e3-pixels/data/",
+            path=path or "programs/e3-pixels/data/",
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
@@ -22,7 +22,7 @@ class PixelParser(Parser):
         return TestCase(
             file_name=file_name,
             training_examples=[example],
-            test_examples=[]
+            test_examples=[example]
         )
 
     @staticmethod
@@ -60,7 +60,7 @@ class PixelParser(Parser):
         return 0
 
 if __name__ == "__main__":
-    res1 = PixelParser().parse()
+    res1 = PixelParser(path="../programs/e3-pixels/data/").parse()
     n = 10
     for res in res1.test_cases:
         n -= 1

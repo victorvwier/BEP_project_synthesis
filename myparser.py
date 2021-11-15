@@ -1,3 +1,5 @@
+"""
+
 from os import X_OK
 from common_environment.environment import Environment, PixelEnvironment, RobotEnvironment, StringEnvironment
 from robot_environment import robot_tokens
@@ -18,8 +20,6 @@ class TestCase:
         self.file_name = file_name
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
-
-
 
 class Experiment:
     def __init__(self, name: str, domain_name: str, test_cases: List[TestCase]):
@@ -120,7 +120,6 @@ class PixelParse(Parser):
         return TestCase(filename, [ex], [ex])
 
 class StringParser():
-        
     @staticmethod
     def get_all_string_experiments():
 
@@ -129,10 +128,10 @@ class StringParser():
 
         experiment_names = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
         experiment_tuple_lists: List[List[Tuple[str, str]]]= []
-        experiments: List[Experiment] = []
+        parser: List[Experiment] = []
         for _ in range(len(experiment_names)):
             experiment_tuple_lists.append([])
-            experiments.append([])
+            parser.append([])
 
         for file_name in filenames1:
 
@@ -145,9 +144,9 @@ class StringParser():
 
         for i, name in enumerate(experiment_names):
             experiment = StringParser.parse_experiment(experiment_tuple_lists[i], name)
-            experiments[i] = experiment
+            parser[i] = experiment
         
-        return experiments
+        return parser
         
 
     def parse_experiment(file_names_tuples: List[Tuple[str, str]], experiment_name_extention):
@@ -161,11 +160,9 @@ class StringParser():
             test_cases.append(test_case)
 
         domain_name = "string"
-        experiment = Experiment("String experiments: " + experiment_name_extention, domain_name, test_cases)
+        experiment = Experiment("String parser: " + experiment_name_extention, domain_name, test_cases)
         return experiment
 
-        
-        
 
     def parse_test_case(file_name_training_data, file_name_test_data = None) -> TestCase:
         
@@ -211,7 +208,6 @@ class StringParser():
         return example
 
 
-
     # extracts the string which is represented in part of the data
     # input example: "1,6,['@','h','a','r','r','y'])"
     # output example: "@harry"
@@ -248,4 +244,4 @@ if __name__ == "__main__":
 
 
 
-    
+"""

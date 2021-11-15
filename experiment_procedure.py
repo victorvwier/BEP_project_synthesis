@@ -13,7 +13,7 @@ from invent import invent2
 from typing import List 
 from common_environment.environment import *
 from interpreter.interpreter import *
-from myparser import Experiment, StringParser, TestCase
+from parser.experiment import Experiment, TestCase
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
@@ -84,13 +84,13 @@ def test_performance_single_case(test_case: TestCase, trans_tokens, bool_tokens)
 
     execution_time_in_seconds = finish_time - start_time
     successes = 0
-    for (in_state, out_state) in test_case.test_examples:
-        result = program.interp(program, in_state)
+    for example in test_case.test_examples:
+        result = program.interp(example.input_environment)
         ## TODO solve needs to be implemented
-        if out_state.solve(result) == True:
+        if example.output_environment.correct(result) == True:
             successes += 1
     success_percentage = 100.0 * successes / len(test_case.test_examples)
-    return success_percentage, execution_time_in_seconds
+    return success_percentage, execution_time_in_seconds, program
 
 
 # An experiment exists of different cases in the same domain.
@@ -140,8 +140,8 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
 def get_all_experiments():
     experiments = []
     string_experiments = StringParser.get_all_string_experiments()
-    # TODO get experiments for robot
-    # TODO get experiments for pixel
+    # TODO get parser for robot
+    # TODO get parser for pixel
     experiments.extend(string_experiments)
     return experiments
 
