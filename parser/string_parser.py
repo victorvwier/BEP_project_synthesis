@@ -13,7 +13,7 @@ class StringParser(Parser):
             result_folder_path=result_folder_path or "results/e2-strings/"
         )
 
-    def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
+    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
         test_lines = open(self.test_path + file_name, 'r').readlines()
 
         return TestCase(

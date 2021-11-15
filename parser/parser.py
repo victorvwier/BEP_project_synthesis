@@ -6,7 +6,7 @@ from parser.experiment import *
 class Parser:
     """Abstract class implementing some helper methods for parsers."""
 
-    def __init__(self, domain_name: str, path: str, result_folder_path: str, file_names: list[str] = None):
+    def __init__(self, domain_name: str, path: str, result_folder_path: str, file_names: 'list[str]' = None):
         """Inits a new Parser given a domain name, path where train data is stored or a list of files to Parse."""
         self.domain_name = domain_name
         self.path = path
@@ -17,7 +17,7 @@ class Parser:
         else:
             self.file_names = file_names
 
-    def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
+    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
         """Parses given lines that are in a file, returns a TestCase."""
         raise NotImplementedError()
 
