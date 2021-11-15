@@ -85,7 +85,53 @@ class Recurse(ControlToken):
             )
         return result
 
+class LoopWhile(ControlToken):
+    """Loop ControlToken."""
+
+    def __init__(self, cond: BoolToken, loop_body: List[EnvToken]):
+        """Creates a new Loop ControlToken. 'loop_body' will run as long as 'cond' is true."""
+        self.cond = cond
+        self.loop_body = loop_body
+        self.calls = 0
+
+    def apply(self, env: Environment) -> Environment:
+        # Raise exception if recursive call limit is reached
+        if self.calls >= env.program.loop_limit:
+            raise LoopIterationLimitReached()
+
+        self.calls += 1
+
+        # if the condition is None or true, make recursive call
+        if self.cond.apply(env):
+            env = Program(self.loop_body).interp(env, False)
+            return self.apply(env)
+
+        return env
+
+    def number_of_tokens(self) -> int:
+        return 2 + len(self.loop_body)
+
+    def __str__(self):
+        return "LoopWhile(%s [%s])" %\
+               (self.cond, ", ".join(list(map(str, self.loop_body))))
+
+    def __repr__(self):
+        return "LoopWhile(%s [%s])" %\
+               (self.cond, ", ".join(list(map(str, self.loop_body))))
+
+    def to_formatted_string(self):
+        result = "while %s do:\n\t%s" % (
+            self.cond.to_formatted_string(),
+            "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.loop_body])
+        )
+        return result
+
 
 class RecursiveCallLimitReached(Exception):
+    """"Exception raised when the recursive call limit, set in the Program constructor is reached."""
+    pass
+
+
+class LoopIterationLimitReached(Exception):
     """"Exception raised when the recursive call limit, set in the Program constructor is reached."""
     pass

@@ -59,5 +59,25 @@ class TestRecurse(unittest.TestCase):
 
         self.assertRaises(RecursiveCallLimitReached, lambda : p.interp(e1))
 
+
+class TestLoop(unittest.TestCase):
+    def test_simple(self):
+        e1 = StringEnvironment("hello, world!")
+        p = Program([
+            LoopWhile(NotAtEnd(), [MakeUppercase(), MoveRight()]),
+            MakeUppercase()
+        ])
+
+        p.interp(e1)
+        self.assertEqual(e1.to_string(), "HELLO, WORLD!")
+
+    def test_limit(self):
+        e1 = StringEnvironment("hello, world!")
+        p = Program([
+            LoopWhile(NotAtEnd(), [])
+        ])
+
+        self.assertRaises(LoopIterationLimitReached, lambda : p.interp(e1))
+
 if __name__ == '__main__':
     unittest.main()
