@@ -13,6 +13,9 @@ from typing import List
 from common_environment.environment import *
 from interpreter.interpreter import *
 from parser.experiment import Experiment, TestCase
+from parser.pixel_parser import PixelParser
+from parser.robot_parser import RobotParser
+from parser.string_parser import StringParser
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
 import string_environment.string_tokens as string_tokens
@@ -141,10 +144,19 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
 
 def get_all_experiments():
     experiments = []
-    string_experiments = StringParser.get_all_string_experiments()
-    # TODO get parser for robot
-    # TODO get parser for pixel
-    experiments.extend(string_experiments)
+
+    for i in range(2, 12, 2):
+        robot_experiment = RobotParser().parse_all(file_prefix=str(i))
+        experiments.append(robot_experiment)
+
+    for i in range(6):
+        pixel_experiment = PixelParser().parse_all(file_prefix=str(i))
+        experiments.append(pixel_experiment)
+
+    for i in range(1,10):
+        string_experiment = StringParser().parse_all(file_prefix=str(i))
+        experiments.append(string_experiment)
+        
     return experiments
 
 if __name__ == "__main__":
