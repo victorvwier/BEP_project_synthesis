@@ -203,5 +203,6 @@ class Drop(TransToken):
         return env
 
 
-BoolTokens = {AtEnd, AtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}
+BoolTokens = {AtEnd, NotAtEnd, AtStart, NotAtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase,
+              IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}
 TransTokens = {MoveRight, MoveLeft, MakeUppercase, MakeLowercase, Drop}
