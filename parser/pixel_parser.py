@@ -66,7 +66,7 @@ class PixelParser(Parser):
         # casts to int if numeric, 0 otherwise.
         if val.isnumeric():
             return int(val)
-        return 0
+        return 1
 
 if __name__ == "__main__":
     res1 = PixelParser(path="../programs/e3-pixels/data/").parse()
