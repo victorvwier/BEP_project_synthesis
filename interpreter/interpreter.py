@@ -4,7 +4,7 @@ from common_environment.abstract_tokens import *
 class Program:
     """Wrapper class for a list of Tokens, a program."""
 
-    def __init__(self, tokens: list[EnvToken], recurse_limit: int = 300):
+    def __init__(self, tokens: List[EnvToken], recurse_limit: int = 300):
         """Creates a new program given a sequence of Tokens."""
         self.sequence = tokens
         self.recursive_call_limit = recurse_limit

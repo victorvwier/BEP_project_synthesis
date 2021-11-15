@@ -1,7 +1,8 @@
 import copy
+from common_environment.control_tokens import RecursiveCallLimitReached
 from interpreter.interpreter import *
 from pixel_environment.pixel_tokens import *
-
+from myparser import Example
 
 def print_p(p):
     print(p.sequence)
@@ -12,72 +13,78 @@ def print_ps(ps):
         l.append(p.sequence)
     print(l)
 
-# check
 def loss(output_pairs):
     cum_loss = 0.0
     for output_pair in output_pairs:
         cum_loss = cum_loss + output_pair[0].distance(output_pair[1])
     return cum_loss
 
-# check
 def problem_solved(output_pairs):
     solved = True
     for output_pair in output_pairs:
         solved = solved and output_pair[0].correct(output_pair[1])
     return solved
 
-# check
-def extend_program(best_program, programs):
-    updated_programs = programs.copy()
-    for program in programs:
+def evaluate_program(program, sample_inputs, sample_outputs):
+    program_outputs = []
+    try:
+        for input in sample_inputs:
+            used_input = copy.deepcopy(input)
+            program_output = program.interp(used_input)
+            program_outputs.append(program_output)
+        output_pairs = list(zip(program_outputs, sample_outputs))
+        cum_loss = loss(output_pairs)
+        solved = problem_solved(output_pairs)
+        if (solved):
+            return (program, cum_loss, 0)
+        return (program, cum_loss, 1)
+    except (InvalidTransition, RecursiveCallLimitReached) as e:
+        return (program, float("inf"), 1)
+
+def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
+    updated_programs = programs
+    for program in program_dictionary:
         potentially_better_program = Program(best_program.sequence + program.sequence)
-        updated_programs.append(potentially_better_program)
+        updated_programs.append(evaluate_program(potentially_better_program, sample_inputs, sample_outputs))
+    updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
     return updated_programs
 
-# check
-def find_best_program(programs, sample_inputs, sample_outputs):
+def prioritize_programs(programs, sample_inputs, sample_outputs):
     ordered_programs = []
     for program in programs:
-        program_outputs = []
-        try:
-            for input in sample_inputs:
-                used_input = copy.deepcopy(input)
-                program_output = program.interp(used_input)
-                program_outputs.append(program_output)
-               # program_output = program.interp(used_input)
+        ordered_programs.append(evaluate_program(program, sample_inputs, sample_outputs))
+    ordered_programs = sorted(ordered_programs, key=lambda x: (x[2], x[1]))
+    return ordered_programs
 
-            output_pairs = list(zip(program_outputs, sample_outputs))
-            cum_loss = loss(output_pairs)
-            solved = problem_solved(output_pairs)
-            if(solved):
-                return program, cum_loss, solved
-            ordered_programs.append((program, cum_loss, solved))
-        except InvalidTransition:
-            # program.interp(used_input)
-            ordered_programs.append((program, float("inf"), False))
-    ordered_programs = sorted(ordered_programs, key=lambda x: x[1])
-    best_program, best_loss, solved = ordered_programs[0]
-    return best_program, best_loss, solved
+def find_best_program(programs, sample_inputs, sample_outputs):
+    return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
-def synth_loop(programs, sample_inputs, sample_outputs, iteration, num_iterations):
-    best_program, best_loss, solved = find_best_program(programs, sample_inputs, sample_outputs)
-    print("The best loss currently is {}".format(best_loss))
-    if(iteration >= num_iterations or solved):
+def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
+    # for (p,l,s) in programs:
+    #     print_p(p)
+    #print("Best:")
+    (best_program, best_loss, solved) = programs[0]
+    # print_p(best_program)
+    # print(best_loss, solved)
+    # print("------------------------------------")
+    #print("The best loss currently is {}".format(best_loss))
+    if(iteration >= num_iterations or solved == 0):
         return best_program, best_loss, solved
 
-    updated_programs = extend_program(best_program, programs)
+    updated_programs = extend_program(best_program, programs[1:], program_dictionary, sample_inputs, sample_outputs)
 
     iteration = iteration + 1
-    return synth_loop(updated_programs, sample_inputs, sample_outputs, iteration, num_iterations)
+    return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
-def search(tokens, examples, num_iterations):
+def search(tokens, examples: List[Example], num_iterations):
     sample_inputs = list(map(lambda x: x.input_environment, examples))
 
     sample_outputs = list(map(lambda x: x.output_environment, examples))
 
     initial_programs = list(map(lambda x: Program([x]), tokens))
+    program_dictionary = copy.deepcopy(initial_programs)
+    programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
     iteration = 0
-    best_program, best_loss, solved = synth_loop(initial_programs, sample_inputs, sample_outputs, iteration, num_iterations)
+    best_program, best_loss, solved = synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
     return best_program, best_loss, solved
-
