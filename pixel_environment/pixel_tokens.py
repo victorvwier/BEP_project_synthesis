@@ -79,5 +79,6 @@ class MoveDown(TransToken):
 		env.y += 1
 		return env
 
-BoolTokens = {AtTop, AtBottom, AtLeft, AtRight}
+
+BoolTokens = {AtTop, AtBottom, AtLeft, AtRight, NotAtTop, NotAtBottom, NotAtLeft, NotAtRight}
 TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw}
