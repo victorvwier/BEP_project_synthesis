@@ -4,10 +4,11 @@ from parser.parser import Parser
 
 class PixelParser(Parser):
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="pixel",
             path=path or "programs/e3-pixels/data/",
+            result_folder_path=result_folder_path or "results/e3-pixels/"
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
@@ -23,7 +24,7 @@ class PixelParser(Parser):
         )
 
         return TestCase(
-            file_name=file_name,
+            path_to_result_file=self.result_folder_path + file_name,
             training_examples=[example],
             test_examples=[example]
         )

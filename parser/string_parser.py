@@ -6,17 +6,18 @@ from parser.parser import Parser
 class StringParser(Parser):
     test_path = "programs/e2-strings/data/test/"
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="string",
             path=path or "programs/e2-strings/data/train/",
+            result_folder_path=result_folder_path or "results/e2-strings/"
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
         test_lines = open(self.test_path + file_name, 'r').readlines()
 
         return TestCase(
-            file_name=file_name,
+            path_to_result_file=self.result_folder_path + file_name,
             training_examples=list(map(StringParser._parse_single_line, lines)),
             test_examples=list(map(StringParser._parse_single_line, test_lines))
         )

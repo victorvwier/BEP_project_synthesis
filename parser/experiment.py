@@ -11,8 +11,8 @@ class Example:
 class TestCase:
     """A TestCase exists of a list of training and test Examples."""
 
-    def __init__(self, file_name: str, training_examples: list[Example], test_examples: list[Example]):
-        self.file_name = file_name
+    def __init__(self, path_to_result_file: str, training_examples: list[Example], test_examples: list[Example]):
+        self.path_to_result_file = path_to_result_file
         self.training_examples = training_examples # tuple consisting of input environment and wanted output environment
         self.test_examples = test_examples  # tuple consisting of input environment and wanted output environment
 

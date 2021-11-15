@@ -1,8 +1,8 @@
 import copy
 from common_environment.control_tokens import RecursiveCallLimitReached
 from interpreter.interpreter import *
+from parser.experiment import Example
 from pixel_environment.pixel_tokens import *
-from myparser import Example
 
 def print_p(p):
     print(p.sequence)

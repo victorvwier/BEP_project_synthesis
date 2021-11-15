@@ -5,10 +5,11 @@ from parser.parser import Parser
 
 class RobotParser(Parser):
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="robot",
             path=path or "programs/e1-robots/data/",
+            result_folder_path=result_folder_path or "results/e1-robots/"
         )
 
     def _parse_file_lines(self, file_name: str, lines: list[str]) -> TestCase:
@@ -23,7 +24,7 @@ class RobotParser(Parser):
             RobotParser._parse_entry(entries[1]),
         )
         return TestCase(
-            file_name=file_name,
+            path_to_result_file=self.result_folder_path + file_name,
             training_examples=[example],
             test_examples=[example]
         )
