@@ -1,1 +1,1 @@
-python3 -m cProfile example.py
+python3 -m cProfile -s cumtime example.py
