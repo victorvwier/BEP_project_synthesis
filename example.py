@@ -27,6 +27,6 @@ if __name__ == "__main__":
     Use this to run groups of experiments defined by file prefix
     """
 #     for i in range(0, 10):
-    experiment = RobotParser().parse_all(file_prefix="2".format(2))
+    experiment = RobotParser().parse_all(file_prefix="".format(2))
     (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment)
     # """
