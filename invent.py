@@ -25,7 +25,7 @@ def inventTokens(tokenSet, maxLength) -> list:
     return out
     
 # Composes tokens into more elaborate Invented tokens
-# Also generates Invented tokens with if statements
+# Also generates If and While tokens
 def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     # Normal invention step
     out = inventTokens(tokenSet, maxLength)

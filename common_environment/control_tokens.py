@@ -15,8 +15,13 @@ class If(ControlToken):
 
     def apply(self, env: Environment) -> Environment:
         if self.cond.apply(env):
-            return Program(self.e1).interp(env, False)
-        return Program(self.e2).interp(env, False)
+            for token in self.e1:
+                env = token.apply(env)
+            return env
+        for token in self.e2:
+            env = token.apply(env)
+        return env
+        #Program(self.e2).interp(env, False)
 
     def number_of_tokens(self) -> int:
         return 2 + len(self.e1) + len(self.e2)

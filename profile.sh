@@ -1,0 +1,1 @@
+python3 -m cProfile example.py

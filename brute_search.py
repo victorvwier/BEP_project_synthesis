@@ -20,12 +20,12 @@ def loss(output_pairs):
 def problem_solved(output_pairs):
     return all(map(lambda p : p[0].correct(p[1]), output_pairs))
 
+# takes 90 % of our time
 def evaluate_program(program, sample_inputs, sample_outputs):
     program_outputs = []
     try:
         for input in sample_inputs:
-            used_input = copy.deepcopy(input)
-            program_output = program.interp(used_input)
+            program_output = program.interp(input)
             program_outputs.append(program_output)
         output_pairs = list(zip(program_outputs, sample_outputs))
         cum_loss = loss(output_pairs)
