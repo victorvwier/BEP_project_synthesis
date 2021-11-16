@@ -37,7 +37,7 @@ def evaluate_program(program, sample_inputs, sample_outputs, visited_programs):
         iteration_count += 1
         if ", ".join([str(p) for p in program_outputs]) in visited_programs:
             collision_count += 1
-            # return (float("inf"), 1, program)
+            return (float("inf"), 1, program)
         visited_programs.add(", ".join([str(p) for p in program_outputs]))
         output_pairs = list(zip(program_outputs, sample_outputs))
         cum_loss = loss(output_pairs)
