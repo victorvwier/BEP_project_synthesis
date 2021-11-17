@@ -1,9 +1,26 @@
 import copy
+from typing import Tuple
 from common_environment.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
 from interpreter.interpreter import *
-from parser.experiment import Example
+from parser.experiment import Example, TestCase
 from pixel_environment.pixel_tokens import *
 import heapq
+
+from search.abstract_search import SearchAlgorithm
+from search.invent import invent2
+
+MAX_NUMBER_OF_ITERATIONS = 20
+MAX_TOKEN_FUNCTION_DEPTH = 3
+
+class Brute(SearchAlgorithm):
+    
+    def search(test_case: TestCase, trans_tokens, bool_tokens) -> Tuple[Program, int, int]:
+        # generate different token combinations
+        token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
+        # find program that satisfies training_examples
+        program: Program
+        return _search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
+        
 
 def print_p(p):
     print(p.sequence)
@@ -66,7 +83,7 @@ def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iter
     iteration += 1
     return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
-def search(tokens, examples: List[Example], num_iterations):
+def _search(tokens, examples: List[Example], num_iterations):
     sample_inputs = [e.input_environment for e in examples]
     sample_outputs = [e.output_environment for e in examples]
     initial_programs = [Program([t]) for t in tokens]

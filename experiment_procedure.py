@@ -1,8 +1,6 @@
 import copy
 import time
-from brute_search import search
 
-from invent import invent2
 from typing import List 
 from common_environment.environment import *
 from interpreter.interpreter import *
@@ -12,6 +10,8 @@ from parser.robot_parser import RobotParser
 from parser.string_parser import StringParser
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
+from search.brute.brute import Brute
+
 import string_environment.string_tokens as string_tokens
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
@@ -50,13 +50,13 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     
     start_time = time.time()
 
-    # generate different token combinations
-    token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
-    # find program that satisfies training_examples
-    program: Program
-    program, best_loss, solved = search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
+    # # generate different token combinations
+    # token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
+    # # find program that satisfies training_examples
+    # program: Program
+    program, best_loss, solved = Brute.search(test_case, trans_tokens, bool_tokens)
     finish_time = time.time()
-
+    
     file = open(test_case.path_to_result_file, "w+")
 
     file.writelines(["Program: "  + str(program.sequence) + "\n \n"])

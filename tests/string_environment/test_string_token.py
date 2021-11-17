@@ -87,98 +87,98 @@ class TestStringBoolTokens(TestCase):
         p = Program([If(AtEnd(), [], [Recurse(None, [], [MoveRight()])])])
         env = StringEnvironment("str", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.pos == 2
 
     def test_not_at_end(self):
-        p = Program([Recurse(NotAtEnd(), [], [MoveRight()])])
+        p = Program([LoopWhile(NotAtEnd(), [MoveRight()])])
         env = StringEnvironment("str", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.pos == 2
 
     def test_at_start(self):
         p = Program([If(AtStart(), [], [Recurse(None, [], [MoveLeft()])])])
         env = StringEnvironment("str", pos=2)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.pos == 0
 
     def test_not_at_start(self):
-        p = Program([Recurse(NotAtStart(), [], [MoveLeft()])])
+        p = Program([LoopWhile(NotAtStart(),[MoveLeft()])])
         env = StringEnvironment("str", pos=2)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.pos == 0
 
     def test_is_letter(self):
         p = Program([If(IsLetter(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("s1t2se3CK4cko5", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "12345"
 
     def test_is_not_letter(self):
         p = Program([If(IsNotLetter(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("12s3t9ri398n5092g", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "string"
 
     def test_is_uppercase(self):
         p = Program([If(IsUppercase(), [MoveRight()], [Drop()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("diSjdTjidRiqINjqG", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "STRING"
 
     def test_is_not_uppercase(self):
         p = Program([If(IsNotUppercase(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("d489iSjdTjidRi13qINjqG", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "STRING"
 
     def test_is_lowercase(self):
         p = Program([If(IsLowercase(), [MoveRight()], [Drop()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("12sRGM4tr34iNOKFn34g", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "string"
 
     def test_is_not_lowercase(self):
         p = Program([If(IsNotLowercase(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("12sRGM4tr34iNOKFn34g", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "string"
 
     def test_is_number(self):
         p = Program([If(IsNumber(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("1234s50t049r", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "str"
 
     def test_is_not_number(self):
         p = Program([If(IsNotNumber(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
         env = StringEnvironment("ha@1j2^&*3", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "123"
 
     def test_is_space(self):
-        p = Program([If(IsSpace(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([If(IsSpace(), [Drop()], [MoveRight()]), LoopWhile(NotAtEnd(), [])])
         env = StringEnvironment("s t r i n g", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         assert env.to_string() == "string"
 
     def test_is_not_space(self):
-        p = Program([If(IsNotSpace(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([If(IsNotSpace(), [Drop()], [MoveRight()]), LoopWhile(NotAtEnd(), [])])
         env = StringEnvironment("s t r i n g ", pos=0)
 
-        p.interp(env)
+        env = p.interp(env)
         print(env.to_string())
         assert env.to_string() == "      "
 
