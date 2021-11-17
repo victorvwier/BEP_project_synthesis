@@ -14,8 +14,8 @@ from search.brute.brute import Brute
 
 import string_environment.string_tokens as string_tokens
 
-MAX_TOKEN_FUNCTION_DEPTH = 3
-MAX_NUMBER_OF_ITERATIONS = 30
+# MAX_TOKEN_FUNCTION_DEPTH = 3
+# MAX_NUMBER_OF_ITERATIONS = 30
 # MAX_EXECUTION_TIME_IN_SECONDS = 30
 
 def extract_domain_from_environment(environment):
@@ -50,10 +50,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     
     start_time = time.time()
 
-    # # generate different token combinations
-    # token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
     # # find program that satisfies training_examples
-    # program: Program
     program, best_loss, solved = Brute.search(test_case, trans_tokens, bool_tokens)
     finish_time = time.time()
     

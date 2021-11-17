@@ -34,6 +34,9 @@ class RobotEnvironment(Environment):
 
         assert (not holding or (rx == bx and ry == by))
         
+    def __deepcopy__(self, memdict={}):
+        return RobotEnvironment(self.size, self.rx, self.ry, self.bx, self.by, self.holding)
+
     def __str__(self):
         return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
                (self.rx, self.ry, self.bx, self.by, self.holding)

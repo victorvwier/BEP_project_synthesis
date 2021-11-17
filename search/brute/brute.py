@@ -53,9 +53,9 @@ def evaluate_program(program, sample_inputs, sample_outputs):
     except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
         return (float("inf"), 1, program)
 
-def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
-    for token in program_dictionary:
-        potentially_better_program = Program(best_program.sequence + token.sequence)
+def extend_program(best_program, programs, tokens: List[Token], sample_inputs, sample_outputs):
+    for token in tokens:
+        potentially_better_program = Program(best_program.sequence + [copy.copy(token)])
         program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
         if program_new[0] != float('inf'):
             heapq.heappush(programs, program_new)
@@ -72,28 +72,28 @@ def extend_program(best_program, programs, program_dictionary, sample_inputs, sa
 # def find_best_program(programs, sample_inputs, sample_outputs):
 #     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
-def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
+def synth_loop(programs, tokens: List[Token], sample_inputs, sample_outputs, iteration, num_iterations):
     (best_loss, solved, best_program) = heapq.heappop(programs)
 
     if(iteration >= num_iterations or solved == 0):
         return best_loss, solved, best_program
 
-    updated_programs = extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs)
+    updated_programs = extend_program(best_program, programs, tokens, sample_inputs, sample_outputs)
 
     iteration += 1
-    return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
+    return synth_loop(updated_programs, tokens, sample_inputs, sample_outputs, iteration, num_iterations)
 
-def _search(tokens, examples: List[Example], num_iterations):
+def _search(tokens: List[Token], examples: List[Example], num_iterations):
     sample_inputs = [e.input_environment for e in examples]
     sample_outputs = [e.output_environment for e in examples]
-    initial_programs = [Program([t]) for t in tokens]
+    #domain_tokens = [Program([t]) for t in tokens]
     
-    program_dictionary = copy.deepcopy(initial_programs)
+    #program_dictionary = copy.deepcopy(initial_programs)
     program = Program([])
     #programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
     
     starting_heap = [(float('inf'), 1, program)]
     heapq.heapify(starting_heap)
-    best_loss, solved, best_program = synth_loop(starting_heap, program_dictionary, sample_inputs, sample_outputs, 0, num_iterations)
+    best_loss, solved, best_program = synth_loop(starting_heap, tokens, sample_inputs, sample_outputs, 0, num_iterations)
 
     return best_program, best_loss, solved
