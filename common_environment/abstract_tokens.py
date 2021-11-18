@@ -20,6 +20,9 @@ class Token:
     def __repr__(self):
         return str(type(self).__name__)
 
+    def __eq__(self, other):
+        return type(self)==type(other)
+
 
 class BoolToken(Token):
     """Abstract Token that returns a boolean value."""
@@ -77,6 +80,8 @@ class InventedToken(EnvToken):
     def __repr__(self):
         return "[%s]" % ", ".join([str(t) for t in self.tokens])
 
+    def __eq__(self, other):
+        return self.tokens == other.tokens
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""

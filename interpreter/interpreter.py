@@ -17,6 +17,9 @@ class Program:
         else:
             return False
 
+    def __eq__(self, other):
+        return self.sequence == other.sequence
+
     def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
 
