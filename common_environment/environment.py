@@ -1,5 +1,5 @@
 from typing import List, get_type_hints
-
+import copy
 
 class Environment:
     """Abstract Environment class."""
@@ -9,6 +9,9 @@ class Environment:
 
     def distance(self, other: "Environment") -> float:
         """Returns the distance from this Environment to some other object."""
+        raise NotImplementedError()
+
+    def __deepcopy__(self, memdict={}):
         raise NotImplementedError()
 
     def correct(self, other: "Environment") -> bool:
@@ -34,6 +37,9 @@ class RobotEnvironment(Environment):
 
         assert (not holding or (rx == bx and ry == by))
         
+    def __deepcopy__(self, memdict={}):
+        return RobotEnvironment(self.size, self.rx, self.ry, self.bx, self.by, self.holding)
+
     def __str__(self):
         return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
                (self.rx, self.ry, self.bx, self.by, self.holding)
@@ -81,6 +87,9 @@ class StringEnvironment(Environment):
         string, therefore this conversion method exists."""
         return "".join(self.string_array)
 
+    def __deepcopy__(self, memdict={}):
+        return StringEnvironment(self.to_string(), self.pos)
+    
     @staticmethod
     def _levenshtein(str1, str2):
         m = len(str1)
@@ -125,6 +134,9 @@ class PixelEnvironment(Environment):
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
+
+    def __deepcopy__(self, memdict={}):
+        return PixelEnvironment(self.width, self.height, self.x, self.y, list(map(list, self.pixels)))
 
     def _hamming_distance(self, matrix1: List[List[bool]], matrix2: List[List[bool]]) -> int:
         assert len(matrix1) == len(matrix2)

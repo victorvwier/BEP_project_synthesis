@@ -14,8 +14,8 @@ class TestIf(unittest.TestCase):
             If(IsUppercase(), [MakeLowercase()], [MakeUppercase()])
         ])
 
-        p.interp(e1)
-        p.interp(e2)
+        e1 = p.interp(e1)
+        e2 = p.interp(e2)
 
         self.assertEqual(e1.to_string(), "hello, World!")
         self.assertEqual(e2.to_string(), "Hello, World!")
@@ -33,9 +33,9 @@ class TestIf(unittest.TestCase):
                    )])
         ])
 
-        p.interp(e1)
-        p.interp(e2)
-        p.interp(e3)
+        e1 = p.interp(e1)
+        e2 = p.interp(e2)
+        e3 = p.interp(e3)
 
         self.assertEqual(e1.to_string(), "Hello, World!")
         self.assertEqual(e2.to_string(), "hello, World!")
@@ -48,7 +48,7 @@ class TestRecurse(unittest.TestCase):
             Recurse(NotAtEnd(), [MakeUppercase()], [MakeUppercase(), MoveRight()])
         ])
 
-        p.interp(e1)
+        e1 = p.interp(e1)
         self.assertEqual(e1.to_string(), "HELLO, WORLD!")
 
     def test_limit(self):
@@ -68,7 +68,7 @@ class TestLoop(unittest.TestCase):
             MakeUppercase()
         ])
 
-        p.interp(e1)
+        e1 = p.interp(e1)
         self.assertEqual(e1.to_string(), "HELLO, WORLD!")
 
     def test_limit(self):
