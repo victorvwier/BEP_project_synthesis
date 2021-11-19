@@ -84,7 +84,7 @@ class TestStringTransTokens(TestCase):
 class TestStringBoolTokens(TestCase):
 
     def test_at_end(self):
-        p = Program([If(AtEnd(), [], [Recurse(None, [], [MoveRight()])])])
+        p = Program([If(AtEnd(), [], [MoveRight()]), If(AtEnd(), [], [MoveRight()]), If(AtEnd(), [], [MoveRight()])])
         env = StringEnvironment("str", pos=0)
 
         env = p.interp(env)
@@ -98,7 +98,7 @@ class TestStringBoolTokens(TestCase):
         assert env.pos == 2
 
     def test_at_start(self):
-        p = Program([If(AtStart(), [], [Recurse(None, [], [MoveLeft()])])])
+        p = Program([If(AtStart(), [], [MoveLeft()]), If(AtStart(), [], [MoveLeft()]), If(AtStart(), [], [MoveLeft()])])
         env = StringEnvironment("str", pos=2)
 
         env = p.interp(env)
