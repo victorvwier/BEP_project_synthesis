@@ -10,6 +10,7 @@ from parser.robot_parser import RobotParser
 from parser.string_parser import StringParser
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
+from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 
 import string_environment.string_tokens as string_tokens
@@ -46,12 +47,12 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 
 # a single case exists of several examples which should be solved by one single program
-def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens):
+def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens, searchAlgorithm: SearchAlgorithm):
     
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    program, best_loss, solved = Brute.search(test_case, trans_tokens, bool_tokens)
+    program, best_loss, solved = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
     finish_time = time.time()
     
     file = open(test_case.path_to_result_file, "w+")
@@ -102,7 +103,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
 # An experiment exists of different cases in the same domain.
 # For each experiment different, one program is generated per case.
-def test_performance_single_experiment(experiment: Experiment):
+def test_performance_single_experiment(experiment: Experiment, search: SearchAlgorithm):
     sum_of_success_percentages = 0
     sum_of_execution_times_in_seconds = 0
     number_of_completely_successful_programs = 0
@@ -113,7 +114,7 @@ def test_performance_single_experiment(experiment: Experiment):
     trans_tokens = extract_trans_tokens_from_domain_name(experiment.domain_name)
 
     for test_case in test_cases:
-        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case, trans_tokens, bool_tokens)
+        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case, trans_tokens, bool_tokens, search)
         sum_of_success_percentages += success_percentage
         sum_of_execution_times_in_seconds += execution_time_in_seconds
         if success_percentage == 100.0:
