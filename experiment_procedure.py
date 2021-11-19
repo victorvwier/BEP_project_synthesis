@@ -52,7 +52,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    program, best_loss, solved = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+    program = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
     finish_time = time.time()
     
     file = open(test_case.path_to_result_file, "w+")
