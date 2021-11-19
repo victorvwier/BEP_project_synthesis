@@ -81,7 +81,7 @@ class InventedToken(EnvToken):
         return "[%s]" % ", ".join([str(t) for t in self.tokens])
 
     def __eq__(self, other):
-        return self.tokens == other.tokens
+        return type(self) == type(other) and self.tokens == other.tokens
 
 class InvalidTransition(Exception):
     """This exception will be raised whenever an invalid state transition is performed on an Environment."""

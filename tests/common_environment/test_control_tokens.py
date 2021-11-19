@@ -41,6 +41,15 @@ class TestIf(unittest.TestCase):
         self.assertEqual(e2.to_string(), "hello, World!")
         self.assertEqual(e3.to_string(), "ello, World!")
 
+    def test_equality(self):
+        self.assertEqual(If(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]),
+                         If(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+        self.assertNotEqual(If(AtEnd(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]),
+                            If(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+        self.assertNotEqual(If(AtStart(), [MoveLeft(), MoveLeft()], [Drop(), MoveRight()]),
+                            If(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+
+
 class TestRecurse(unittest.TestCase):
     def test_simple(self):
         e1 = StringEnvironment("hello, world!")
@@ -58,6 +67,15 @@ class TestRecurse(unittest.TestCase):
         ])
 
         self.assertRaises(RecursiveCallLimitReached, lambda : p.interp(e1))
+
+    def test_equality(self):
+        self.assertEqual(Recurse(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]),
+                         Recurse(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+        self.assertNotEqual(Recurse(AtEnd(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]),
+                            Recurse(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+        self.assertNotEqual(Recurse(AtStart(), [MoveLeft(), MoveLeft()], [Drop(), MoveRight()]),
+                            Recurse(AtStart(), [MoveLeft(), MoveRight()], [Drop(), MoveRight()]))
+
 
 
 class TestLoop(unittest.TestCase):
@@ -78,6 +96,14 @@ class TestLoop(unittest.TestCase):
         ])
 
         self.assertRaises(LoopIterationLimitReached, lambda : p.interp(e1))
+
+    def test_equality(self):
+        self.assertEqual(LoopWhile(AtStart(), [MoveLeft(), MoveRight()]),
+                         LoopWhile(AtStart(), [MoveLeft(), MoveRight()]))
+        self.assertNotEqual(LoopWhile(AtEnd(), [MoveLeft(), MoveRight()]),
+                            LoopWhile(AtStart(), [MoveLeft(), MoveRight()]))
+        self.assertNotEqual(LoopWhile(AtStart(), [MoveLeft(), MoveLeft()]),
+                            LoopWhile(AtStart(), [MoveLeft(), MoveRight()]))
 
 if __name__ == '__main__':
     unittest.main()

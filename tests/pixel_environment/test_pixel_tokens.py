@@ -39,7 +39,6 @@ class TestPixelTokens(TestCase):
         expected = [[False, False], [True, False], [False, True]]
         self.assertEqual(expected, result.pixels)
 
-
 class TestPixelDistance(TestCase):
     def test_robot_distance(self):
         env1 = PixelEnvironment(2, 3, 0, 0, [[False, True, False], [True, False, False]])

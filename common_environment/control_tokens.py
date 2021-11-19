@@ -32,6 +32,12 @@ class If(ControlToken):
     def __repr__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
 
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+               self.cond == other.cond and \
+               self.e1 == other.e1 and \
+               self.e2 == other.e2
+
     def to_formatted_string(self):
         result = "if %s:\n\t%s" % (
             self.cond.to_formatted_string(),
@@ -79,6 +85,12 @@ class Recurse(ControlToken):
         return "Recurse(%s [%s] [%s])" %\
                (self.cond, ", ".join(list(map(str, self.base_case))), ", ".join(list(map(str, self.recursive_case))))
 
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+               self.cond == other.cond and \
+               self.base_case == other.base_case and \
+               self.recursive_case == other.recursive_case
+
     def to_formatted_string(self):
         result = "while %s do:\n\t%s" % (
             self.cond.to_formatted_string(),
@@ -122,6 +134,11 @@ class LoopWhile(ControlToken):
     def __repr__(self):
         return "LoopWhile(%s [%s])" %\
                (self.cond, ", ".join(list(map(str, self.loop_body))))
+
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+               self.cond == other.cond and \
+               self.loop_body == other.loop_body
 
     def to_formatted_string(self):
         result = "while %s do:\n\t%s" % (
