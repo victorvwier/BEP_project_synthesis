@@ -23,3 +23,10 @@ def test__search():
 
 # test_extend_program()
 # test__search()
+
+# P1 = Program([MoveRight(), InventedToken([MoveLeft(), Draw()])])
+# P2 = Program([MoveRight(), InventedToken([MoveLeft(), Draw()])])
+# listP = [P1]
+# listP = set(listP)
+# listP.add(P2)
+# print(listP)

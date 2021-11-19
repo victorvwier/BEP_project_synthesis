@@ -20,6 +20,9 @@ class Program:
     def __eq__(self, other):
         return self.sequence == other.sequence
 
+    def __hash__(self):
+        return hash(len(self.sequence))
+
     def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
 
