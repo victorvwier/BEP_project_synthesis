@@ -24,7 +24,9 @@ class Parser:
     def parse_file(self, file_name: str) -> TestCase:
         """Parses a file with a given file name found in the train data folder of the correct environment."""
         file = open(self.path + file_name, 'r')
-        return self._parse_file_lines(file_name, file.readlines())
+        data = self._parse_file_lines(file_name, file.readlines())
+        file.close()
+        return data
 
     def parse_all(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "") -> Experiment:
         """Parses all files with a given prefix. If none is given, parses all files."""
