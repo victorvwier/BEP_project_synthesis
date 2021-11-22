@@ -29,7 +29,7 @@ if __name__ == "__main__":
     Use this to run groups of experiments defined by file prefix
     """
     av = 0
-    search: SearchAlgorithm = MetropolisHasting
+    search: SearchAlgorithm = Brute
     for i in range(1, 10):
       experiment: Experiment = StringParser().parse_all(file_prefix="1-{}-".format(i))
       (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment, search)
