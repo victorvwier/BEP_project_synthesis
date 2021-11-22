@@ -13,7 +13,7 @@ MAX_NUMBER_OF_ITERATIONS = 20
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
 class Brute(SearchAlgorithm):
-    
+    @staticmethod
     def search(test_case: TestCase, trans_tokens, bool_tokens) -> Program:
         # generate different token combinations
         token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
