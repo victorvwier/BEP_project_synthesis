@@ -54,6 +54,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     # # find program that satisfies training_examples
     program = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+
     finish_time = time.time()
 
     path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
@@ -129,12 +130,12 @@ def test_performance_single_experiment(experiment: Experiment, search: SearchAlg
     return average_success_percentage, average_execution_time, percentage_of_completely_successful_programs
 
 
-def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str):
+def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str, search_algorithm: SearchAlgorithm):
     lines_to_write = []
     
     for experiment in experiments:
         average_success_percentage, average_execution_time, percentage_of_completely_successful_programs = \
-            test_performance_single_experiment(experiment)
+            test_performance_single_experiment(experiment, search=search_algorithm)
         lines_to_write.append("Experiment name: " + experiment.name + "\n")
         lines_to_write.append("Average_success_percentage: " + str(average_success_percentage) + "\n")
         lines_to_write.append("Average_execution_time: " + str(average_execution_time) + "\n")
@@ -173,5 +174,6 @@ if __name__ == "__main__":
     print("Done reading in all experiments")
     write_performances_of_experiments_to_file(
         experiments,
-        "performance_results/results.txt"
+        "performance_results/results.txt",
+        search_algorithm=Brute
     )
