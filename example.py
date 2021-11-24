@@ -1,3 +1,5 @@
+from typing import Type
+
 from experiment_procedure import *
 from parser.pixel_parser import PixelParser
 from parser.robot_parser import RobotParser
@@ -29,10 +31,10 @@ if __name__ == "__main__":
     Use this to run groups of experiments defined by file prefix
     """
     av = 0
-    search: SearchAlgorithm = Brute
+    search: Type[SearchAlgorithm] = MetropolisHasting
     for i in range(1, 10):
-      experiment: Experiment = StringParser().parse_all(file_prefix="1-{}-".format(i))
-      (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment, search)
-      av += com_suc
+        experiment: Experiment = RobotParser().parse_all(file_prefix="1-{}-".format(i))
+        (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment, search)
+        av += com_suc
     # """
-    print(av/9)
+    print(av / 9)

@@ -9,7 +9,7 @@ import heapq
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
-MAX_NUMBER_OF_ITERATIONS = 20
+MAX_NUMBER_OF_ITERATIONS = 10
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
 class Brute(SearchAlgorithm):
