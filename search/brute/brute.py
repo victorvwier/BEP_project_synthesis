@@ -13,12 +13,11 @@ MAX_NUMBER_OF_ITERATIONS = 20
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
 class Brute(SearchAlgorithm):
-    
-    def search(test_case: TestCase, trans_tokens, bool_tokens) -> Tuple[Program, int, int]:
+    @staticmethod
+    def search(test_case: TestCase, trans_tokens, bool_tokens) -> Program:
         # generate different token combinations
         token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
         # find program that satisfies training_examples
-        program: Program
         return _search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
         
 
@@ -62,21 +61,11 @@ def extend_program(best_program, programs, tokens: List[Token], sample_inputs, s
     #updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
     return programs
 
-# def prioritize_programs(programs, sample_inputs, sample_outputs):
-#     ordered_programs = []
-#     for program in programs:
-#         ordered_programs.append(evaluate_program(program, sample_inputs, sample_outputs))
-#     ordered_programs = sorted(ordered_programs, key=lambda x: (x[2], x[1]))
-#     return ordered_programs
-
-# def find_best_program(programs, sample_inputs, sample_outputs):
-#     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
-
 def synth_loop(programs, tokens: List[Token], sample_inputs, sample_outputs, iteration, num_iterations):
-    (best_loss, solved, best_program) = heapq.heappop(programs)
+    (_, solved, best_program) = heapq.heappop(programs)
 
     if(iteration >= num_iterations or solved == 0):
-        return best_loss, solved, best_program
+        return best_program
 
     updated_programs = extend_program(best_program, programs, tokens, sample_inputs, sample_outputs)
 
@@ -86,14 +75,11 @@ def synth_loop(programs, tokens: List[Token], sample_inputs, sample_outputs, ite
 def _search(tokens: List[Token], examples: List[Example], num_iterations):
     sample_inputs = [e.input_environment for e in examples]
     sample_outputs = [e.output_environment for e in examples]
-    #domain_tokens = [Program([t]) for t in tokens]
     
-    #program_dictionary = copy.deepcopy(initial_programs)
     program = Program([])
-    #programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
     
     starting_heap = [(float('inf'), 1, program)]
     heapq.heapify(starting_heap)
-    best_loss, solved, best_program = synth_loop(starting_heap, tokens, sample_inputs, sample_outputs, 0, num_iterations)
+    best_program = synth_loop(starting_heap, tokens, sample_inputs, sample_outputs, 0, num_iterations)
 
-    return best_program, best_loss, solved
+    return best_program

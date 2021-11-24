@@ -1,6 +1,7 @@
 from common_environment.environment import StringEnvironment
 from parser.experiment import TestCase, Example
 from parser.parser import Parser
+from pathlib import Path
 
 
 class StringParser(Parser):
@@ -14,7 +15,9 @@ class StringParser(Parser):
         )
 
     def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
-        test_lines = open(self.test_path + file_name, 'r').readlines()
+        path = Path(__file__).parent.parent.joinpath(self.test_path)
+        with open(path.joinpath(file_name), 'r') as file:
+            test_lines = file.readlines()
 
         return TestCase(
             path_to_result_file=self.result_folder_path + file_name,

@@ -4,6 +4,7 @@ from parser.robot_parser import RobotParser
 from parser.string_parser import StringParser
 from robot_environment import robot_tokens
 from search.abstract_search import SearchAlgorithm
+from search.metropolis_hastings.metropolis import MetropolisHasting
 from string_environment import string_tokens
 
 if __name__ == "__main__":
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     av = 0
     search: SearchAlgorithm = Brute
     for i in range(1, 10):
-      experiment = StringParser().parse_all(file_prefix="1-{}-".format(i))
+      experiment: Experiment = StringParser().parse_all(file_prefix="1-{}-".format(i))
       (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment, search)
       av += com_suc
     # """

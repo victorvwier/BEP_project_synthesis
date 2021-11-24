@@ -1,5 +1,6 @@
 import copy
 import time
+from pathlib import Path
 
 from typing import List 
 from common_environment.environment import *
@@ -52,52 +53,53 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    program: Program
-    program , best_loss, solved = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+    program = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+
     finish_time = time.time()
-    
-    file = open(test_case.path_to_result_file, "w+")
 
-    file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
+    path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w+") as file:
 
-    execution_time_in_seconds = finish_time - start_time
-    successes = 0
-    for e in test_case.test_examples:
-        in_state = e.input_environment
-        out_state = e.output_environment
+        file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
 
+        execution_time_in_seconds = finish_time - start_time
+        successes = 0
+        for e in test_case.test_examples:
+            in_state = e.input_environment
+            out_state = e.output_environment
+
+            file.writelines([
+                "input: " + str(in_state) + "\n",
+                "wanted output: " + str(out_state) + "\n"
+            ])
+
+            try:
+                result = program.interp(in_state)
+            except:
+                print("interpreting the program threw an error")
+                result = in_state
+
+            file.writelines([
+                "output: " + str(result) + "\n \n"
+            ])
+
+
+            if out_state.correct(result):
+                successes += 1
+
+        success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+        print(test_case.path_to_result_file, end=" \t")
+        print(success_percentage)
+        # print(program)
+
+
+        # file = open(test_case.path_to_result_file, "a+")
         file.writelines([
-            "input: " + str(in_state) + "\n",
-            "wanted output: " + str(out_state) + "\n"
+            "succes_percentage: " + str(success_percentage) + "\n",
+            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
         ])
-
-        try:
-            result = program.interp(in_state)
-        except:
-            print("interpreting the program threw an error")
-            result = in_state
-
-        file.writelines([
-            "output: " + str(result) + "\n \n"
-        ])
-        
-        
-        if out_state.correct(result):
-            successes += 1
-
-    success_percentage = 100.0 * successes / len(test_case.test_examples)
-
-    print(test_case.path_to_result_file, end=" \t")
-    print(success_percentage)
-    # print(program)
-
-
-    # file = open(test_case.path_to_result_file, "a+")
-    file.writelines([
-        "succes_percentage: " + str(success_percentage) + "\n",
-        "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
-    ])
-    file.close()
 
     return success_percentage, execution_time_in_seconds
 
@@ -141,9 +143,10 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
                               + str(percentage_of_completely_successful_programs) + "\n")
         lines_to_write.append("\n")
         print("Experiment: {} finished with status: {}".format(experiment.name, average_success_percentage))
-    file = open(output_file, "w")
-    file.writelines(lines_to_write)
-    file.close()
+    path = Path(__file__).parent.joinpath(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as file:
+        file.writelines(lines_to_write)
 
 
 def get_all_experiments():
