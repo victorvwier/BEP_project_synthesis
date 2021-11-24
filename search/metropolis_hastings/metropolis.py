@@ -1,19 +1,11 @@
-from typing import Callable
-from common_environment.abstract_tokens import Token
+from typing import Callable, List, Tuple
+from common_environment.abstract_tokens import InvalidTransition, Token
 from interpreter.interpreter import Program
 from parser.experiment import TestCase
 from search.abstract_search import SearchAlgorithm
+from common_environment.control_tokens import LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
 import random
-
-class MetropolisHasting(SearchAlgorithm):
-    @staticmethod
-    def search(test_case: TestCase, trans_tokens: set[Token], bool_tokens: set[Token]) -> Program:
-        program: Program = Program([])
-        for i in range(0, 100):
-            Mutation("Generate random token", )
-            return program
-
-
+import math
 
 class Mutation():
     def __init__(self, name: str, fun: Callable[[Program], Program], probability: int):
@@ -21,5 +13,103 @@ class Mutation():
         self.fun : Callable[[Program], Program] = fun
         self.probability = probability
 
+    # Doesn't change the input argument, since the callback never modifies the original Program!
     def apply(self, program: Program) -> Program:
         return self.fun(program)
+
+class MetropolisHasting(SearchAlgorithm):
+    @staticmethod
+    def search(test_case: TestCase, trans_tokens: set[Token], bool_tokens: set[Token]) -> Program:
+        program: Program = Program([])
+        cost = 100
+        proposal_distribution = ProposalDistribution()
+        proposal_distribution.add_mutation(MutationFactory.add_random_token(trans_tokens))
+        proposal_distribution.add_mutation(MutationFactory.remove_random_token())
+        proposal_distribution.add_mutation(MutationFactory.add_loop(bool_tokens, trans_tokens))
+        for i in range(0, 1000):
+            mut: Mutation = proposal_distribution.sample()
+            program, cost, solved = MetropolisHasting.maybe_apply_mutation(test_case, program, cost, mut)
+            if solved:
+                return program
+        return program
+
+    @staticmethod
+    def maybe_apply_mutation(test_case: TestCase, old_program: Program, ocost: int, mut: Mutation) -> Tuple[Program, int, int] :
+        new_program = mut.apply(old_program)
+        try:
+            cost = 0
+            
+            for case in test_case.training_examples:
+                nenv = new_program.interp(case.input_environment)
+                cost += abs(nenv.distance(case.output_environment))
+            solved = False
+            
+            if cost < 0.1:
+                solved = True
+                for case in test_case.training_examples:
+                    nenv = new_program.interp(case.input_environment)
+                    solved = solved and nenv.correct(case.output_environment)
+         
+                
+
+            #TODO change formula a bit
+
+
+            ratio = math.exp(-cost)/math.exp(-ocost)
+            if ratio > 1:
+                return new_program, cost, solved
+            if random.random() < ratio:
+                return new_program, cost, solved
+            return old_program, ocost, False
+            
+        except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached):
+            return old_program, ocost, False
+
+class ProposalDistribution():
+    def __init__(self):
+        self.mutations: List[Mutation] = []
+
+    def add_mutation(self, mut: Mutation):
+        self.mutations.append(mut)
+
+    def sample(self) -> Mutation:
+        # get total probability
+        tot = 0
+        for mut in self.mutations:
+            tot += mut.probability
+        choice = random.randrange(tot)
+
+        for mut in self.mutations:
+            if choice < mut.probability:
+                return mut
+            choice -= mut.probability
+
+# The operation must never be allowed to modify the Program that is passed in!
+class MutationFactory():
+    @staticmethod
+    def add_random_token(trans_tokens) -> Mutation:
+        def operation(pro: Program) -> Program:
+            rand_token = random.choice(list(trans_tokens))
+            return Program(pro.sequence + [rand_token()])
+        return Mutation("Append random token to the end of the program", operation, 10)
+
+    @staticmethod
+    def remove_random_token() -> Mutation:
+        def operation(pro: Program) -> Program:
+            length = len(pro.sequence)
+            if length == 0:
+                return pro
+            idk = random.randrange(length)
+            return Program(pro.sequence[:idk] + pro.sequence[idk+1:])
+        return Mutation("Remove random token of the end of the program", operation, 100)
+
+    @staticmethod
+    def add_loop(bool_tokens, trans_tokens) -> Mutation:
+        def operation(pro: Program) -> Program:
+
+            rand_bool = random.choice(list(bool_tokens))
+            rand_token = random.choice(list(trans_tokens))
+            return Program(pro.sequence + [LoopWhile(rand_bool(), [rand_token()])])
+        return Mutation("Add random loop to the end of the program", operation, 10)
+
+    
