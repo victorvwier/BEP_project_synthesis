@@ -2,7 +2,7 @@ import copy
 from typing import Tuple
 from common_environment.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
 from interpreter.interpreter import *
-from parser.experiment import Example, TestCase
+from myparser.experiment import Example, TestCase
 from pixel_environment.pixel_tokens import *
 import heapq
 

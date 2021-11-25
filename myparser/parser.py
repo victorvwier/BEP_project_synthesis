@@ -1,6 +1,6 @@
 from os import listdir
 
-from parser.experiment import *
+from myparser.experiment import *
 
 
 class Parser:

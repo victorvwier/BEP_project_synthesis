@@ -1,6 +1,6 @@
 from common_environment.environment import StringEnvironment
-from parser.experiment import TestCase, Example
-from parser.parser import Parser
+from myparser.experiment import TestCase, Example
+from myparser.parser import Parser
 
 
 class StringParser(Parser):

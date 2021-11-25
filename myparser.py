@@ -128,10 +128,10 @@ class StringParser():
 
         experiment_names = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
         experiment_tuple_lists: List[List[Tuple[str, str]]]= []
-        parser: List[Experiment] = []
+        myparser: List[Experiment] = []
         for _ in range(len(experiment_names)):
             experiment_tuple_lists.append([])
-            parser.append([])
+            myparser.append([])
 
         for file_name in filenames1:
 
@@ -144,9 +144,9 @@ class StringParser():
 
         for i, name in enumerate(experiment_names):
             experiment = StringParser.parse_experiment(experiment_tuple_lists[i], name)
-            parser[i] = experiment
+            myparser[i] = experiment
         
-        return parser
+        return myparser
         
 
     def parse_experiment(file_names_tuples: List[Tuple[str, str]], experiment_name_extention):
@@ -160,7 +160,7 @@ class StringParser():
             test_cases.append(test_case)
 
         domain_name = "string"
-        experiment = Experiment("String parser: " + experiment_name_extention, domain_name, test_cases)
+        experiment = Experiment("String myparser: " + experiment_name_extention, domain_name, test_cases)
         return experiment
 
 

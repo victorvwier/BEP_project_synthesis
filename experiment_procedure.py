@@ -4,10 +4,10 @@ import time
 from typing import List 
 from common_environment.environment import *
 from interpreter.interpreter import *
-from parser.experiment import Experiment, TestCase
-from parser.pixel_parser import PixelParser
-from parser.robot_parser import RobotParser
-from parser.string_parser import StringParser
+from myparser.experiment import Experiment, TestCase
+from myparser.pixel_parser import PixelParser
+from myparser.robot_parser import RobotParser
+from myparser.string_parser import StringParser
 import pixel_environment.pixel_tokens as pixel_tokens
 import robot_environment.robot_tokens as robot_tokens
 from search.abstract_search import SearchAlgorithm

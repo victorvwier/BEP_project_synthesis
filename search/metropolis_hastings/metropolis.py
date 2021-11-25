@@ -1,7 +1,7 @@
 from typing import Tuple
 from common_environment.abstract_tokens import Token
 from interpreter.interpreter import Program
-from parser.experiment import TestCase
+from myparser.experiment import TestCase
 from search.abstract_search import SearchAlgorithm
 
 
