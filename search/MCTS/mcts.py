@@ -1,6 +1,6 @@
 import copy
 from enum import Enum
-from typing import Tuple, List, Union
+from typing import Tuple, List
 from interpreter.interpreter import Token, EnvToken, Environment, TransToken, BoolToken
 from myparser.experiment import TestCase
 from search.abstract_search import SearchAlgorithm
@@ -66,28 +66,29 @@ class CompletableToken(EnvToken):
         raise NotImplementedError
 
 class ProgramUnit(EnvToken):
-    """Wrapper class for a token, which  indicates whether the token is complete and provides """
+    """Wrapper class for a token that also handles complete as well as incomplete tokens
+
+     Methods: (selection of them)
+         is_complete: indicates whether the token is complete
+         apply_action: allows to apply an action to an incomplete ProgramUnit
+     """
 
     def __init__(self, token: EnvToken):
         self.token = token
 
-        if isinstance(token, TransToken):
-            self.completed = True
-        if isinstance(self.token, CompletableToken):
-            self.completed = False
-
     def apply(self, env: Environment) -> Environment:
         return self.token.apply(env)
 
-    # def make_complete(self):
-    #     """Tries declaring the program unit as complete"""
-    #     if self.completed:
-    #         return
-    #     if isinstance(self.token, CompletableToken)
-    #     self.token.make_complete()
+    def is_complete(self) -> bool:
+        if isinstance(self.token, TransToken):
+            return True
+        elif isinstance(self.token, CompletableToken):
+            return self.token.completed
+        else:
+            raise Exception("Something went wrong. Expected token to be either TransToken or CompletableToken")
 
     def apply_action(self, action: Action):
-        if self.completed:
+        if self.is_complete():
             raise IllegalActionException("Action was applied to already completed ProgramUnit")
         elif isinstance(self.token, CompletableToken):
             self.token.apply_action(action)
