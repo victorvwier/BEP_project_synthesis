@@ -1,4 +1,5 @@
 import copy
+from abc import abstractmethod, ABCMeta
 from enum import Enum
 from typing import Tuple, List
 from interpreter.interpreter import Token, EnvToken, Environment, TransToken, BoolToken
@@ -40,22 +41,35 @@ class CompletableToken(EnvToken):
     """Token that, once completed, will return a environment.
 
     Attributes:
-        completed -- Indicates whether the action is complete
-        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
+        completed -- Indicates whether the token is complete
+        complete_action_allowed -- Indicates whether at this state it is okay to apply a CompleteAction
 
     It also has a function to retrieve what type of token is needed to expand the program"""
 
-    def apply(self, env: Environment) -> Environment:
-        """"Alters given environment and returns it. Raises an Exception if """
-        raise NotImplementedError
-
     def __init__(self):
-        self.completed = False
-        self.complete_action_allowed = False
+        # self.completed = False
+        # self.complete_action_allowed = False
+        raise NotImplementedError
     # def make_complete(self):
     #     """Sets complete to True if it could be applied to an environment.
     #     Raises an exception if it still needs an expansion before it can be applied"""
     #     raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def completed(self):
+        """Indicates whether the token is complete. AKA when no new tokens can be added anymore"""
+        pass
+
+    @property
+    @abstractmethod
+    def completable(self):
+        """Indicates whether at this state it is okay to apply a CompleteAction. AKA when no new tokens are necessary"""
+        pass
+
+    def apply(self, env: Environment) -> Environment:
+        """"Alters given environment and returns it. Raises an Exception if """
+        raise NotImplementedError
 
     def get_needed_expand_token_type(self) -> TokenType:
         """Get TokenType that is Required for expanding this Token"""
@@ -64,6 +78,32 @@ class CompletableToken(EnvToken):
     def apply_action(self, action: Action):
         """Apply the given action. Raises an IllegalActionException if an illegal action was given"""
         raise NotImplementedError
+
+class IfToken(CompletableToken, metaclass=ABCMeta):
+    """If-token that needs other Tokens to complete its boolean condition and if body.
+    Once completed it can be applied on a environment and it will return an environment.
+    This If-token does NOT have an else body.
+
+    Attributes:
+        completed -- Indicates whether the action is complete
+        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
+
+    It also has a function to retrieve what type of token is needed to expand the program"""
+
+    def __init__(self):
+        super().__init__()
+        self.completed = False
+        self.completable = False
+
+    def apply(self, env: Environment) -> Environment:
+        pass
+
+    def get_needed_expand_token_type(self) -> TokenType:
+        pass
+
+    def apply_action(self, action: Action):
+        pass
+
 
 class ProgramUnit(EnvToken):
     """Wrapper class for a token that also handles complete as well as incomplete tokens
