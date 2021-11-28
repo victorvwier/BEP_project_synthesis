@@ -50,7 +50,8 @@ class ControlToken(EnvToken):
     """Abstract Token used for flow control."""
 
     def apply(self, env: Environment) -> Environment:
-        """Applies this ControlToken on a given Environment. Alters the Environment and returns the newly obtained one."""
+        """Applies this ControlToken on a given Environment.
+        Alters the Environment and returns the newly obtained one."""
 
         raise NotImplementedError()
 
