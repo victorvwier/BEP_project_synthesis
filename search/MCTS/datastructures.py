@@ -13,6 +13,7 @@ from search.MCTS.exceptions import IllegalActionException, ProgramAlreadyComplet
 
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
+# TODO check if loop_limit is given along with functions everywhere where possible
 LOOP_LIMIT = 100
 
 
@@ -42,206 +43,6 @@ class TokenType(Enum):
     ENV_TOKEN = EnvToken
 
 
-class CompletableToken(EnvToken):
-    """Token that, once completed, will return a environment.
-
-    Attributes:
-        completed -- Indicates whether the token is complete
-        complete_action_allowed -- Indicates whether at this state it is okay to apply a CompleteAction
-
-    It also has a function to retrieve what type of token is needed to expand the program"""
-
-    @property
-    @abstractmethod
-    def completed(self):
-        """Indicates whether the token is complete. AKA when no new tokens can be added anymore"""
-        pass
-
-    @property
-    @abstractmethod
-    def complete_action_allowed(self):
-        """Indicates whether at this state it is okay to apply a CompleteAction. AKA when no new tokens are necessary"""
-        pass
-
-    def apply(self, env: Environment) -> Environment:
-        """"Alters given environment and returns it. Raises an Exception if """
-        raise NotImplementedError
-
-    def get_needed_expand_token_type(self) -> TokenType:
-        """Get TokenType that is Required for expanding this Token"""
-        raise NotImplementedError
-
-    def apply_action(self, action: Action):
-        """Apply the given action. Raises an IllegalActionException if an illegal action was given"""
-        raise NotImplementedError
-
-    def __repr__(self):
-        raise NotImplementedError
-
-
-class IfToken(CompletableToken):
-    """If-token that needs other Tokens to complete its boolean condition and its body.
-    Once completed it can be applied on a environment and it will return an environment.
-    This If-token does NOT have an else body.
-
-    Attributes:
-        completed -- Indicates whether the token is complete
-        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
-
-    Methods:
-        apply -- Applies the IfToken on an Environment and returns the altered Environment
-        get_needed_expand_token_type -- Returns the TokenType that is needed for expanding the IfToken
-        apply_action -- Apply either a CompleteAction or an ExpandAction to the IfToken.
-
-    """
-
-    def __init__(self):
-        self._bool_condition: Union[BoolToken, None] = None
-        self._body: Program = Program([], False, TokenType.ENV_TOKEN)
-
-    @property
-    def completed(self) -> bool:
-        return self._body.complete
-
-    @property
-    def complete_action_allowed(self) -> bool:
-        if not isinstance(self._bool_condition, BoolToken):
-            return False
-
-        return self._body.complete_action_allowed
-
-    def apply(self, env: Environment) -> Environment:
-
-        if not self.completed:
-            raise ApplyingIncompleteTokenException("The IfToken you are trying to apply is not completed yet")
-
-        boolean = self._bool_condition.apply(env)
-
-        if boolean:
-            return self._body.interp(env)
-
-    def get_needed_expand_token_type(self) -> TokenType:
-        if not isinstance(self._bool_condition, BoolToken):
-            return TokenType.BOOL_TOKEN
-
-        if not self._body.complete:
-            return self._body.required_token_type_for_expansion
-
-        raise TokenAlreadyCompletedException("The IfToken is already complete, "
-                                             "so it is not possible to retrieve the needed_expand_token_type")
-
-    def apply_action(self, action: Action):
-        if self.completed:
-            raise TokenAlreadyCompletedException("The IfToken is already complete, so no actions can be applied to it")
-
-        # if the boolean condition is not set yet, only an Expand action with a BoolToken is allowed
-        if not isinstance(self._bool_condition, BoolToken):
-            if isinstance(action, ExpandAction):
-                program_unit: ProgramUnit = action.program_unit
-                if isinstance(program_unit.token, BoolToken):
-                    self._bool_condition = program_unit.token
-                    return
-
-            raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
-                                         "IfToken with no boolean condition yet. Different action was received")
-
-        # if the boolean condition has already been set, just try to apply the action on the body
-        else:
-            self._body.apply_action(action)
-
-    def __repr__(self):
-        return "IfToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
-
-
-class WhileToken(CompletableToken):
-    """While-token that needs other Tokens to complete its boolean condition and its body.
-    Once completed it can be applied on a environment and it will return an environment.
-
-    Attributes:
-        completed -- Indicates whether the token is complete
-        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
-
-    Methods:
-        apply -- Applies the WhileToken on an Environment and returns the altered Environment
-        get_needed_expand_token_type -- Returns the TokenType that is needed for expanding the WhileToken
-        apply_action -- Apply either a CompleteAction or an ExpandAction to the WhileToken.
-
-    """
-
-    def __init__(self, max_number_of_iterations: int):
-        self._bool_condition: Union[BoolToken, None] = None
-        self._body: Program = Program([], False, TokenType.ENV_TOKEN)
-        self._max_number_of_iterations: int = max_number_of_iterations
-
-    @property
-    def completed(self) -> bool:
-        return self._body.complete
-
-    @property
-    def complete_action_allowed(self) -> bool:
-        if not isinstance(self._bool_condition, BoolToken):
-            return False
-
-        return self._body.complete_action_allowed
-
-    def apply(self, env: Environment) -> Environment:
-
-        if not self.completed:
-            raise ApplyingIncompleteTokenException("The WhileToken you are trying to apply is not completed yet")
-
-        boolean = self._bool_condition.apply(env)
-        iteration = 1
-
-        while boolean and iteration <= self._max_number_of_iterations:
-            # check if the max_number_of_iterations has not been exceeded
-            if iteration > self._max_number_of_iterations:
-                raise MaxNumberOfIterationsExceededException(
-                    "The max_number_of_iterations was exceeded in the WhileLoop")
-
-            # run the program in the body on the given environment
-            env = self._body.interp(env)
-
-            # update the boolean using the altered environment
-            boolean = self._bool_condition.apply(env)
-
-            # increment the number of iterations
-            iteration += 1
-
-        return env
-
-    def get_needed_expand_token_type(self) -> TokenType:
-        if not isinstance(self._bool_condition, BoolToken):
-            return TokenType.BOOL_TOKEN
-
-        if not self._body.complete:
-            return self._body.required_token_type_for_expansion
-
-        raise TokenAlreadyCompletedException("The WhileToken is already complete, "
-                                             "so it is not possible to retrieve the needed_expand_token_type")
-
-    def apply_action(self, action: Action):
-        if self.completed:
-            raise TokenAlreadyCompletedException("The IfToken is already complete, so no actions can be applied to it")
-
-        # if the boolean condition is not set yet, only an Expand action with a BoolToken is allowed
-        if not isinstance(self._bool_condition, BoolToken):
-            if isinstance(action, ExpandAction):
-                program_unit: ProgramUnit = action.program_unit
-                if isinstance(program_unit.token, BoolToken):
-                    self._bool_condition = program_unit.token
-                    return
-
-            raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
-                                         "WhileToken with no boolean condition yet. Different action was received")
-
-        # if the boolean condition has already been set, just try to apply the action on the body
-        else:
-            self._body.apply_action(action)
-
-    def __repr__(self):
-        return "WhileToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
-
-
 class ProgramUnit(EnvToken):
     """Wrapper class for a token that also handles complete as well as incomplete tokens
 
@@ -252,6 +53,17 @@ class ProgramUnit(EnvToken):
 
     def __init__(self, token: EnvToken):
         self.token = token
+
+    def __deepcopy__(self, memodict={}):
+        # TODO check if this works fine
+        if isinstance(self.token, TransToken):
+            return self.token
+        else:
+            # TODO make deepcopy method for WhileToken and IfToken
+            return copy.deepcopy(self.token)
+
+        # TODO where necessary create deepcopy of EnvToken subclasses
+        # return copy.deepcopy(self.token)
 
     def apply(self, env: Environment) -> Environment:
         return self.token.apply(env)
@@ -300,6 +112,17 @@ class Program(List[ProgramUnit]):
         self._complete = complete
         self.required_token_type_for_expansion = required_token_type_for_expansion
         self.loop_limit = loop_limit
+
+    def __deepcopy__(self, memodict={}):
+
+        new_program = copy.deepcopy(self.program)
+
+        return Program(
+            program_units=new_program,
+            complete=self.complete,
+            required_token_type_for_expansion=self.required_token_type_for_expansion,
+            loop_limit=self.loop_limit
+        )
 
     # def __gt__(self, other):
     #     if (self.number_of_tokens() > other.number_of_tokens()):
@@ -373,6 +196,234 @@ class Program(List[ProgramUnit]):
 
     # def interp_cast(self, env: Environment):
     #   return cast(env, self.interp(env))
+
+
+class CompletableToken(EnvToken):
+    """Token that, once completed, will return a environment.
+
+    Attributes:
+        completed -- Indicates whether the token is complete
+        complete_action_allowed -- Indicates whether at this state it is okay to apply a CompleteAction
+
+    It also has a function to retrieve what type of token is needed to expand the program"""
+
+    @property
+    @abstractmethod
+    def completed(self):
+        """Indicates whether the token is complete. AKA when no new tokens can be added anymore"""
+        pass
+
+    @property
+    @abstractmethod
+    def complete_action_allowed(self):
+        """Indicates whether at this state it is okay to apply a CompleteAction. AKA when no new tokens are necessary"""
+        pass
+
+    def apply(self, env: Environment) -> Environment:
+        """"Alters given environment and returns it. Raises an Exception if """
+        raise NotImplementedError
+
+    def get_needed_expand_token_type(self) -> TokenType:
+        """Get TokenType that is Required for expanding this Token"""
+        raise NotImplementedError
+
+    def apply_action(self, action: Action):
+        """Apply the given action. Raises an IllegalActionException if an illegal action was given"""
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+
+class IfToken(CompletableToken):
+    """If-token that needs other Tokens to complete its boolean condition and its body.
+    Once completed it can be applied on a environment and it will return an environment.
+    This If-token does NOT have an else body.
+
+    Attributes:
+        completed -- Indicates whether the token is complete
+        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
+
+    Methods:
+        apply -- Applies the IfToken on an Environment and returns the altered Environment
+        get_needed_expand_token_type -- Returns the TokenType that is needed for expanding the IfToken
+        apply_action -- Apply either a CompleteAction or an ExpandAction to the IfToken.
+
+    """
+
+    def __init__(
+            self,
+            bool_condition=None,
+            body=None,
+    ):
+        self._bool_condition: Union[BoolToken, None] = bool_condition
+        if body:
+            self._body: Program = body
+        else:
+            self._body: Program = Program([], False, TokenType.ENV_TOKEN)
+
+    @property
+    def completed(self) -> bool:
+        return self._body.complete
+
+    @property
+    def complete_action_allowed(self) -> bool:
+        if not isinstance(self._bool_condition, BoolToken):
+            return False
+
+        return self._body.complete_action_allowed
+
+    def apply(self, env: Environment) -> Environment:
+
+        if not self.completed:
+            raise ApplyingIncompleteTokenException("The IfToken you are trying to apply is not completed yet")
+
+        boolean = self._bool_condition.apply(env)
+
+        if boolean:
+            return self._body.interp(env)
+
+    def get_needed_expand_token_type(self) -> TokenType:
+        if not isinstance(self._bool_condition, BoolToken):
+            return TokenType.BOOL_TOKEN
+
+        if not self._body.complete:
+            return self._body.required_token_type_for_expansion
+
+        raise TokenAlreadyCompletedException("The IfToken is already complete, "
+                                             "so it is not possible to retrieve the needed_expand_token_type")
+
+    def apply_action(self, action: Action):
+        if self.completed:
+            raise TokenAlreadyCompletedException("The IfToken is already complete, so no actions can be applied to it")
+
+        # if the boolean condition is not set yet, only an Expand action with a BoolToken is allowed
+        if not isinstance(self._bool_condition, BoolToken):
+            if isinstance(action, ExpandAction):
+                program_unit: ProgramUnit = action.program_unit
+                if isinstance(program_unit.token, BoolToken):
+                    self._bool_condition = program_unit.token
+                    return
+
+            raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
+                                         "IfToken with no boolean condition yet. Different action was received")
+
+        # if the boolean condition has already been set, just try to apply the action on the body
+        else:
+            self._body.apply_action(action)
+
+    def __deepcopy__(self, memodict={}):
+        return IfToken(
+            bool_condition=self._bool_condition,
+            body=copy.deepcopy(self._body)
+        )
+
+    def __repr__(self):
+        return "IfToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
+
+
+class WhileToken(CompletableToken):
+    """While-token that needs other Tokens to complete its boolean condition and its body.
+    Once completed it can be applied on a environment and it will return an environment.
+
+    Attributes:
+        completed -- Indicates whether the token is complete
+        complete_action_allowed -- Indicates whether at this state it is okay to apply an CompleteAction
+
+    Methods:
+        apply -- Applies the WhileToken on an Environment and returns the altered Environment
+        get_needed_expand_token_type -- Returns the TokenType that is needed for expanding the WhileToken
+        apply_action -- Apply either a CompleteAction or an ExpandAction to the WhileToken.
+
+    """
+
+    def __init__(
+            self,
+            max_number_of_iterations: int,
+            bool_condition=None,
+            body=None,
+    ):
+        self._bool_condition: Union[BoolToken, None] = bool_condition
+        if body:
+            self._body: Program = body
+        else:
+            self._body: Program = Program([], False, TokenType.ENV_TOKEN)
+        self._max_number_of_iterations: int = max_number_of_iterations
+
+    @property
+    def completed(self) -> bool:
+        return self._body.complete
+
+    @property
+    def complete_action_allowed(self) -> bool:
+        if not isinstance(self._bool_condition, BoolToken):
+            return False
+
+        return self._body.complete_action_allowed
+
+    def apply(self, env: Environment) -> Environment:
+
+        if not self.completed:
+            raise ApplyingIncompleteTokenException("The WhileToken you are trying to apply is not completed yet")
+
+        boolean = self._bool_condition.apply(env)
+        iteration = 1
+
+        while boolean and iteration <= self._max_number_of_iterations:
+            # check if the max_number_of_iterations has not been exceeded
+            if iteration > self._max_number_of_iterations:
+                raise MaxNumberOfIterationsExceededException(
+                    "The max_number_of_iterations was exceeded in the WhileLoop")
+
+            # run the program in the body on the given environment
+            env = self._body.interp(env)
+
+            # update the boolean using the altered environment
+            boolean = self._bool_condition.apply(env)
+
+            # increment the number of iterations
+            iteration += 1
+
+        return env
+
+    def get_needed_expand_token_type(self) -> TokenType:
+        if not isinstance(self._bool_condition, BoolToken):
+            return TokenType.BOOL_TOKEN
+
+        if not self._body.complete:
+            return self._body.required_token_type_for_expansion
+
+        raise TokenAlreadyCompletedException("The WhileToken is already complete, "
+                                             "so it is not possible to retrieve the needed_expand_token_type")
+
+    def apply_action(self, action: Action):
+        if self.completed:
+            raise TokenAlreadyCompletedException("The IfToken is already complete, so no actions can be applied to it")
+
+        # if the boolean condition is not set yet, only an Expand action with a BoolToken is allowed
+        if not isinstance(self._bool_condition, BoolToken):
+            if isinstance(action, ExpandAction):
+                program_unit: ProgramUnit = action.program_unit
+                if isinstance(program_unit.token, BoolToken):
+                    self._bool_condition = program_unit.token
+                    return
+
+            raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
+                                         "WhileToken with no boolean condition yet. Different action was received")
+
+        # if the boolean condition has already been set, just try to apply the action on the body
+        else:
+            self._body.apply_action(action)
+
+    def __deepcopy__(self, memodict={}):
+        return WhileToken(
+            max_number_of_iterations=self._max_number_of_iterations,
+            bool_condition=self._bool_condition,
+            body=copy.deepcopy(self._body)
+        )
+
+    def __repr__(self):
+        return "WhileToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
 
 
 class SearchTreeNode(NodeMixin):
