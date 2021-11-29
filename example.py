@@ -30,6 +30,7 @@ if __name__ == "__main__":
       """
       Use this to run groups of experiments defined by file prefix
     """
+      com, av = 0, 0
       com2, av2 = 0, 0
       metro: Type[SearchAlgorithm] = MetropolisHasting
       brute: Type[SearchAlgorithm] = Brute
@@ -39,10 +40,10 @@ if __name__ == "__main__":
                   experiment: Experiment = StringParser().parse_all(file_prefix="4-{}-".format(i))
                   (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment, metro)
                   print('000000')
-                  #(ave_suc2, ave_time2, com_suc) = test_performance_single_experiment(experiment, brute)
-                  av2 += ave_suc
-                  com2 += com_suc
+                  # (ave_suc2, ave_time2, com_suc2) = test_performance_single_experiment(experiment, brute)
+                  # com2 += com_suc2
+                  com += com_suc
       
       # """
       print(com2 / 9 * depth)
-      print(av2 / 9 * depth)
+      print(com / 9 * depth)
