@@ -1,6 +1,8 @@
+from dataclasses import dataclass
 from typing import List, get_type_hints
 import copy
 
+@dataclass(eq=True, unsafe_hash=True)
 class Environment:
     """Abstract Environment class."""
 
@@ -19,9 +21,16 @@ class Environment:
         raise NotImplementedError()
 
 
+@dataclass(eq=True, unsafe_hash=True)
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
     in that same matrix."""
+    size: int
+    rx: int
+    ry: int
+    bx: int
+    by: int
+    holding: bool
 
     def __init__(self, size: int, rx: int, ry: int, bx: int, by: int, holding=False):
         """Creates new RobotEnvironment given a size, initial position of the robot (rx, ry), position of the ball
@@ -70,8 +79,12 @@ class RobotEnvironment(Environment):
                == (other.rx, other.ry, other.bx, other.by, other.holding)
 
 
+@dataclass(eq=True)
 class StringEnvironment(Environment):
     """Environment for string manipulation."""
+    string_array: list[str]
+    pos: int
+
     def __init__(self, string: str, pos: int = 0):
         """Creates new StringEnvironment given an initial string and starting position of the pointer, 0 by default."""
         super().__init__()
@@ -89,6 +102,9 @@ class StringEnvironment(Environment):
 
     def __deepcopy__(self, memdict={}):
         return StringEnvironment(self.to_string(), self.pos)
+
+    def __hash__(self):
+        return hash((self.to_string(), self.pos))
     
     @staticmethod
     def _levenshtein(str1, str2):
@@ -117,7 +133,14 @@ class StringEnvironment(Environment):
         return "StringEnvironment(Pointer at {pos} in \"{string_array}\")".format(pos=self.pos, string_array=self.to_string())
 
 
+@dataclass(eq=True)
 class PixelEnvironment(Environment):
+    width: int
+    height: int
+    x: int
+    y: int
+    pixels: list[list[bool]]
+
     def __init__(self, width, height, x, y, pixels=None):
         super().__init__()
 
@@ -137,6 +160,9 @@ class PixelEnvironment(Environment):
 
     def __deepcopy__(self, memdict={}):
         return PixelEnvironment(self.width, self.height, self.x, self.y, list(map(list, self.pixels)))
+
+    def __hash__(self):
+        return hash((tuple(tuple(x) for x in self.pixels), self.width, self.height, self.x, self.y))
 
     def _hamming_distance(self, matrix1: List[List[bool]], matrix2: List[List[bool]]) -> int:
         assert len(matrix1) == len(matrix2)
