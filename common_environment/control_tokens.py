@@ -23,8 +23,10 @@ class If(ControlToken):
         return env
         #Program(self.e2).interp(env, False)
 
-    def number_of_tokens(self) -> int:
-        return 2 + len(self.e1) + len(self.e2)
+    def number_of_tokens(self, control_cost=2) -> int:
+        return control_cost + \
+               sum([t.number_of_tokens(control_cost) for t in self.e1]) + \
+               sum([t.number_of_tokens(control_cost) for t in self.e2])
 
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
@@ -68,15 +70,17 @@ class Recurse(ControlToken):
         # else, base case
         return Program(self.base_case).interp(env, False)
 
-    def number_of_tokens(self) -> int:
-        return 2 + len(self.base_case) + len(self.recursive_case)
+    def number_of_tokens(self, control_cost=2) -> int:
+        return control_cost + \
+               sum([t.number_of_tokens(control_cost) for t in self.base_case]) + \
+               sum([t.number_of_tokens(control_cost) for t in self.recursive_case])
 
     def __str__(self):
-        return "Recurse(%s [%s] [%s])" %\
+        return "Recurse(%s [%s] [%s])" % \
                (self.cond, ", ".join(list(map(str, self.base_case))), ", ".join(list(map(str, self.recursive_case))))
 
     def __repr__(self):
-        return "Recurse(%s [%s] [%s])" %\
+        return "Recurse(%s [%s] [%s])" % \
                (self.cond, ", ".join(list(map(str, self.base_case))), ", ".join(list(map(str, self.recursive_case))))
 
     def to_formatted_string(self):
@@ -112,15 +116,15 @@ class LoopWhile(ControlToken):
 
         return env
 
-    def number_of_tokens(self) -> int:
-        return 2 + len(self.loop_body)
+    def number_of_tokens(self, control_cost=2) -> int:
+        return control_cost + sum([t.number_of_tokens(control_cost) for t in self.loop_body])
 
     def __str__(self):
-        return "LoopWhile(%s [%s])" %\
+        return "LoopWhile(%s [%s])" % \
                (self.cond, ", ".join(list(map(str, self.loop_body))))
 
     def __repr__(self):
-        return "LoopWhile(%s [%s])" %\
+        return "LoopWhile(%s [%s])" % \
                (self.cond, ", ".join(list(map(str, self.loop_body))))
 
     def to_formatted_string(self):

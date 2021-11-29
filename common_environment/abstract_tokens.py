@@ -8,7 +8,7 @@ class Token:
         """Applies this Token on a given Environment."""
         raise NotImplementedError()
 
-    def number_of_tokens(self) -> int:
+    def number_of_tokens(self, control_cost=2) -> int:
         return 1
 
     def to_formatted_string(self):
@@ -58,15 +58,15 @@ class ControlToken(EnvToken):
 class InventedToken(EnvToken):
     def __init__(self, tokens: list):
         self.tokens = tokens
-        
+
     def apply(self, env: Environment) -> Environment:
         for t in self.tokens:
             env = t.apply(env)
 
         return env
 
-    def number_of_tokens(self) -> int:
-        return len(self.tokens)
+    def number_of_tokens(self, control_cost=2) -> int:
+        return sum([t.number_of_tokens(control_cost) for t in self.tokens])
 
     def __str__(self):
         return "[%s]" % ", ".join([str(t) for t in self.tokens])
