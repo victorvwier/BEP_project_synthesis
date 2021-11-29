@@ -12,14 +12,14 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string")
 
         env = p1.interp(env)
-        assert env.pos == 1
+        self.assertEqual(env.pos, 1)
 
         env = p1.interp(env)
-        assert env.pos == 2
+        self.assertEqual(env.pos, 2)
 
         p2 = Program([MoveRight(), MoveRight(), MoveRight()])
         env = p2.interp(env)
-        assert env.pos == 5
+        self.assertEqual(env.pos, 5)
 
         self.assertRaises(InvalidTransition, lambda : p1.interp(env))
 
@@ -28,14 +28,14 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string", pos = 5)
 
         env = p1.interp(env)
-        assert env.pos == 4
+        self.assertEqual(env.pos, 4)
 
         env = p1.interp(env)
-        assert env.pos == 3
+        self.assertEqual(env.pos, 3)
 
         p2 = Program([MoveLeft(), MoveLeft(), MoveLeft()])
         env = p2.interp(env)
-        assert env.pos == 0
+        self.assertEqual(env.pos, 0)
 
         self.assertRaises(InvalidTransition, lambda : p1.interp(env))
 
@@ -44,14 +44,14 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string")
 
         env = p1.interp(env)
-        assert env.string_array == list("StRIng")
+        self.assertEqual(env.string_array, list("StRIng"))
 
     def test_make_lowercase(self):
         p1 = Program([MakeLowercase(), MoveLeft(), MoveLeft(), MakeLowercase(), MoveLeft(), MakeLowercase()])
         env = StringEnvironment("STRING", pos = 5)
 
         env = p1.interp(env)
-        assert env.string_array == list("STriNg")
+        self.assertEqual(env.string_array, list("STriNg"))
 
     def test_drop(self):
         p1 = Program([MoveLeft(), Drop()])
@@ -59,12 +59,12 @@ class TestStringTransTokens(TestCase):
         env = StringEnvironment("string", pos=5)
 
         env = p1.interp(env)
-        assert env.string_array == list("strig")
-        assert env.pos == 4
+        self.assertEqual(env.string_array, list("strig"))
+        self.assertEqual(env.pos, 4)
 
         env = p2.interp(env)
-        assert env.string_array == list("str")
-        assert env.pos == 2
+        self.assertEqual(env.string_array, list("str"))
+        self.assertEqual(env.pos, 2)
 
     def test_drop_all(self):
         p1 = Program([Drop()])
@@ -72,7 +72,7 @@ class TestStringTransTokens(TestCase):
         eo = StringEnvironment("")
 
         ei = p1.interp(ei)
-        assert ei.correct(eo)
+        self.assertTrue(ei.correct(eo))
 
     def test_drop_empty(self):
         p = Program([Drop()])
@@ -84,121 +84,116 @@ class TestStringTransTokens(TestCase):
 class TestStringBoolTokens(TestCase):
 
     def test_at_end(self):
-        p = Program([If(AtEnd(), [], [Recurse(None, [], [MoveRight()])])])
+        p = Program([If(AtEnd(), [], [MoveRight()]), If(AtEnd(), [], [MoveRight()]), If(AtEnd(), [], [MoveRight()])])
         env = StringEnvironment("str", pos=0)
 
         env = p.interp(env)
-        assert env.pos == 2
+        self.assertEqual(env.pos, 2)
 
     def test_not_at_end(self):
         p = Program([LoopWhile(NotAtEnd(), [MoveRight()])])
         env = StringEnvironment("str", pos=0)
 
         env = p.interp(env)
-        assert env.pos == 2
+        self.assertEqual(env.pos, 2)
 
     def test_at_start(self):
-        p = Program([If(AtStart(), [], [Recurse(None, [], [MoveLeft()])])])
+        p = Program([If(AtStart(), [], [MoveLeft()]), If(AtStart(), [], [MoveLeft()]), If(AtStart(), [], [MoveLeft()])])
         env = StringEnvironment("str", pos=2)
 
         env = p.interp(env)
-        assert env.pos == 0
+        self.assertEqual(env.pos, 0)
 
     def test_not_at_start(self):
         p = Program([LoopWhile(NotAtStart(),[MoveLeft()])])
         env = StringEnvironment("str", pos=2)
 
         env = p.interp(env)
-        assert env.pos == 0
+        self.assertEqual(env.pos, 0)
 
     def test_is_letter(self):
-        p = Program([If(IsLetter(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsLetter(), [Drop()], [MoveRight()])]), If(IsLetter(), [Drop()], [])])
         env = StringEnvironment("s1t2se3CK4cko5", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "12345"
+        self.assertEqual(env.to_string(), "12345")
 
     def test_is_not_letter(self):
-        p = Program([If(IsNotLetter(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNotLetter(), [Drop()], [MoveRight()])]), If(IsNotLetter(), [Drop()], [])])
         env = StringEnvironment("12s3t9ri398n5092g", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "string"
+        self.assertEqual(env.to_string(), "string")
 
     def test_is_uppercase(self):
-        p = Program([If(IsUppercase(), [MoveRight()], [Drop()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsUppercase(), [MoveRight()], [Drop()])]), If(IsUppercase(), [], [Drop()])])
         env = StringEnvironment("diSjdTjidRiqINjqG", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "STRING"
+        self.assertEqual(env.to_string(), "STRING")
 
     def test_is_not_uppercase(self):
-        p = Program([If(IsNotUppercase(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNotUppercase(), [Drop()], [MoveRight()])]), If(IsNotUppercase(), [Drop()], [])])
         env = StringEnvironment("d489iSjdTjidRi13qINjqG", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "STRING"
+        self.assertEqual(env.to_string(), "STRING")
 
     def test_is_lowercase(self):
-        p = Program([If(IsLowercase(), [MoveRight()], [Drop()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsLowercase(), [MoveRight()], [Drop()])]), If(IsLowercase(), [], [Drop()])])
         env = StringEnvironment("12sRGM4tr34iNOKFn34g", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "string"
+        self.assertEqual(env.to_string(), "string")
 
     def test_is_not_lowercase(self):
-        p = Program([If(IsNotLowercase(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNotLowercase(), [Drop()], [MoveRight()])]), If(IsNotLowercase(), [Drop()], [])])
         env = StringEnvironment("12sRGM4tr34iNOKFn34g", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "string"
+        self.assertEqual(env.to_string(), "string")
 
     def test_is_number(self):
-        p = Program([If(IsNumber(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNumber(), [Drop()], [MoveRight()])]), If(IsNumber(), [Drop()], [])])
         env = StringEnvironment("1234s50t049r", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "str"
+        self.assertEqual(env.to_string(), "str")
 
     def test_is_not_number(self):
-        p = Program([If(IsNotNumber(), [Drop()], [MoveRight()]), Recurse(NotAtEnd(), [], [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNotNumber(), [Drop()], [MoveRight()])]), If(IsNotNumber(), [Drop()], [])])
         env = StringEnvironment("ha@1j2^&*3", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "123"
+        self.assertEqual(env.to_string(), "123")
 
     def test_is_space(self):
-        p = Program([If(IsSpace(), [Drop()], [MoveRight()]), LoopWhile(NotAtEnd(), [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsSpace(), [Drop()], [MoveRight()])]), If(IsSpace(), [Drop()], [])])
         env = StringEnvironment("s t r i n g", pos=0)
 
         env = p.interp(env)
-        assert env.to_string() == "string"
+        self.assertEqual(env.to_string(), "string")
 
     def test_is_not_space(self):
-        p = Program([If(IsNotSpace(), [Drop()], [MoveRight()]), LoopWhile(NotAtEnd(), [])])
+        p = Program([LoopWhile(NotAtEnd(), [If(IsNotSpace(), [Drop()], [MoveRight()])]), If(IsNotSpace(), [Drop()], [])])
         env = StringEnvironment("s t r i n g ", pos=0)
 
         env = p.interp(env)
         print(env.to_string())
-        assert env.to_string() == "      "
+        self.assertEqual(env.to_string(), "      ")
 
 
-class TestComplexPrograms(TestCase):
+# class TestComplexPrograms(TestCase):
 
-    def test_every_first_letter_uppercase(self):
-        p = Program([
-            If(AtStart(), [MakeUppercase()], []),
-            Recurse(
-                NotAtEnd(),
-                [],
-                [If(
-                    IsSpace(),
-                    [MoveRight(), MakeUppercase()],
-                    [MoveRight()]
-                )],
-            )
-        ])
+#     def test_every_first_letter_uppercase(self):
+#         p = Program([
+#             LoopWhile(NotAtEnd(), 
+#                 [If(IsSpace(),
+#                     [],
+#                     [])]
+#             )
+#         ])
 
-        env = StringEnvironment("capitalize first letter of each word.")
-        env = p.interp(env)
-        assert env.to_string() == "Capitalize First Letter Of Each Word."
+#         env = StringEnvironment("capitalize first letter of each word.")
+#         env = p.interp(env)
+#         assert env.to_string() == "Capitalize First Letter Of Each Word."
