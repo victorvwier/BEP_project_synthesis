@@ -1,5 +1,5 @@
 from common.tokens.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
-from common.interpreter import *
+from common.prorgam import *
 from common.experiment import Example, TestCase
 from common.tokens.pixel_tokens import *
 import heapq

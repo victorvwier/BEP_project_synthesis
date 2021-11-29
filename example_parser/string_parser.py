@@ -1,16 +1,16 @@
 from common.environment import StringEnvironment
 from common.experiment import TestCase, Example
-from testcase_parser.parser import Parser
+from example_parser.parser import Parser
 from pathlib import Path
 
 
 class StringParser(Parser):
-    test_path = "programs/e2-strings/data/test/"
+    test_path = "examples/e2-strings/data/test/"
 
     def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="string",
-            path=path or "programs/e2-strings/data/train/",
+            path=path or "examples/e2-strings/data/train/",
             result_folder_path=result_folder_path or "results/e2-strings/"
         )
 
@@ -53,8 +53,8 @@ class StringParser(Parser):
         return StringEnvironment(string, int(pos) - 1)
 
 if __name__ == "__main__":
-    p = StringParser(path="../programs/e2-strings/data/train/")
-    p.test_path = "../programs/e2-strings/data/test/"
+    p = StringParser(path="../examples/e2-strings/data/train/")
+    p.test_path = "../examples/e2-strings/data/test/"
 
     res1 = StringParser().parse()
 

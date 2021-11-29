@@ -1,5 +1,5 @@
 from evaluation.experiment_procedure import *
-from testcase_parser.string_parser import StringParser
+from example_parser.string_parser import StringParser
 from search.abstract_search import SearchAlgorithm
 from search.metropolis_hastings.metropolis import MetropolisHasting
 
@@ -7,7 +7,7 @@ if __name__ == "__main__":
       """
       experiment = RobotParser().parse_all(file_prefix="2")
       (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment)
-      print("Experiment had an average success rate of {}%, average running time: {}, and {}% of programs were "
+      print("Experiment had an average success rate of {}%, average running time: {}, and {}% of examples were "
           "completely successful".format(ave_suc, ave_time, com_suc))
       """
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
       experiment = StringParser().parse_all(file_prefix="1-2-")
       (ave_suc, ave_time, com_suc) = test_performance_single_experiment(experiment)
-      print("Experiment had an average success rate of {}%, average running time: {}, and {}% of programs were "
+      print("Experiment had an average success rate of {}%, average running time: {}, and {}% of examples were "
           "completely successful".format(ave_suc, ave_time, com_suc))
 
       """

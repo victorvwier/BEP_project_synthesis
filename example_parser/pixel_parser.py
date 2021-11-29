@@ -1,13 +1,13 @@
 from common.environment import PixelEnvironment
 from common.experiment import Example, TestCase
-from testcase_parser.parser import Parser
+from example_parser.parser import Parser
 
 class PixelParser(Parser):
 
     def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="pixel",
-            path=path or "programs/e3-pixels/data/",
+            path=path or "examples/e3-pixels/data/",
             result_folder_path=result_folder_path or "results/e3-pixels/"
         )
 
@@ -68,7 +68,7 @@ class PixelParser(Parser):
         return 1
 
 if __name__ == "__main__":
-    res1 = PixelParser(path="../programs/e3-pixels/data/").parse()
+    res1 = PixelParser(path="../examples/e3-pixels/data/").parse()
     n = 10
     for res in res1.test_cases:
         n -= 1

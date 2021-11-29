@@ -1,7 +1,7 @@
 import unittest
 
 from evaluation.experiment_procedure import *
-from testcase_parser.string_parser import StringParser
+from example_parser.string_parser import StringParser
 from search.abstract_search import SearchAlgorithm
 
 

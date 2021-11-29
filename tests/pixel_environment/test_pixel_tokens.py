@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from common.interpreter import Program
+from common.prorgam import Program
 from common.tokens.pixel_tokens import *
 
 

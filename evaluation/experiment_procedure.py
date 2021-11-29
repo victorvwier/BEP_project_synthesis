@@ -2,11 +2,11 @@ import time
 from pathlib import Path
 
 from typing import Type
-from common.interpreter import *
+from common.prorgam import *
 from common.experiment import Experiment, TestCase
-from testcase_parser.pixel_parser import PixelParser
-from testcase_parser.robot_parser import RobotParser
-from testcase_parser.string_parser import StringParser
+from example_parser.pixel_parser import PixelParser
+from example_parser.robot_parser import RobotParser
+from example_parser.string_parser import StringParser
 import common.tokens.pixel_tokens as pixel_tokens
 import common.tokens.robot_tokens as robot_tokens
 from search.abstract_search import SearchAlgorithm

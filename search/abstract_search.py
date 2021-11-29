@@ -1,5 +1,5 @@
 from common.tokens.abstract_tokens import Token
-from common.interpreter import Program
+from common.prorgam import Program
 from common.experiment import TestCase
 
 
