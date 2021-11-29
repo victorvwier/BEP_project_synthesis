@@ -1,4 +1,5 @@
 from common_environment.abstract_tokens import *
+from common_environment.control_tokens import LoopWhile
 from common_environment.environment import *
 
 #                           #
@@ -202,6 +203,38 @@ class Drop(TransToken):
 
         return env
 
+"""
+class MoveToEnd(TransToken):
+
+    def __init__(self, seq: list[Token]):
+        self.seq = seq
+
+        self.inner_tokens = LoopWhile(NotAtEnd(), self.seq + MoveRight())
+
+    def apply(self, env: StringEnvironment):
+        env = self.inner_tokens.apply(env)
+        
+        for t in self.seq:
+            env = t.apply(env)
+            
+        return env
+
+
+class MoveToBegin(TransToken):
+
+    def __init__(self, seq: list[Token]):
+        self.seq = seq
+
+        self.inner_tokens = LoopWhile(NotAtStart(), self.seq + MoveLeft())
+
+    def apply(self, env: StringEnvironment):
+        env = self.inner_tokens.apply(env)
+
+        for t in self.seq:
+            env = t.apply(env)
+
+        return env
+"""
 
 BoolTokens = {AtEnd, NotAtEnd, AtStart, NotAtStart, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase,
               IsNotLowercase, IsNumber, IsNotNumber, IsSpace, IsNotSpace}

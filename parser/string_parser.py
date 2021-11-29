@@ -4,7 +4,7 @@ from parser.parser import Parser
 
 
 class StringParser(Parser):
-    test_path = "programs/e2-strings/data/test/"
+
 
     def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
@@ -12,6 +12,8 @@ class StringParser(Parser):
             path=path or "programs/e2-strings/data/train/",
             result_folder_path=result_folder_path or "results/e2-strings/"
         )
+
+        self.test_path = "programs/e2-strings/data/test/"
 
     def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
         test_lines = open(self.test_path + file_name, 'r').readlines()

@@ -23,6 +23,7 @@ class Parser:
 
     def parse_file(self, file_name: str) -> TestCase:
         """Parses a file with a given file name found in the train data folder of the correct environment."""
+
         file = open(self.path + file_name, 'r')
         return self._parse_file_lines(file_name, file.readlines())
 

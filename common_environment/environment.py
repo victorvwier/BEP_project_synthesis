@@ -52,12 +52,14 @@ class RobotEnvironment(Environment):
         pgr = (other.rx, other.ry)
         pgb = (other.bx, other.by)
 
+        # Stage 1: Robot walks towards ball, ball is not on goal
         if pr != pb and pb != pgb:
-            return d(pr, pb) + d(pb, pgb) + d(pgb, pgr) + 2
+            return d(pr, pb) + d(pb, pgb) + d(pgb, pgr) + 3
+        # Stage 2: Robot has ball and walks towards goal
         elif pr == pb and pb != pgb:
-            return d(pr, pgb) + d(pgb, pgr) + 1
+            return d(pr, pgb) + d(pgb, pgr) + 2 - (1 if self.holding else 0)
         else:
-            return d(pr, pgr)
+            return d(pr, pgr) + (1 if self.holding else 0)
 
     def correct(self, other: "RobotEnvironment") -> bool:
         return (self.rx, self.ry, self.bx, self.by, self.holding) \

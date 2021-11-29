@@ -1,9 +1,13 @@
 import copy
+from collections import Callable
+
 from common_environment.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
 from interpreter.interpreter import *
+from invent import invent2
 from parser.experiment import Example
 from pixel_environment.pixel_tokens import *
 import heapq
+
 
 def print_p(p):
     print(p.sequence)
@@ -36,12 +40,16 @@ def evaluate_program(program, sample_inputs, sample_outputs):
     except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
         return (float("inf"), 1, program)
 
+
 def extend_program(best_program, programs, program_dictionary, sample_inputs, sample_outputs):
+
     for token in program_dictionary:
         potentially_better_program = Program(best_program.sequence + token.sequence)
+
         program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
         if program_new[0] != float('inf'):
             heapq.heappush(programs, program_new)
+
     #updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
     return programs
 
@@ -56,7 +64,8 @@ def extend_program(best_program, programs, program_dictionary, sample_inputs, sa
 #     return prioritize_programs(programs, sample_inputs, sample_outputs)[0]
 
 def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations):
-    (best_loss, solved, best_program) = heapq.heappop(programs)
+    #(best_loss, solved, best_program) = heapq.heappop(programs)
+    (best_loss, solved, best_program) = programs[0]
 
     if(iteration >= num_iterations or solved == 0):
         return best_loss, solved, best_program
@@ -67,6 +76,7 @@ def synth_loop(programs, program_dictionary, sample_inputs, sample_outputs, iter
     return synth_loop(updated_programs, program_dictionary, sample_inputs, sample_outputs, iteration, num_iterations)
 
 def search(tokens, examples: List[Example], num_iterations):
+
     sample_inputs = [e.input_environment for e in examples]
     sample_outputs = [e.output_environment for e in examples]
     initial_programs = [Program([t]) for t in tokens]
@@ -76,7 +86,23 @@ def search(tokens, examples: List[Example], num_iterations):
     #programs = prioritize_programs(initial_programs, sample_inputs, sample_outputs)
     
     starting_heap = [(float('inf'), 1, program)]
-    heapq.heapify(starting_heap)
+    heapq.heapify([starting_heap])
     best_loss, solved, best_program = synth_loop(starting_heap, program_dictionary, sample_inputs, sample_outputs, 0, num_iterations)
 
     return best_program, best_loss, solved
+
+"""
+class Brute(ProgramSearch):
+
+    def __init__(self, max_iterations: int, max_token_function_depth: int, domain: str):
+        super().__init__(domain)
+        self.max_iterations: max_iterations
+
+        env_tokens = extract_trans_tokens_from_domain_name(domain)
+        bool_tokens = extract_bool_tokens_from_domain_name(domain)
+        self.tokens = invent2(env_tokens, bool_tokens, max_token_function_depth)
+
+    def find(self, initial_solution: Environment, cost: Callable[[Environment], float]) -> Environment:
+        return search(self.tokens, )
+
+"""
