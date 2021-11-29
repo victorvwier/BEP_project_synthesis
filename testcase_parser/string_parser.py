@@ -1,6 +1,6 @@
-from common_environment.environment import StringEnvironment
-from parser.experiment import TestCase, Example
-from parser.parser import Parser
+from common.environment import StringEnvironment
+from testcase_parser.experiment import TestCase, Example
+from testcase_parser.parser import Parser
 from pathlib import Path
 
 

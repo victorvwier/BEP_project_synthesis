@@ -1,7 +1,7 @@
-from typing import List, Union
+from typing import Union
 
-from common_environment.abstract_tokens import *
-from interpreter.interpreter import Program
+from common.tokens.abstract_tokens import *
+from common.interpreter import Program
 
 
 class If(ControlToken):

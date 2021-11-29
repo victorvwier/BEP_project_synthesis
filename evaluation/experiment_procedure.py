@@ -1,20 +1,18 @@
-import copy
 import time
 from pathlib import Path
 
-from typing import List, Type
-from common_environment.environment import *
-from interpreter.interpreter import *
-from parser.experiment import Experiment, TestCase
-from parser.pixel_parser import PixelParser
-from parser.robot_parser import RobotParser
-from parser.string_parser import StringParser
-import pixel_environment.pixel_tokens as pixel_tokens
-import robot_environment.robot_tokens as robot_tokens
+from typing import Type
+from common.interpreter import *
+from testcase_parser.experiment import Experiment, TestCase
+from testcase_parser.pixel_parser import PixelParser
+from testcase_parser.robot_parser import RobotParser
+from testcase_parser.string_parser import StringParser
+import common.tokens.pixel_tokens as pixel_tokens
+import common.tokens.robot_tokens as robot_tokens
 from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 
-import string_environment.string_tokens as string_tokens
+import common.tokens.string_tokens as string_tokens
 
 
 # MAX_TOKEN_FUNCTION_DEPTH = 3

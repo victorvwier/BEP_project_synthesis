@@ -1,13 +1,7 @@
-from typing import Type
-
-from experiment_procedure import *
-from parser.pixel_parser import PixelParser
-from parser.robot_parser import RobotParser
-from parser.string_parser import StringParser
-from robot_environment import robot_tokens
+from evaluation.experiment_procedure import *
+from testcase_parser.string_parser import StringParser
 from search.abstract_search import SearchAlgorithm
 from search.metropolis_hastings.metropolis import MetropolisHasting
-from string_environment import string_tokens
 
 if __name__ == "__main__":
       """

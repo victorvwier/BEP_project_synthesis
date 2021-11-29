@@ -1,7 +1,6 @@
-from typing import Tuple
-from common_environment.abstract_tokens import Token
-from interpreter.interpreter import Program
-from parser.experiment import TestCase
+from common.tokens.abstract_tokens import Token
+from common.interpreter import Program
+from testcase_parser.experiment import TestCase
 
 
 class SearchAlgorithm:

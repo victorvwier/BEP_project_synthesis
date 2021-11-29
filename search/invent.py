@@ -1,6 +1,6 @@
 import itertools
-from common_environment.control_tokens import If, LoopWhile, Recurse
-from string_environment.string_tokens import *
+from common.tokens.control_tokens import If, LoopWhile
+from common.tokens.string_tokens import *
 
 
 # Generates all permutations of elements in a set where maxLength > len(per) > 1

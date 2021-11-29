@@ -1,4 +1,4 @@
-from common_environment.environment import Environment
+from common.environment import Environment
 
 
 class Example:

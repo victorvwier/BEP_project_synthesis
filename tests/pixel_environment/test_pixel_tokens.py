@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from interpreter.interpreter import Program
-from pixel_environment.pixel_tokens import *
+from common.interpreter import Program
+from common.tokens.pixel_tokens import *
 
 
 class TestPixelTokens(TestCase):

@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from common_environment.control_tokens import *
-from interpreter.interpreter import Program
-from string_environment.string_tokens import *
-from common_environment.environment import StringEnvironment
+from common.tokens.control_tokens import *
+from common.interpreter import Program
+from common.tokens.string_tokens import *
+from common.environment import StringEnvironment
 
 
 class TestStringTransTokens(TestCase):

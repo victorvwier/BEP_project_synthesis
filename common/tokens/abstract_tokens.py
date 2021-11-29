@@ -1,4 +1,4 @@
-from common_environment.environment import *
+from common.environment import *
 
 
 class Token:

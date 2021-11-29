@@ -1,5 +1,4 @@
-import copy
-from common_environment.abstract_tokens import *
+from common.tokens.abstract_tokens import *
 
 
 class Program:

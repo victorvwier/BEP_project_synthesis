@@ -1,13 +1,7 @@
 import unittest
 
-from common_environment.control_tokens import *
-from common_environment.environment import *
-from search.brute.brute import Brute
-from string_environment.string_tokens import *
-from search.abstract_search import SearchAlgorithm
-
-from experiment_procedure import *
-from parser.string_parser import StringParser
+from evaluation.experiment_procedure import *
+from testcase_parser.string_parser import StringParser
 from search.abstract_search import SearchAlgorithm
 
 

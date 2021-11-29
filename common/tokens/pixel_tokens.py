@@ -1,5 +1,5 @@
-from common_environment.abstract_tokens import *
-from common_environment.environment import *
+from common.tokens.abstract_tokens import *
+from common.environment import *
 
 
 class AtTop(BoolToken):

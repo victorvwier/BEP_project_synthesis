@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from interpreter.interpreter import Program
-from robot_environment.robot_tokens import *
+from common.interpreter import Program
+from common.tokens.robot_tokens import *
 
 
 class TestRobotTokens(TestCase):

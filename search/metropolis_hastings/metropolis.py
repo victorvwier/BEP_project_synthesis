@@ -1,9 +1,9 @@
 from typing import Callable, List, Tuple
-from common_environment.abstract_tokens import InvalidTransition, Token
-from interpreter.interpreter import Program
-from parser.experiment import TestCase
+from common.tokens.abstract_tokens import InvalidTransition, Token
+from common.interpreter import Program
+from testcase_parser.experiment import TestCase
 from search.abstract_search import SearchAlgorithm
-from common_environment.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
+from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
 import random
 import math
 
