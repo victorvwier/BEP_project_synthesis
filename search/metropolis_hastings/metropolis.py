@@ -18,7 +18,7 @@ class Mutation():
 
 class MetropolisHasting(SearchAlgorithm):
     @staticmethod
-    def search(test_case: TestCase, trans_tokens: set[Token], bool_tokens: set[Token]) -> Program:
+    def search(test_case: TestCase, trans_tokens: 'set[Token]', bool_tokens: 'set[Token]') -> Program:
         program: Program = Program([])
         cost = 100
         proposal_distribution = ProposalDistribution()
