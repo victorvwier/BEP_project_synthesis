@@ -1,5 +1,5 @@
 from common.environment import PixelEnvironment
-from testcase_parser.experiment import Example, TestCase
+from common.experiment import Example, TestCase
 from testcase_parser.parser import Parser
 
 class PixelParser(Parser):

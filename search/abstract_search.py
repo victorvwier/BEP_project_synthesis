@@ -1,6 +1,6 @@
 from common.tokens.abstract_tokens import Token
 from common.interpreter import Program
-from testcase_parser.experiment import TestCase
+from common.experiment import TestCase
 
 
 class SearchAlgorithm:

@@ -1,7 +1,7 @@
 from typing import Callable, List, Tuple
 from common.tokens.abstract_tokens import InvalidTransition, Token
 from common.interpreter import Program
-from testcase_parser.experiment import TestCase
+from common.experiment import TestCase
 from search.abstract_search import SearchAlgorithm
 from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
 import random

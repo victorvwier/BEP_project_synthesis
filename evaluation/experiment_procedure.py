@@ -3,7 +3,7 @@ from pathlib import Path
 
 from typing import Type
 from common.interpreter import *
-from testcase_parser.experiment import Experiment, TestCase
+from common.experiment import Experiment, TestCase
 from testcase_parser.pixel_parser import PixelParser
 from testcase_parser.robot_parser import RobotParser
 from testcase_parser.string_parser import StringParser

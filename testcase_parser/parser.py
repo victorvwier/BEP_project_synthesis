@@ -1,7 +1,6 @@
-import os
 from pathlib import Path
 
-from testcase_parser.experiment import *
+from common.experiment import *
 
 
 class Parser:

@@ -1,5 +1,5 @@
 from common.environment import StringEnvironment
-from testcase_parser.experiment import TestCase, Example
+from common.experiment import TestCase, Example
 from testcase_parser.parser import Parser
 from pathlib import Path
 
