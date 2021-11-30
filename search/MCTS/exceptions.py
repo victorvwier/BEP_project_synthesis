@@ -1,5 +1,4 @@
 
-
 class IllegalActionException(Exception):
     """Raised when an illegal Action is applied to a Completable Token or a Program"""
     pass
@@ -28,4 +27,9 @@ class MaxNumberOfIterationsExceededException(Exception):
 
 class CannotInterpIncompleteProgram(Exception):
     """Raised when a program is interpret while not yet completed"""
+    pass
+
+
+class InvalidRewardValue(Exception):
+    """Raised when the value of reward is greater than 1.001 or a lot smaller than zero"""
     pass

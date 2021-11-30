@@ -1,5 +1,6 @@
 import copy
 from abc import abstractmethod
+from collections import deque
 from enum import Enum
 from typing import List, Union
 
@@ -11,7 +12,7 @@ from common.environment import Environment
 from common.prorgam import Program
 from search.MCTS.exceptions import IllegalActionException, ProgramAlreadyCompletedException, \
     TokenAlreadyCompletedException, ApplyingIncompleteTokenException, MaxNumberOfIterationsExceededException, \
-    CannotInterpIncompleteProgram
+    CannotInterpIncompleteProgram, InvalidRewardValue
 
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
@@ -416,13 +417,13 @@ class WhileToken(CompletableToken):
 class SearchTreeNode(NodeMixin):
     def __init__(
             self,
-            program: Program,
-            unexplored_succeeding_actions: List[Action],
+            program: MCTSProgram,
+            unexplored_succeeding_actions: deque[Action],
             preceding_action: Action = None,  # might not be necessary, but could be interesting for analyzing
             # max_program_depth_of_children: int = MAX_PROGRAM_DEPTH - 1,
             number_of_visits: int = 0,
-            total_obtained_reward: int = 0,
-            greatest_obtained_reward: int = 0,
+            total_obtained_reward: float = 0,       # should be between 0 and 1
+            greatest_obtained_reward: float = 0,    # should be between 0 and 1
             parent=None,
             children=None
     ):
@@ -431,11 +432,42 @@ class SearchTreeNode(NodeMixin):
         self.preceding_action = preceding_action
         # self.max_program_depth_of_children = max_program_depth_of_children
         self.number_of_visits = number_of_visits
-        self.total_obtained_reward = total_obtained_reward
-        self.greatest_obtained_reward = greatest_obtained_reward
+        self._total_obtained_reward = total_obtained_reward
+        self._greatest_obtained_reward = greatest_obtained_reward
         self.parent = parent
         if children:
             self.children = children
+
+    @property
+    def total_obtained_reward(self):
+        """A reward is expected to be between 0 and 1. Rewards are computed with the following formula:
+        (max_expected_loss - obtained_loss) / max_expected_loss"""
+        return self._total_obtained_reward
+
+    @total_obtained_reward.setter
+    def total_obtained_reward(self, new_total_reward):
+        delta = new_total_reward - self._total_obtained_reward
+        if delta > 1.001:
+            raise InvalidRewardValue("Difference between new and old value of new_total_reward was greater than 1.001")
+        if delta > -3.00:
+            raise InvalidRewardValue("Difference between new and old value of new_total_reward was smaller than -3")
+
+        self._greatest_obtained_reward = new_total_reward
+
+    @property
+    def greatest_obtained_reward(self):
+        """Is expected to be between 0 and 1. Rewards are computed with the following formula:
+        (max_expected_loss - obtained_loss) / max_expected_loss"""
+        return self._greatest_obtained_reward
+
+    @greatest_obtained_reward.setter
+    def greatest_obtained_reward(self, reward):
+        if reward > 1.001:
+            raise InvalidRewardValue("Reward should be smaller than 1.001")
+        if reward > -3.00:
+            raise InvalidRewardValue("Reward is expected to be between 0 and 1, but was smaller than -3")
+
+        self._greatest_obtained_reward = reward
 
     def __repr__(self):
         return "SearchTreeNode(Program: %s)" % self.program
@@ -452,6 +484,6 @@ class SearchTreeNode(NodeMixin):
         unexplored_actions.append(ExpandAction(WhileToken(max_number_of_iterations=loop_limit)))
 
         return SearchTreeNode(
-            program=Program([]),
+            program=MCTSProgram([]),
             unexplored_succeeding_actions=unexplored_actions,
         )
