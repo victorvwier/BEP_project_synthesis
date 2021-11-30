@@ -446,11 +446,11 @@ class SearchTreeNode(NodeMixin):
 
     @total_obtained_reward.setter
     def total_obtained_reward(self, new_total_reward):
-        delta = new_total_reward - self._total_obtained_reward
-        if delta > 1.001:
-            raise InvalidRewardValue("Difference between new and old value of new_total_reward was greater than 1.001")
-        if delta > -3.00:
-            raise InvalidRewardValue("Difference between new and old value of new_total_reward was smaller than -3")
+        # delta = new_total_reward - self._total_obtained_reward
+        # if delta > 1.001:
+        #    raise InvalidRewardValue("Difference between new and old value of new_total_reward was greater than 1.001")
+        # if delta > -3.00:
+        #     raise InvalidRewardValue("Difference between new and old value of new_total_reward was smaller than -3")
 
         self._greatest_obtained_reward = new_total_reward
 

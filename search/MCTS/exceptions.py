@@ -33,3 +33,7 @@ class CannotInterpIncompleteProgram(Exception):
 class InvalidRewardValue(Exception):
     """Raised when the value of reward is greater than 1.001 or a lot smaller than zero"""
     pass
+
+class InvalidProgramException(Exception):
+    """Raised when the program threw an exception upon interpreting an Environment"""
+    pass

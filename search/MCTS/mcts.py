@@ -1,5 +1,6 @@
 import copy
 import math
+import random
 from collections import deque
 from typing import List, Union, Type
 
@@ -9,7 +10,7 @@ from common.tokens.abstract_tokens import Token, InvalidTransition
 
 from search.MCTS.datastructures import MCTSProgram, SearchTreeNode, Action, CompleteAction, TokenType, IfToken, \
     ExpandAction, WhileToken
-from search.MCTS.exceptions import MaxNumberOfIterationsExceededException
+from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException
 from search.abstract_search import SearchAlgorithm
 
 # TODO do something with max program depth. This should happen throughout all the code.
@@ -52,9 +53,18 @@ class MCTS(SearchAlgorithm):
 
         # TODO implement the following subprocesses
         selected_node = MCTS.select(self.search_tree)
-        MCTS.expand(selected_node, trans_tokens, bool_tokens)
-        self.simulate()
-        self.back_propagate()
+        new_node = MCTS.expand(selected_node, trans_tokens, bool_tokens)
+        try:
+            reward = self.simulate_and_return_reward(
+                node=new_node,
+                examples=training_example,
+                trans_tokens=trans_tokens,
+                bool_tokens=bool_tokens,
+            )
+            self.back_propagate(new_node, reward)
+        except InvalidProgramException:
+            MCTS.remove_nodes_with_no_possible_extensions(new_node)
+
 
         # return True to indicate that another iteration is required
         return True
@@ -102,6 +112,34 @@ class MCTS(SearchAlgorithm):
         return exploitation_component + exploration_component
 
     @staticmethod
+    def remove_nodes_with_no_possible_extensions(current_node: SearchTreeNode):
+        """"When a node has no possibility to be (further) explored, this method can be used to remove all its
+        ancestors that can also not be explored any more."""
+        parent: SearchTreeNode = current_node.parent
+
+        # remove the node from the tree
+        current_node.parent = None
+
+        parent_has_other_extensions: bool = len(parent.children) + len(parent.unexplored_succeeding_actions) > 0
+
+        # delete ancestors until you find a parent that still has a possibility for exploitation
+        while not parent_has_other_extensions:
+            current_node = parent
+            parent = current_node.parent
+            current_node.parent = None
+            parent_has_other_extensions = len(parent.children) + len(parent.unexplored_succeeding_actions) > 0
+
+        # once a ancestor was found that has other possibilities for exploitation, update the number of visits
+        parent.number_of_visits -= current_node.number_of_visits
+        parent.total_obtained_reward -= current_node.total_obtained_reward
+        if parent.greatest_obtained_reward == current_node.greatest_obtained_reward:
+            obtained_rewards_by_children: List[float] = list(map(lambda node: node.greatest_obtained_reward, parent.children))
+            obtained_rewards_by_children.append(-1000.00)
+            parent.greatest_obtained_reward = max(obtained_rewards_by_children)
+
+        return
+
+    @staticmethod
     def select(current_node: SearchTreeNode) -> SearchTreeNode:
 
         # if current_node has unexplored actions, select current_node
@@ -110,7 +148,7 @@ class MCTS(SearchAlgorithm):
 
         # else use tree policy to select child node with greatest urgency
         children = current_node.children
-        # TODO make sure the situation that a node has no children does not appear or is taken care of
+
         assert (len(children) > 0)
         selected_child = None
         selected_child_urgency = -1000
@@ -157,9 +195,34 @@ class MCTS(SearchAlgorithm):
         )
         return new_node
 
-    def simulate(self):
-        # TODO implement()
-        pass
+    def simulate_and_return_reward(self, node: SearchTreeNode, examples: List[Example], trans_tokens: set[Type[Token]],
+                                   bool_tokens: set[Type[Token]]) -> float:
+
+        program: MCTSProgram = copy.deepcopy(node.program)
+
+        # complete the program
+        while not program.complete:
+            if program.complete_action_allowed:
+                program.apply_action(CompleteAction())
+            elif program.required_token_type_for_expansion == TokenType.BOOL_TOKEN:
+                random_bool_token: Token = random.choice(bool_tokens)()
+                program.apply_action(ExpandAction(random_bool_token))
+            elif program.required_token_type_for_expansion == TokenType.ENV_TOKEN:
+                # TODO see what happens if also IfToken and WhileToken are included in the options for the random choice
+                random_env_token: Token = random.choice(trans_tokens)()
+                program.apply_action(ExpandAction(random_env_token))
+            else:
+                raise Exception("Something went wrong. Program should be complete or required_token_type_for_extension"
+                                "should return eiter ENV_TOKEN or BOOL_TOKEN")
+
+        # try interpreting the found program on the provided examples
+        try:
+            loss = MCTS.compute_loss_of_program(program=program, examples=examples)
+            reward = (self.max_expected_loss - loss) / self.max_expected_loss
+            assert(reward < 1.001)
+            return reward
+        except (InvalidTransition, MaxNumberOfIterationsExceededException) as e:
+            raise InvalidProgramException
 
     def back_propagate(self):
         # TODO implement
