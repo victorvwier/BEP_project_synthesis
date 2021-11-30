@@ -153,7 +153,7 @@ class MoveLeft(TransToken):
     string."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        if env.pos == 0:
+        if env.pos <= 0:
             raise InvalidTransition()
         env.pos -= 1
 
@@ -198,7 +198,7 @@ class Drop(TransToken):
 
         env.string_array = nstr[0:i] + nstr[i + 1:]
 
-        env.pos = min(len(env.string_array) - 1, env.pos)
+        env.pos = max(0, min(len(env.string_array) - 1, env.pos))
 
         return env
 
