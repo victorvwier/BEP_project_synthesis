@@ -5,8 +5,10 @@ from typing import List, Union
 
 from anytree import NodeMixin
 
-from common_environment.abstract_tokens import TransToken, EnvToken, BoolToken, Token
-from common_environment.environment import Environment
+from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken, Token
+from common.environment import Environment
+
+from common.prorgam import Program
 from search.MCTS.exceptions import IllegalActionException, ProgramAlreadyCompletedException, \
     TokenAlreadyCompletedException, ApplyingIncompleteTokenException, MaxNumberOfIterationsExceededException, \
     CannotInterpIncompleteProgram
@@ -96,7 +98,7 @@ class ProgramUnit(EnvToken):
             raise Exception("Something went wrong. token should either be complete or instance of CompletableToken")
 
 
-class Program(List[ProgramUnit]):
+class MCTSProgram(Program):
     """Wrapper class for a list of ProgramUnits, a program."""
 
     def __init__(
@@ -107,28 +109,11 @@ class Program(List[ProgramUnit]):
             loop_limit: int = LOOP_LIMIT
     ):
         """Creates a new program given a sequence of Tokens."""
-        super().__init__()
+        super().__init__(program_units, loop_limit, loop_limit)
         self.program = program_units
         self._complete = complete
         self.required_token_type_for_expansion = required_token_type_for_expansion
         self.loop_limit = loop_limit
-
-    def __deepcopy__(self, memodict={}):
-
-        new_program = copy.deepcopy(self.program)
-
-        return Program(
-            program_units=new_program,
-            complete=self.complete,
-            required_token_type_for_expansion=self.required_token_type_for_expansion,
-            loop_limit=self.loop_limit
-        )
-
-    # def __gt__(self, other):
-    #     if (self.number_of_tokens() > other.number_of_tokens()):
-    #         return True
-    #     else:
-    #         return False
 
     @property
     def complete(self):
@@ -151,6 +136,17 @@ class Program(List[ProgramUnit]):
         # Else, the Program allows a CompleteAction if its last ProgramUnit allows this.
         return self.program[-1].complete_action_allowed()
 
+    def __deepcopy__(self, memodict={}):
+
+        new_program = copy.deepcopy(self.program)
+
+        return MCTSProgram(
+            program_units=new_program,
+            complete=self.complete,
+            required_token_type_for_expansion=self.required_token_type_for_expansion,
+            loop_limit=self.loop_limit
+        )
+
     def interp(self, env: Environment, top_level_program=True, make_env_copy=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
 
@@ -171,14 +167,8 @@ class Program(List[ProgramUnit]):
 
         return new_env
 
-    # def number_of_tokens(self) -> int:
-    #     return sum([t.number_of_tokens() for t in self.sequence])
-
     def __repr__(self):
         return "Program([%s])" % ", ".join([str(token) for token in self.program])
-
-    def to_formatted_string(self):
-        return "Program:\n\t%s" % "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.program])
 
     def apply_action(self, action: Action):
         if self.complete:
@@ -193,9 +183,6 @@ class Program(List[ProgramUnit]):
         else:
             self.program[-1].apply_action(action)
             return
-
-    # def interp_cast(self, env: Environment):
-    #   return cast(env, self.interp(env))
 
 
 class CompletableToken(EnvToken):
@@ -258,9 +245,9 @@ class IfToken(CompletableToken):
     ):
         self._bool_condition: Union[BoolToken, None] = bool_condition
         if body:
-            self._body: Program = body
+            self._body: MCTSProgram = body
         else:
-            self._body: Program = Program([], False, TokenType.ENV_TOKEN)
+            self._body: MCTSProgram = MCTSProgram([], False, TokenType.ENV_TOKEN)
 
     @property
     def completed(self) -> bool:
@@ -345,9 +332,9 @@ class WhileToken(CompletableToken):
     ):
         self._bool_condition: Union[BoolToken, None] = bool_condition
         if body:
-            self._body: Program = body
+            self._body: MCTSProgram = body
         else:
-            self._body: Program = Program([], False, TokenType.ENV_TOKEN)
+            self._body: MCTSProgram = MCTSProgram([], False, TokenType.ENV_TOKEN)
         self._max_number_of_iterations: int = max_number_of_iterations
 
     @property

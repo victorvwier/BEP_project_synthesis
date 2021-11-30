@@ -11,7 +11,7 @@ class Program:
         self.loop_limit = loop_limit
     
     def __gt__(self, other):
-        if(self.number_of_tokens()>other.number_of_tokens()):
+        if self.number_of_tokens() > other.number_of_tokens():
             return True
         else:
             return False
