@@ -8,7 +8,7 @@ from common.experiment import Example
 from search.search_result import SearchResult
 
 
-class Search:
+class SearchAlgorithm:
     """Abstract interface for a program synthesis search algorithm."""
 
     def __init__(self, time_limit_sec: float):
@@ -20,15 +20,16 @@ class Search:
         return self._best_program
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
-        """This method is called before a search is performed. The search will be performed for the given 'test_case'. 
-        Also the 'trans_tokens' and 'bool_tokens' that are available for the environment are given."""
+        """This method is called before a search is performed. The search will be performed for the given
+        'training_examples'. Also the 'trans_tokens' and 'bool_tokens' that are available for the environment are given.
+        """
 
         raise NotImplementedError()
 
     def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
         """This method represents an iteration of the search algorithm. This method will get called over and over 
         again, as long as it returns True. It will stop whenever False is returned or a time limit is reached. The 
-        search will be performed for the given 'test_case'. Also the 'trans_tokens' and 'bool_tokens' that are 
+        search will be performed for the given 'training_examples'. Also the 'trans_tokens' and 'bool_tokens' that are
         available for the environment are given."""
 
         raise NotImplementedError()
