@@ -1,12 +1,14 @@
 import itertools
-from common_environment.control_tokens import If, LoopWhile, Recurse
-from string_environment.string_tokens import *
+from common.tokens.control_tokens import If, LoopWhile
+from common.tokens.string_tokens import *
+
 
 # Generates all permutations of elements in a set where maxLength > len(per) > 1
 def generatePermutations(set, maxLength) -> list:
     if (maxLength <= 0):
         return []
     return list(itertools.permutations(set, maxLength)) + generatePermutations(set, maxLength - 1)
+
 
 # Composes tokens into Invented tokens
 # Returns a list of Invented tokens
@@ -19,11 +21,12 @@ def inventTokens(tokenSet, maxLength) -> list:
         if len(p) > 1:
             p = list(map(lambda x: x(), p))
             out.append(InventedToken(p))
-        else: 
+        else:
             out.append(p[0]())
-    
+
     return out
-    
+
+
 # Composes tokens into more elaborate Invented tokens
 # Also generates If and While tokens
 def invent2(tokenSet, boolTokenSet, maxLength) -> list:
@@ -51,7 +54,7 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     #             recurse_list.append(Recurse(c(), [lb], [rb]))
     #         recurse_list.append(Recurse(c(), [lb], []))
     #         recurse_list.append(Recurse(c(), [], [lb]))
-            
+
     # for lb in bodies:
     #     for rb in bodies:
     #         recurse_list.append(Recurse(None, [lb], [rb]))
@@ -69,11 +72,12 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
 
 if __name__ == "__main__":
     # Test for string environment
-    bool_tokens = {AtStart,	AtEnd, IsLetter, IsNotLetter, IsUppercase,	IsNotUppercase, IsLowercase, IsNotLowercase,	IsNumber, IsNotNumber, IsSpace, IsNotSpace}
+    bool_tokens = {AtStart, AtEnd, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase,
+                   IsNumber, IsNotNumber, IsSpace, IsNotSpace}
     normal_tokens = {MoveRight, MoveLeft, Drop, MakeLowercase, MakeUppercase}
 
     out = invent2(normal_tokens, bool_tokens, 5)
     print(len(out))
     for t in out:
-        if(not isinstance(t, Token)):
+        if (not isinstance(t, Token)):
             print(t)

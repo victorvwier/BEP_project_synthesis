@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from common_environment.environment import StringEnvironment
+from common.environment import StringEnvironment
 
 
 class TestRobotEnvironment(TestCase):

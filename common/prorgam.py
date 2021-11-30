@@ -1,5 +1,4 @@
-import copy
-from common_environment.abstract_tokens import *
+from common.tokens.abstract_tokens import *
 
 
 class Program:
@@ -22,17 +21,17 @@ class Program:
 
         nenv = copy.deepcopy(env)
 
-        # # Setup for recursive calls
-        # if top_level_program:
-        #     nenv.program = self
+        # Setup for recursive calls
+        if top_level_program:
+            nenv.program = self
 
         for t in self.sequence:
             nenv = t.apply(nenv)
 
         return nenv
 
-    def number_of_tokens(self) -> int:
-        return sum([t.number_of_tokens() for t in self.sequence])
+    def number_of_tokens(self, control_cost=2) -> int:
+        return sum([t.number_of_tokens(control_cost) for t in self.sequence])
 
     def __str__(self):
         return "Program([%s])" % ", ".join([str(t) for t in self.sequence])

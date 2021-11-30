@@ -1,22 +1,23 @@
-from common_environment.environment import StringEnvironment
-from parser.experiment import TestCase, Example
-from parser.parser import Parser
+from common.environment import StringEnvironment
+from common.experiment import TestCase, Example
+from example_parser.parser import Parser
+from pathlib import Path
 
 
 class StringParser(Parser):
-
+    test_path = "examples/e2-strings/data/test/"
 
     def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="string",
-            path=path or "programs/e2-strings/data/train/",
+            path=path or "examples/e2-strings/data/train/",
             result_folder_path=result_folder_path or "results/e2-strings/"
         )
 
-        self.test_path = "programs/e2-strings/data/test/"
-
     def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
-        test_lines = open(self.test_path + file_name, 'r').readlines()
+        path = Path(__file__).parent.parent.joinpath(self.test_path)
+        with open(path.joinpath(file_name), 'r') as file:
+            test_lines = file.readlines()
 
         return TestCase(
             path_to_result_file=self.result_folder_path + file_name,
@@ -52,8 +53,8 @@ class StringParser(Parser):
         return StringEnvironment(string, int(pos) - 1)
 
 if __name__ == "__main__":
-    p = StringParser(path="../programs/e2-strings/data/train/")
-    p.test_path = "../programs/e2-strings/data/test/"
+    p = StringParser(path="../examples/e2-strings/data/train/")
+    p.test_path = "../examples/e2-strings/data/test/"
 
     res1 = StringParser().parse()
 

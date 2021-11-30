@@ -1,13 +1,13 @@
-from common_environment.environment import PixelEnvironment
-from parser.experiment import Example, TestCase
-from parser.parser import Parser
+from common.environment import PixelEnvironment
+from common.experiment import Example, TestCase
+from example_parser.parser import Parser
 
 class PixelParser(Parser):
 
     def __init__(self, path: str = None, result_folder_path: str = None):
         super().__init__(
             domain_name="pixel",
-            path=path or "programs/e3-pixels/data/",
+            path=path or "examples/e3-pixels/data/",
             result_folder_path=result_folder_path or "results/e3-pixels/"
         )
 
@@ -39,24 +39,16 @@ class PixelParser(Parser):
 
         # retries the actual array and split by ','
         arr = entry.split("[")[1].split("]")[0].split(",")
-
-        # empty array
-        pixels = [[] for i in range(e[2])]
-        i = 0
-        j = 0
-
-        # fills up array
-        for a in arr:
-            if i == e[2]:
-                i = 0
-
-            pixels[i].append(a)
-            i += 1
+        (width, height) = (e[2], e[3])
+        pixels = [[False for _ in range(height)] for _ in range(width)]
+        for i, entry in enumerate(arr):
+            (y, x) = divmod(i, width)
+            pixels[x][y] = bool(int(entry))
 
         return PixelEnvironment(
             x=e[0]-1, y=e[1]-1,
-            width=e[2],
-            height=e[3],
+            width=width,
+            height=height,
             pixels=pixels
         )
 
@@ -68,7 +60,7 @@ class PixelParser(Parser):
         return 1
 
 if __name__ == "__main__":
-    res1 = PixelParser(path="../programs/e3-pixels/data/").parse()
+    res1 = PixelParser(path="../examples/e3-pixels/data/").parse()
     n = 10
     for res in res1.test_cases:
         n -= 1
