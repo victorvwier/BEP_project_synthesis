@@ -4,20 +4,41 @@ from common.experiment import Example, TestCase
 from common.tokens.pixel_tokens import *
 import heapq
 
-from search.abstract_search import SearchAlgorithm
+from search.abstract_search import Search
 from search.invent import invent2
 
 MAX_NUMBER_OF_ITERATIONS = 10
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
-class Brute(SearchAlgorithm):
-    @staticmethod
-    def search(test_case: TestCase, trans_tokens, bool_tokens) -> Program:
+class Brute(Search):
+
+    def search(test_case: TestCase, trans_tokens, bool_tokens):
         # generate different token combinations
         token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
         # find program that satisfies training_examples
-        return _search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
-        
+        _search(token_functions, test_case.training_examples, MAX_NUMBER_OF_ITERATIONS)
+        return
+
+    def setup(self, test_case, trans_tokens, bool_tokens):
+        raise NotImplementedError()
+
+    def iteration(self, test_case, trans_tokens, bool_tokens):
+        raise NotImplementedError()
+
+    def synth_loop(self, programs, tokens: List[Token], sample_inputs, sample_outputs, iteration, num_iterations):
+        (_, solved, best_program) = heapq.heappop(programs)
+
+        if (iteration >= num_iterations or solved == 0):
+            self._best_program = best_program
+            return
+
+        updated_programs = extend_program(best_program, programs, tokens, sample_inputs, sample_outputs)
+
+        iteration += 1
+        self._best_program = self.synth_loop(updated_programs, tokens, sample_inputs, sample_outputs, iteration,
+                                        num_iterations)
+        return
+
 
 def print_p(p):
     print(p.sequence)
@@ -59,17 +80,6 @@ def extend_program(best_program, programs, tokens: List[Token], sample_inputs, s
     #updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
     return programs
 
-def synth_loop(programs, tokens: List[Token], sample_inputs, sample_outputs, iteration, num_iterations):
-    (_, solved, best_program) = heapq.heappop(programs)
-
-    if(iteration >= num_iterations or solved == 0):
-        return best_program
-
-    updated_programs = extend_program(best_program, programs, tokens, sample_inputs, sample_outputs)
-
-    iteration += 1
-    return synth_loop(updated_programs, tokens, sample_inputs, sample_outputs, iteration, num_iterations)
-
 def _search(tokens: List[Token], examples: List[Example], num_iterations):
     sample_inputs = [e.input_environment for e in examples]
     sample_outputs = [e.output_environment for e in examples]
@@ -78,6 +88,6 @@ def _search(tokens: List[Token], examples: List[Example], num_iterations):
     
     starting_heap = [(float('inf'), 1, program)]
     heapq.heapify(starting_heap)
-    best_program = synth_loop(starting_heap, tokens, sample_inputs, sample_outputs, 0, num_iterations)
+    synth_loop(starting_heap, tokens, sample_inputs, sample_outputs, 0, num_iterations)
 
-    return best_program
+    return
