@@ -185,9 +185,14 @@ class TestStringBoolTokens(TestCase):
     def test_infinite_negative_pos_bug(self):
         env = StringEnvironment("a")
         env = Program([Drop()]).interp(env)
-        self.assertEqual(StringEnvironment("", pos=0), env)
+        self.assertEqual(StringEnvironment("", pos=-1), env)
         self.assertRaises(InvalidTransition, lambda: Program([MoveLeft()]).interp(env))
 
+    def test_infinite_positive_pos_bug(self):
+        env = StringEnvironment("a")
+        env = Program([Drop()]).interp(env)
+        self.assertEqual(StringEnvironment("", pos=-1), env)
+        self.assertRaises(InvalidTransition, lambda: Program([MoveRight()]).interp(env))
 
 # class TestComplexPrograms(TestCase):
 
