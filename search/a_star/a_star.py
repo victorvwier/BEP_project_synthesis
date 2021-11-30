@@ -9,17 +9,8 @@ from common.tokens.pixel_tokens import *
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
-# from common_environment.abstract_tokens import Token, BoolToken, TransToken
-# from common_environment.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
-# from common_environment.environment import Environment
-# from interpreter.interpreter import Program, InvalidTransition
-# from search.abstract_search import SearchAlgorithm
-# from parser.experiment import Example, TestCase
-# from search.invent import invent2
-
 MAX_NUMBER_OF_ITERATIONS = 20
 MAX_TOKEN_FUNCTION_DEPTH = 3
-
 
 class AStar(SearchAlgorithm):
     @staticmethod

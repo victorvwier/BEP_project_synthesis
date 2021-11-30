@@ -48,6 +48,12 @@ class Draw(TransToken):
 		return env
 
 
+class Erase(TransToken):
+	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
+		env.pixels[env.x][env.y] = False
+		return env
+
+
 class MoveRight(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
 		if env.x == env.width - 1:
@@ -81,4 +87,4 @@ class MoveDown(TransToken):
 
 
 BoolTokens = {AtTop, AtBottom, AtLeft, AtRight, NotAtTop, NotAtBottom, NotAtLeft, NotAtRight}
-TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw}
+TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw, Erase}
