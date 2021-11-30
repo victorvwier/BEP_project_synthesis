@@ -1,24 +1,24 @@
-import copy
 import time
+from pathlib import Path
 
-from typing import List
-from common_environment.environment import *
-from interpreter.interpreter import *
-from myparser.experiment import Experiment, TestCase
-from myparser.pixel_parser import PixelParser
-from myparser.robot_parser import RobotParser
-from myparser.string_parser import StringParser
-import pixel_environment.pixel_tokens as pixel_tokens
-import robot_environment.robot_tokens as robot_tokens
+from typing import Type
+from common.prorgam import *
+from common.experiment import Experiment, TestCase
+from example_parser.pixel_parser import PixelParser
+from example_parser.robot_parser import RobotParser
+from example_parser.string_parser import StringParser
+import common.tokens.pixel_tokens as pixel_tokens
+import common.tokens.robot_tokens as robot_tokens
 from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 
-import string_environment.string_tokens as string_tokens
+import common.tokens.string_tokens as string_tokens
 
 
-# MAX_TOKEN_FUNCTION_DEPTH = 3
-# MAX_NUMBER_OF_ITERATIONS = 30
-# MAX_EXECUTION_TIME_IN_SECONDS = 30
+MAX_EXECUTION_TIME_IN_SECONDS = 10
+
+from search.search_result import SearchResult
+
 
 def extract_domain_from_environment(environment):
     domain_name = "unknown"
@@ -51,61 +51,65 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 # a single case exists of several examples which should be solved by one single program
 def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens,
-                                                   searchAlgorithm: SearchAlgorithm):
+                                                   search_algorithm: Type[SearchAlgorithm]):
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    program: Program
-    program, best_loss, solved = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+    search_result: SearchResult = search_algorithm(MAX_EXECUTION_TIME_IN_SECONDS).run(test_case.training_examples, trans_tokens, bool_tokens)
+    program: Program = search_result.dictionary["program"]
+
     finish_time = time.time()
 
-    file = open(test_case.path_to_result_file, "w+")
+    path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w+") as file:
 
-    file.writelines(["Program: " + str(program.sequence) + "\n \n"])
+        file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
 
-    execution_time_in_seconds = finish_time - start_time
-    successes = 0
-    for e in test_case.test_examples:
-        in_state = e.input_environment
-        out_state = e.output_environment
+        execution_time_in_seconds = finish_time - start_time
+        successes = 0
+        for e in test_case.test_examples:
+            in_state = e.input_environment
+            out_state = e.output_environment
 
+            file.writelines([
+                "input: " + str(in_state) + "\n",
+                "wanted output: " + str(out_state) + "\n"
+            ])
+
+            try:
+                result = program.interp(in_state)
+            except:
+                #print("interpreting the program threw an error")
+                result = in_state
+
+            file.writelines([
+                "output: " + str(result) + "\n \n"
+            ])
+
+
+            if out_state.correct(result):
+                successes += 1
+
+        success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+        print(test_case.path_to_result_file, end=" \t")
+        print(success_percentage)
+        # print(program)
+
+
+        # file = open(test_case.path_to_result_file, "a+")
         file.writelines([
-            "input: " + str(in_state) + "\n",
-            "wanted output: " + str(out_state) + "\n"
+            "succes_percentage: " + str(success_percentage) + "\n",
+            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
         ])
-
-        try:
-            result = program.interp(in_state)
-        except:
-            print("interpreting the program threw an error")
-            result = in_state
-
-        file.writelines([
-            "output: " + str(result) + "\n \n"
-        ])
-
-        if out_state.correct(result):
-            successes += 1
-
-    success_percentage = 100.0 * successes / len(test_case.test_examples)
-
-    print(test_case.path_to_result_file, end=" \t")
-    print(success_percentage)
-    # print(program)
-
-    # file = open(test_case.path_to_result_file, "a+")
-    file.writelines([
-        "succes_percentage: " + str(success_percentage) + "\n",
-        "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
-    ])
-    file.close()
 
     return success_percentage, execution_time_in_seconds
 
 
 # An experiment exists of different cases in the same domain.
 # For each experiment different, one program is generated per case.
-def test_performance_single_experiment(experiment: Experiment, search: SearchAlgorithm):
+def test_performance_single_experiment(experiment: Experiment, search: Type[SearchAlgorithm]):
     sum_of_success_percentages = 0
     sum_of_execution_times_in_seconds = 0
     number_of_completely_successful_programs = 0
@@ -127,13 +131,12 @@ def test_performance_single_experiment(experiment: Experiment, search: SearchAlg
 
     average_success_percentage = sum_of_success_percentages / len(test_cases)
     average_execution_time = sum_of_execution_times_in_seconds / len(test_cases)
-    percentage_of_completely_successful_programs = number_of_completely_successful_programs / len(test_cases)
+    percentage_of_completely_successful_programs = number_of_completely_successful_programs / len(test_cases) * 100
 
     return average_success_percentage, average_execution_time, percentage_of_completely_successful_programs
 
 
-def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str,
-                                              search_algorithm: SearchAlgorithm):
+def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str, search_algorithm: SearchAlgorithm):
     lines_to_write = []
 
     for experiment in experiments:
@@ -146,9 +149,10 @@ def write_performances_of_experiments_to_file(experiments: List[Experiment], out
                               + str(percentage_of_completely_successful_programs) + "\n")
         lines_to_write.append("\n")
         print("Experiment: {} finished with status: {}".format(experiment.name, average_success_percentage))
-    file = open(output_file, "w")
-    file.writelines(lines_to_write)
-    file.close()
+    path = Path(__file__).parent.joinpath(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as file:
+        file.writelines(lines_to_write)
 
 
 def get_all_experiments():
@@ -174,11 +178,11 @@ def get_all_experiments():
 
 if __name__ == "__main__":
     print("Start reading in all experiments")
-    experiments = get_all_experiments()
+    experiments1 = get_all_experiments()
 
     print("Done reading in all experiments")
     write_performances_of_experiments_to_file(
-        experiments,
+        experiments1,
         "performance_results/results.txt",
         search_algorithm=Brute
     )

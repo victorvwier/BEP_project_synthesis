@@ -1,9 +1,8 @@
 import unittest
 
-from common_environment.control_tokens import *
-from common_environment.environment import *
-from interpreter.interpreter import Program
-from string_environment.string_tokens import *
+from common.tokens.control_tokens import *
+from common.prorgam import Program
+from common.tokens.string_tokens import *
 
 
 class TestIf(unittest.TestCase):
@@ -45,7 +44,7 @@ class TestRecurse(unittest.TestCase):
     def test_simple(self):
         e1 = StringEnvironment("hello, world!")
         p = Program([
-            Recurse(NotAtEnd(), [MakeUppercase()], [MakeUppercase(), MoveRight()])
+            LoopWhile(NotAtEnd(), [MakeUppercase(), MoveRight()]), MakeUppercase()
         ])
 
         e1 = p.interp(e1)
@@ -54,10 +53,10 @@ class TestRecurse(unittest.TestCase):
     def test_limit(self):
         e1 = StringEnvironment("hello, world!")
         p = Program([
-            Recurse(NotAtEnd(), [], [])
+            LoopWhile(NotAtEnd(), [MakeUppercase(), ]), MakeUppercase()
         ])
 
-        self.assertRaises(RecursiveCallLimitReached, lambda : p.interp(e1))
+        self.assertRaises(LoopIterationLimitReached, lambda : p.interp(e1))
 
 
 class TestLoop(unittest.TestCase):
