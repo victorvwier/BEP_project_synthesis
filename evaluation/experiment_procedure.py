@@ -51,11 +51,11 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 # a single case exists of several examples which should be solved by one single program
 def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens,
-                                                   searchAlgorithm: Type[SearchAlgorithm]):
+                                                   search_algorithm: Type[SearchAlgorithm]):
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    search_result: SearchResult = searchAlgorithm(MAX_EXECUTION_TIME_IN_SECONDS).run(test_case.training_examples, trans_tokens, bool_tokens)
+    search_result: SearchResult = search_algorithm(MAX_EXECUTION_TIME_IN_SECONDS).run(test_case.training_examples, trans_tokens, bool_tokens)
     program: Program = search_result.dictionary["program"]
 
     finish_time = time.time()
