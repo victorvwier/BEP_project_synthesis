@@ -61,11 +61,12 @@ class SearchAlgorithm:
         return self.extend_result(SearchResult(self.best_program, run_time))
 
     @staticmethod
-    def cost_train(tc: TestCase, p: Program):
+    def cost_train(exs: list[Example], p: Program):
         def ex_cost(ex: Example):
             try:
                 return p.interp(ex.input_environment).distance(ex.output_environment)
             except:
                 return float('inf')
 
-        return mean([ex_cost(ex) for ex in tc.training_examples])
+        return mean([ex_cost(ex) for ex in exs])
+    
