@@ -224,9 +224,19 @@ class MCTS(SearchAlgorithm):
         except (InvalidTransition, MaxNumberOfIterationsExceededException) as e:
             raise InvalidProgramException
 
-    def back_propagate(self):
-        # TODO implement
-        pass
+    def back_propagate(self, node: SearchTreeNode, reward: float):
+
+        # update all relevant attributes
+        node.number_of_visits += 1
+        node.total_obtained_reward += reward
+        if reward > node.greatest_obtained_reward:
+            node.greatest_obtained_reward = reward
+
+        # recursively do the same for all the ancestors of the current node.
+        if node.parent is not None:
+            MCTS.back_propagate(self, node.parent, reward)
+
+        return
 
 
 if __name__ == "__main__":
