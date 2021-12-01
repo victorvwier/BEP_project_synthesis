@@ -3,7 +3,7 @@ from statistics import mean
 
 from common.prorgam import Program
 from common.tokens.abstract_tokens import Token
-from common.experiment import TestCase
+from common.experiment import TestCase, Example
 from search.search_result import SearchResult
 
 
@@ -59,4 +59,10 @@ class Search:
     
     @staticmethod
     def cost_train(tc: TestCase, p: Program):
-        return mean([p.interp(ex.input_environment).distance(ex.output_environment) for ex in tc.training_examples])
+        def ex_cost(ex: Example):
+            try:
+                return p.interp(ex.input_environment).distance(ex.output_environment)
+            except:
+                return float('inf')
+
+        return mean([ex_cost(ex) for ex in tc.training_examples])
