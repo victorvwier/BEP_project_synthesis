@@ -6,7 +6,7 @@ from typing import List, Union
 
 from anytree import NodeMixin
 
-from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken, Token
+from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken
 from common.environment import Environment
 
 from common.prorgam import Program
@@ -33,17 +33,6 @@ class Action(object):
 class CompleteAction(Action):
     def __init__(self):
         super().__init__(description="Declare Program Complete")
-
-
-class ExpandAction(Action):
-    def __init__(self, program_unit: Token):
-        super().__init__(description="Expand Program with: %s" % str(program_unit))
-        self.program_unit = program_unit
-
-
-class TokenType(Enum):
-    BOOL_TOKEN = BoolToken
-    ENV_TOKEN = EnvToken
 
 
 class ProgramUnit(EnvToken):
@@ -97,6 +86,17 @@ class ProgramUnit(EnvToken):
             return
         else:
             raise Exception("Something went wrong. token should either be complete or instance of CompletableToken")
+
+class ExpandAction(Action):
+    def __init__(self, program_unit: Union[ProgramUnit, BoolToken]):
+        super().__init__(description="Expand Program with: %s" % str(program_unit))
+        self.program_unit = program_unit
+
+
+class TokenType(Enum):
+    BOOL_TOKEN = BoolToken
+    ENV_TOKEN = EnvToken
+
 
 
 class MCTSProgram(Program):
@@ -174,6 +174,13 @@ class MCTSProgram(Program):
     def apply_action(self, action: Action):
         if self.complete:
             raise IllegalActionException("No actions can be applied on an already complete Program")
+
+        # in an ExpandAction is applied and the current program is empty, or the last token is already complete,
+        # just append the given token at the end of the program
+        if isinstance(action, ExpandAction) and (len(self.program) < 1 or self.program[-1].is_complete()):
+            assert(isinstance(action.program_unit, EnvToken))
+            self.program.append(action.program_unit)
+            return
 
         if isinstance(action, CompleteAction) and self.program[-1].is_complete():
             # if the last ProgramUnit in the program is complete, the CompleteAction completes the program
@@ -475,13 +482,13 @@ class SearchTreeNode(NodeMixin):
     @staticmethod
     def initialize_search_tree(trans_tokens, loop_limit: int = LOOP_LIMIT):
 
-        unexplored_actions: List[Action] = []
+        unexplored_actions: deque[Action] = deque([])
 
         for trans_token in trans_tokens:
             unexplored_actions.append(ExpandAction(trans_token()))
 
-        unexplored_actions.append(ExpandAction(IfToken()))
-        unexplored_actions.append(ExpandAction(WhileToken(max_number_of_iterations=loop_limit)))
+        unexplored_actions.append(ExpandAction(ProgramUnit(IfToken())))
+        unexplored_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=loop_limit))))
 
         return SearchTreeNode(
             program=MCTSProgram([]),

@@ -64,7 +64,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w+") as file:
 
-        file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
+        file.writelines(["Program: " + str(program.sequence) + "\n \n"])
 
         execution_time_in_seconds = finish_time - start_time
         successes = 0

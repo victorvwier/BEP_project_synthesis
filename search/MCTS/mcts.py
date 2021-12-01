@@ -4,12 +4,12 @@ import random
 from collections import deque
 from typing import List, Union, Type
 
-from common.environment import Environment, StringEnvironment, RobotEnvironment, PixelEnvironment
+from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment
 from common.experiment import Example
-from common.tokens.abstract_tokens import Token, InvalidTransition
+from common.tokens.abstract_tokens import EnvToken, TransToken, BoolToken, InvalidTransition
 
 from search.MCTS.datastructures import MCTSProgram, SearchTreeNode, Action, CompleteAction, TokenType, IfToken, \
-    ExpandAction, WhileToken
+    ExpandAction, WhileToken, ProgramUnit
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException
 from search.abstract_search import SearchAlgorithm
 
@@ -30,7 +30,8 @@ class MCTS(SearchAlgorithm):
         self.search_tree: Union[SearchTreeNode, None] = None
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
-    def setup(self, training_examples: List[Example], trans_tokens: set[Type[Token]], bool_tokens: set[Type[Token]]):
+    def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
+              bool_tokens: set[Type[BoolToken]]):
 
         # set the best program to be an empty token list and calculate the associated loss
         self._best_program = MCTSProgram([], complete=True)
@@ -44,8 +45,8 @@ class MCTS(SearchAlgorithm):
             SearchTreeNode.initialize_search_tree(trans_tokens=trans_tokens, loop_limit=LOOP_LIMIT)
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
-    def iteration(self, training_example: List[Example], trans_tokens: set[Type[Token]], bool_tokens: set[Type[Token]]) \
-            -> bool:
+    def iteration(self, training_example: List[Example], trans_tokens: set[Type[TransToken]],
+                  bool_tokens: set[Type[BoolToken]]) -> bool:
 
         # return False to indicate no other iterations are necessary
         if self.smallest_loss <= 0.001:
@@ -65,7 +66,6 @@ class MCTS(SearchAlgorithm):
         except InvalidProgramException:
             MCTS.remove_nodes_with_no_possible_extensions(new_node)
 
-
         # return True to indicate that another iteration is required
         return True
 
@@ -81,7 +81,7 @@ class MCTS(SearchAlgorithm):
                 program_output = program.interp(example.input_environment)
                 loss = example.output_environment.distance(program_output)
                 total_loss += loss
-        except (InvalidTransition, MaxNumberOfIterationsExceededException) as e:
+        except (InvalidTransition, MaxNumberOfIterationsExceededException):
             return float("inf")
 
         return total_loss / len(examples)
@@ -102,7 +102,7 @@ class MCTS(SearchAlgorithm):
 
         # both are expected to be between 0 and 1
         average_reward = node.total_obtained_reward / node.number_of_visits
-        greatest_reward = node.greatest_obtained_reward
+        # greatest_reward = node.greatest_obtained_reward
 
         # TODO see what happens when greatest_reward or a combo is used for exploitation_component
         exploitation_component = average_reward
@@ -134,7 +134,8 @@ class MCTS(SearchAlgorithm):
         parent.number_of_visits -= current_node.number_of_visits
         parent.total_obtained_reward -= current_node.total_obtained_reward
         if parent.greatest_obtained_reward == current_node.greatest_obtained_reward:
-            obtained_rewards_by_children: List[float] = list(map(lambda node: node.greatest_obtained_reward, parent.children))
+            obtained_rewards_by_children: List[float] = \
+                list(map(lambda node: node.greatest_obtained_reward, parent.children))
             obtained_rewards_by_children.append(-1000.00)
             parent.greatest_obtained_reward = max(obtained_rewards_by_children)
 
@@ -163,13 +164,15 @@ class MCTS(SearchAlgorithm):
         return MCTS.select(selected_child)
 
     @staticmethod
-    def expand(node: SearchTreeNode, trans_tokens: set[Type[Token]], bool_tokens: set[Type[Token]]) -> SearchTreeNode:
+    def expand(node: SearchTreeNode, trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) \
+            -> SearchTreeNode:
         """Expands the given node by creating a child node from an unexplored action. This child node is returned"""
 
         # TODO if making deepcopy is to time intensive, it is also possible to make program while selecting nodes
         selected_action = \
             node.unexplored_succeeding_actions.popleft()
-        new_program: MCTSProgram = copy.deepcopy(node.program).apply_action(selected_action)
+        new_program: MCTSProgram = copy.deepcopy(node.program)
+        new_program.apply_action(selected_action)
 
         # if the applied action completed the program, there are no possible succeeding actions
         if new_program.complete:
@@ -193,9 +196,9 @@ class MCTS(SearchAlgorithm):
                 new_possible_actions.append(ExpandAction(token()))
         else:
             for token in trans_tokens:
-                new_possible_actions.append(ExpandAction(token()))
-            new_possible_actions.append(ExpandAction(IfToken()))
-            new_possible_actions.append(ExpandAction(WhileToken(max_number_of_iterations=LOOP_LIMIT)))
+                new_possible_actions.append(ExpandAction(ProgramUnit(token())))
+            new_possible_actions.append(ExpandAction(ProgramUnit(IfToken())))
+            new_possible_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=LOOP_LIMIT))))
 
         new_node = SearchTreeNode(
             program=new_program,
@@ -208,8 +211,8 @@ class MCTS(SearchAlgorithm):
         )
         return new_node
 
-    def simulate_and_return_reward(self, node: SearchTreeNode, examples: List[Example], trans_tokens: set[Type[Token]],
-                                   bool_tokens: set[Type[Token]]) -> float:
+    def simulate_and_return_reward(self, node: SearchTreeNode, examples: List[Example],
+                                   trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) -> float:
 
         program: MCTSProgram = copy.deepcopy(node.program)
 
@@ -218,12 +221,12 @@ class MCTS(SearchAlgorithm):
             if program.complete_action_allowed:
                 program.apply_action(CompleteAction())
             elif program.required_token_type_for_expansion == TokenType.BOOL_TOKEN:
-                random_bool_token: Token = random.choice(bool_tokens)()
+                random_bool_token: BoolToken = random.choice(bool_tokens)()
                 program.apply_action(ExpandAction(random_bool_token))
             elif program.required_token_type_for_expansion == TokenType.ENV_TOKEN:
                 # TODO see what happens if also IfToken and WhileToken are included in the options for the random choice
-                random_env_token: Token = random.choice(trans_tokens)()
-                program.apply_action(ExpandAction(random_env_token))
+                random_env_token: EnvToken = random.choice(trans_tokens)()
+                program.apply_action(ExpandAction(ProgramUnit(random_env_token)))
             else:
                 raise Exception("Something went wrong. Program should be complete or required_token_type_for_extension"
                                 "should return eiter ENV_TOKEN or BOOL_TOKEN")
@@ -243,7 +246,7 @@ class MCTS(SearchAlgorithm):
             return reward
 
         # catch exceptions that are thrown upon interpreting the program
-        except (InvalidTransition, MaxNumberOfIterationsExceededException) as e:
+        except (InvalidTransition, MaxNumberOfIterationsExceededException):
             raise InvalidProgramException
 
     def back_propagate(self, node: SearchTreeNode, reward: float):
