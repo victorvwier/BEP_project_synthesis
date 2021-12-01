@@ -115,6 +115,7 @@ class MCTS(SearchAlgorithm):
     def remove_nodes_with_no_possible_extensions(current_node: SearchTreeNode):
         """"When a node has no possibility to be (further) explored, this method can be used to remove all its
         ancestors that can also not be explored any more."""
+
         parent: SearchTreeNode = current_node.parent
 
         # remove the node from the tree
@@ -170,7 +171,19 @@ class MCTS(SearchAlgorithm):
             node.unexplored_succeeding_actions.popleft()
         new_program: MCTSProgram = copy.deepcopy(node.program).apply_action(selected_action)
 
-        # make list of all possible actions
+        # if the applied action completed the program, there are no possible succeeding actions
+        if new_program.complete:
+            return SearchTreeNode(
+                program=new_program,
+                unexplored_succeeding_actions=deque([]),
+                preceding_action=selected_action,
+                number_of_visits=0,
+                total_obtained_reward=0,
+                greatest_obtained_reward=0,
+                parent=node,
+            )
+
+        # else, make list of all possible actions
         new_possible_actions: deque[Action] = deque([])
         required_token_type = new_program.required_token_type_for_expansion
         if new_program.complete_action_allowed:
@@ -218,15 +231,30 @@ class MCTS(SearchAlgorithm):
         # try interpreting the found program on the provided examples
         try:
             loss = MCTS.compute_loss_of_program(program=program, examples=examples)
+
+            # check if the current program is beats self._best_program
+            if loss < self.smallest_loss:
+                self._best_program = program
+                self.smallest_loss = loss
+
+            # compute reward, which is expected to be between 0 and 1
             reward = (self.max_expected_loss - loss) / self.max_expected_loss
             assert(reward < 1.001)
             return reward
+
+        # catch exceptions that are thrown upon interpreting the program
         except (InvalidTransition, MaxNumberOfIterationsExceededException) as e:
             raise InvalidProgramException
 
     def back_propagate(self, node: SearchTreeNode, reward: float):
 
-        # update all relevant attributes
+        # if node can not be explored any further, it can just be removed from the tree immidiately
+        node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
+        if not node_has_other_extensions:
+            MCTS.remove_nodes_with_no_possible_extensions(node)
+            return
+
+        # else, update all relevant attributes
         node.number_of_visits += 1
         node.total_obtained_reward += reward
         if reward > node.greatest_obtained_reward:
