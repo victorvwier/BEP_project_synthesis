@@ -181,8 +181,8 @@ class MCTS(SearchAlgorithm):
                 unexplored_succeeding_actions=deque([]),
                 preceding_action=selected_action,
                 number_of_visits=0,
-                total_obtained_reward=0,
-                greatest_obtained_reward=0,
+                total_obtained_reward=0.0,
+                greatest_obtained_reward=0.0,
                 parent=node,
             )
 
@@ -205,8 +205,8 @@ class MCTS(SearchAlgorithm):
             unexplored_succeeding_actions=new_possible_actions,
             preceding_action=selected_action,
             number_of_visits=0,
-            total_obtained_reward=0,
-            greatest_obtained_reward=0,
+            total_obtained_reward=0.0,
+            greatest_obtained_reward=0.0,
             parent=node,
         )
         return new_node

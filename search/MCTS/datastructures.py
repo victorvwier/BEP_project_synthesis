@@ -461,8 +461,8 @@ class SearchTreeNode(NodeMixin):
             preceding_action: Action = None,  # might not be necessary, but could be interesting for analyzing
             # max_program_depth_of_children: int = MAX_PROGRAM_DEPTH - 1,
             number_of_visits: int = 0,
-            total_obtained_reward: float = 0,       # should be between 0 and 1
-            greatest_obtained_reward: float = 0,    # should be between 0 and 1
+            total_obtained_reward: float = 0.0,       # should be between 0 and 1
+            greatest_obtained_reward: float = 0.0,    # should be between 0 and 1
             parent=None,
             children=None
     ):
