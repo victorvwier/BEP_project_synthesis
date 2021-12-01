@@ -82,7 +82,7 @@ class MCTS(SearchAlgorithm):
                 loss = example.output_environment.distance(program_output)
                 total_loss += loss
         except (InvalidTransition, MaxNumberOfIterationsExceededException):
-            return float("inf")
+            raise InvalidProgramException
 
         return total_loss / len(examples)
 
@@ -221,11 +221,11 @@ class MCTS(SearchAlgorithm):
             if program.complete_action_allowed:
                 program.apply_action(CompleteAction())
             elif program.required_token_type_for_expansion == TokenType.BOOL_TOKEN:
-                random_bool_token: BoolToken = random.choice(bool_tokens)()
+                random_bool_token: BoolToken = random.choice(tuple(bool_tokens))()
                 program.apply_action(ExpandAction(random_bool_token))
             elif program.required_token_type_for_expansion == TokenType.ENV_TOKEN:
                 # TODO see what happens if also IfToken and WhileToken are included in the options for the random choice
-                random_env_token: EnvToken = random.choice(trans_tokens)()
+                random_env_token: EnvToken = random.choice(tuple(trans_tokens))()
                 program.apply_action(ExpandAction(ProgramUnit(random_env_token)))
             else:
                 raise Exception("Something went wrong. Program should be complete or required_token_type_for_extension"
@@ -241,7 +241,7 @@ class MCTS(SearchAlgorithm):
                 self.smallest_loss = loss
 
             # compute reward, which is expected to be between 0 and 1
-            reward = (self.max_expected_loss - loss) / self.max_expected_loss
+            reward = 1.0 * (self.max_expected_loss - loss) / self.max_expected_loss
             assert(reward < 1.001)
             return reward
 

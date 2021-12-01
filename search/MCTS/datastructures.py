@@ -22,6 +22,11 @@ LOOP_LIMIT = 100
 
 # TODO do something with max program depth. This should happen throughout all the code.
 
+class TokenType(Enum):
+    BOOL_TOKEN = BoolToken
+    ENV_TOKEN = EnvToken
+
+
 class Action(object):
     def __init__(self, description):
         self.description = description
@@ -49,13 +54,19 @@ class ProgramUnit(EnvToken):
     def __deepcopy__(self, memodict={}):
         # TODO check if this works fine
         if isinstance(self.token, TransToken):
-            return self.token
+            return ProgramUnit(self.token)
         else:
             # TODO make deepcopy method for WhileToken and IfToken
-            return copy.deepcopy(self.token)
+            return ProgramUnit(copy.deepcopy(self.token))
 
         # TODO where necessary create deepcopy of EnvToken subclasses
         # return copy.deepcopy(self.token)
+
+    def __repr__(self):
+        return "ProgramUnit(token: %s)" % str(self.token)
+
+    def __str__(self):
+        return "ProgramUnit(token: %s)" % str(self.token)
 
     def apply(self, env: Environment) -> Environment:
         return self.token.apply(env)
@@ -67,6 +78,16 @@ class ProgramUnit(EnvToken):
             return self.token.completed
         else:
             raise Exception("Something went wrong. Expected token to be either TransToken or CompletableToken")
+
+    def get_needed_expand_token_type(self):
+        """Get TokenType that is Required for expanding this Token"""
+        if isinstance(self.token, CompletableToken):
+            return self.token.get_needed_expand_token_type()
+        elif isinstance(self.token, TransToken):
+            raise Exception("get_needed_expand_token_type was called on TransToken. This is illegal.")
+        else:
+            raise Exception("Something went wrong program_unit.token should always be either TransToken or "
+                            "CompletableToken")
 
     def complete_action_allowed(self) -> bool:
         if self.is_complete():
@@ -93,12 +114,6 @@ class ExpandAction(Action):
         self.program_unit = program_unit
 
 
-class TokenType(Enum):
-    BOOL_TOKEN = BoolToken
-    ENV_TOKEN = EnvToken
-
-
-
 class MCTSProgram(Program):
     """Wrapper class for a list of ProgramUnits, a program."""
 
@@ -106,19 +121,29 @@ class MCTSProgram(Program):
             self,
             program_units: List[ProgramUnit],
             complete: bool = False,
-            required_token_type_for_expansion: TokenType = TokenType.ENV_TOKEN,
+            # required_token_type_for_expansion: TokenType = TokenType.ENV_TOKEN,
             loop_limit: int = LOOP_LIMIT
     ):
         """Creates a new program given a sequence of Tokens."""
         super().__init__(program_units, loop_limit, loop_limit)
         self.program = program_units
         self._complete = complete
-        self.required_token_type_for_expansion = required_token_type_for_expansion
+        # self.required_token_type_for_expansion = required_token_type_for_expansion
         self.loop_limit = loop_limit
 
     @property
     def complete(self):
         return self._complete
+
+    @property
+    def required_token_type_for_expansion(self) -> TokenType:
+
+        if len(self.program) < 1:
+            return TokenType.ENV_TOKEN
+        elif self.program[-1].is_complete():
+            return TokenType.ENV_TOKEN
+        else:
+            return self.program[-1].get_needed_expand_token_type()
 
     @property
     def complete_action_allowed(self) -> bool:
@@ -144,7 +169,6 @@ class MCTSProgram(Program):
         return MCTSProgram(
             program_units=new_program,
             complete=self.complete,
-            required_token_type_for_expansion=self.required_token_type_for_expansion,
             loop_limit=self.loop_limit
         )
 
@@ -160,8 +184,8 @@ class MCTSProgram(Program):
             new_env = copy.deepcopy(env)
 
         # Setup for recursive calls
-        if top_level_program:
-            new_env.program = self
+        # if top_level_program:
+        #     new_env.program = self
 
         for program_unit in self.program:
             new_env = program_unit.apply(new_env)
@@ -255,7 +279,7 @@ class IfToken(CompletableToken):
         if body:
             self._body: MCTSProgram = body
         else:
-            self._body: MCTSProgram = MCTSProgram([], False, TokenType.ENV_TOKEN)
+            self._body: MCTSProgram = MCTSProgram([], False)
 
     @property
     def completed(self) -> bool:
@@ -278,6 +302,8 @@ class IfToken(CompletableToken):
         if boolean:
             return self._body.interp(env)
 
+        return env
+
     def get_needed_expand_token_type(self) -> TokenType:
         if not isinstance(self._bool_condition, BoolToken):
             return TokenType.BOOL_TOKEN
@@ -296,8 +322,8 @@ class IfToken(CompletableToken):
         if not isinstance(self._bool_condition, BoolToken):
             if isinstance(action, ExpandAction):
                 program_unit: ProgramUnit = action.program_unit
-                if isinstance(program_unit.token, BoolToken):
-                    self._bool_condition = program_unit.token
+                if isinstance(program_unit, BoolToken):
+                    self._bool_condition = program_unit
                     return
 
             raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
@@ -314,6 +340,9 @@ class IfToken(CompletableToken):
         )
 
     def __repr__(self):
+        return "IfToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
+
+    def __str__(self):
         return "IfToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
 
 
@@ -342,7 +371,7 @@ class WhileToken(CompletableToken):
         if body:
             self._body: MCTSProgram = body
         else:
-            self._body: MCTSProgram = MCTSProgram([], False, TokenType.ENV_TOKEN)
+            self._body: MCTSProgram = MCTSProgram([], False)
         self._max_number_of_iterations: int = max_number_of_iterations
 
     @property
@@ -399,8 +428,8 @@ class WhileToken(CompletableToken):
         if not isinstance(self._bool_condition, BoolToken):
             if isinstance(action, ExpandAction):
                 program_unit: ProgramUnit = action.program_unit
-                if isinstance(program_unit.token, BoolToken):
-                    self._bool_condition = program_unit.token
+                if isinstance(program_unit, BoolToken):
+                    self._bool_condition = program_unit
                     return
 
             raise IllegalActionException("ExpandAction with BoolToken is expected when applying an action on an "
@@ -418,6 +447,9 @@ class WhileToken(CompletableToken):
         )
 
     def __repr__(self):
+        return "WhileToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
+
+    def __str__(self):
         return "WhileToken(Condition: %s, Body: %s)" % (str(self._bool_condition), str(self._body))
 
 
@@ -471,8 +503,8 @@ class SearchTreeNode(NodeMixin):
     def greatest_obtained_reward(self, reward):
         if reward > 1.001:
             raise InvalidRewardValue("Reward should be smaller than 1.001")
-        if reward > -3.00:
-            raise InvalidRewardValue("Reward is expected to be between 0 and 1, but was smaller than -3")
+        # if reward < -3.00:
+        #     raise InvalidRewardValue("Reward is expected to be between 0 and 1, but was smaller than -3")
 
         self._greatest_obtained_reward = reward
 
@@ -482,10 +514,11 @@ class SearchTreeNode(NodeMixin):
     @staticmethod
     def initialize_search_tree(trans_tokens, loop_limit: int = LOOP_LIMIT):
 
+        # TODO use a random order of pushing or popping actions. Changes in the whole code would be required
         unexplored_actions: deque[Action] = deque([])
 
         for trans_token in trans_tokens:
-            unexplored_actions.append(ExpandAction(trans_token()))
+            unexplored_actions.append(ExpandAction(ProgramUnit(trans_token())))
 
         unexplored_actions.append(ExpandAction(ProgramUnit(IfToken())))
         unexplored_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=loop_limit))))
