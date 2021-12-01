@@ -141,7 +141,7 @@ class MoveRight(TransToken):
     string."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        if env.pos == len(env.string_array) - 1:
+        if env.pos >= len(env.string_array) - 1:
             raise InvalidTransition()
         env.pos += 1
 
@@ -153,7 +153,7 @@ class MoveLeft(TransToken):
     string."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        if env.pos == 0:
+        if env.pos <= 0:
             raise InvalidTransition()
         env.pos -= 1
 

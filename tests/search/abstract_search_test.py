@@ -5,10 +5,10 @@ from common.experiment import TestCase
 from common.prorgam import Program
 from common.tokens.abstract_tokens import Token
 
-from search.abstract_search import Search
+from search.abstract_search import SearchAlgorithm
 
 
-class MySearch(Search):
+class MySearch(SearchAlgorithm):
 
     def __init__(self, max_iter: int, time_limit_sec: float):
         super().__init__(time_limit_sec)
