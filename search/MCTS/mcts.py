@@ -251,21 +251,30 @@ class MCTS(SearchAlgorithm):
 
     def back_propagate(self, node: SearchTreeNode, reward: float):
 
-        # if node can not be explored any further, it can just be removed from the tree immidiately
-        node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
-        if not node_has_other_extensions:
-            MCTS.remove_nodes_with_no_possible_extensions(node)
-            return
+        # # if node can not be explored any further, it can just be removed from the tree immediately
+        # node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
+        # if not node_has_other_extensions:
+        #     MCTS.remove_nodes_with_no_possible_extensions(node)
+        #     node.parent = None
+        #     return
 
         # else, update all relevant attributes
         node.number_of_visits += 1
         node.total_obtained_reward += reward
+
         if reward > node.greatest_obtained_reward:
             node.greatest_obtained_reward = reward
 
+        parent = node.parent
+        node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
+        if not node_has_other_extensions:
+            # MCTS.remove_nodes_with_no_possible_extensions(node)
+            node.parent = None
+            # return
+
         # recursively do the same for all the ancestors of the current node.
-        if node.parent is not None:
-            MCTS.back_propagate(self, node.parent, reward)
+        if parent is not None:
+            MCTS.back_propagate(self, parent, reward)
 
         return
 
