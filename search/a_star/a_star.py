@@ -27,8 +27,8 @@ class AStar(SearchAlgorithm):
         self.input_envs = tuple(e.input_environment for e in training_examples)
         self.output_envs = tuple(e.output_environment for e in training_examples)
         self.tokens = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
-        self.loss_function = lambda g, h: h
-        self.program_generator = self.best_first_search(self.input_envs, self.output_envs, self.tokens, self.loss_function)
+        self.loss_function = lambda g, h: g + h
+        self.program_generator = self.best_first_search(self.input_envs, self.output_envs, self.tokens, self.loss_function, self._heuristic_min)
 
     def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
         self._best_program = next(self.program_generator)
@@ -43,11 +43,15 @@ class AStar(SearchAlgorithm):
     def _heuristic(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
         return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))/len(from_states)
 
-    def best_first_search(self, start_node: tuple[Environment], end_node: tuple[Environment], tokens: list[Token], f) -> Iterator[Program]:
+    @staticmethod
+    def _heuristic_min(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
+        return min(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+
+    def best_first_search(self, start_node: tuple[Environment], end_node: tuple[Environment], tokens: list[Token], f, h) -> Iterator[Program]:
         reached = {start_node: (0, False, False)}  # for each reached node: (path_cost, previous_node, token_used)
         queue = []
         count = itertools.count()
-        heappush(queue, (f(0, self._heuristic(start_node, end_node)), next(count), start_node))
+        heappush(queue, (f(0, h(start_node, end_node)), next(count), start_node))
         node = False
         while queue:
             total_cost, _, node = heappop(queue)  # total_cost: the estimated cost for the total path
@@ -62,11 +66,10 @@ class AStar(SearchAlgorithm):
                     child = tuple(map(token.apply, node_copy))
                     if child not in reached or path_cost + token.number_of_tokens(1) < reached[child][0]:
                         reached[child] = path_cost + token.number_of_tokens(1), node, token
-                        heappush(queue, (f(path_cost + token.number_of_tokens(1), self._heuristic(child, end_node)), next(count), child))
+                        heappush(queue, (f(path_cost + token.number_of_tokens(1), h(child, end_node)), next(count), child))
                         print(token)
                         print(child[0])
-                # except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
-                except:
+                except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
                     pass
         # success = correct(node, end_node)
         sequence = []
