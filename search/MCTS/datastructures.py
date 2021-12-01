@@ -491,7 +491,7 @@ class SearchTreeNode(NodeMixin):
         # if delta > -3.00:
         #     raise InvalidRewardValue("Difference between new and old value of new_total_reward was smaller than -3")
 
-        self._greatest_obtained_reward = new_total_reward
+        self._total_obtained_reward = new_total_reward
 
     @property
     def greatest_obtained_reward(self):
