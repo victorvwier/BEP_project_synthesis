@@ -123,8 +123,16 @@ class StringEnvironment(Environment):
                                 d[i - 1][j - 1] + substitutionCost))
         return d[-1][-1]
 
+    distance_map = {}
+
     def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
+        s1 = "".join(self.string_array)
+        s2 = "".join(other.string_array)
+
+        if (s1, s2) not in self.distance_map:
+            self.distance_map[(s1,s2)] = self._levenshtein(s1, s2)
+
+        return self.distance_map[(s1,s2)]
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
