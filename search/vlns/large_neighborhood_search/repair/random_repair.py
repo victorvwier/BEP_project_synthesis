@@ -8,12 +8,12 @@ from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken
 
 class RandomRepair(Repair):
 
-    def __init__(self, p_if: float, p_loop: float, p_remove: float, p_split: float):
-        assert 0 <= p_if <= 1
-        assert 0 <= p_loop <= 1
-        assert 0 <= p_remove <= 1
-        assert 0 <= p_split <= 1
-        assert p_if + p_loop + p_remove + p_split <= 1
+    def __init__(self, w_if: float, w_loop: float, w_remove: float, w_split: float, w_default: float):
+        w_tot = w_if + w_loop + w_remove + w_split + w_default
+        p_if = w_if / w_tot
+        p_loop = w_loop / w_tot
+        p_remove = w_remove / w_tot
+        p_split = w_split / w_tot
 
         self.c_if = p_if
         self.c_loop = p_loop + self.c_if
