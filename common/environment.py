@@ -21,7 +21,7 @@ class Environment:
         raise NotImplementedError()
 
 
-@dataclass(eq=True, unsafe_hash=True)
+@dataclass(eq=True)
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
     in that same matrix."""
@@ -52,6 +52,9 @@ class RobotEnvironment(Environment):
     def __str__(self):
         return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
                (self.rx, self.ry, self.bx, self.by, self.holding)
+
+    def __hash__(self):
+        return hash((self.rx, self.ry, self.bx, self.by, self.holding, self.size))
 
     def distance(self, other: "RobotEnvironment") -> int:
         assert self.size == other.size
