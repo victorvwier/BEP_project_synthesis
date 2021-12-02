@@ -2,11 +2,13 @@ import copy
 import math
 import random
 from collections import deque
-from typing import List, Union, Type
+from typing import List, Union, Type, Tuple, Dict, Iterator
 
-from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment
+from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment, Environment
 from common.experiment import Example
-from common.tokens.abstract_tokens import EnvToken, TransToken, BoolToken, InvalidTransition
+from common.prorgam import Program
+from common.tokens.abstract_tokens import EnvToken, TransToken, BoolToken, InvalidTransition, InventedToken
+from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached
 
 from search.MCTS.datastructures import MCTSProgram, SearchTreeNode, Action, CompleteAction, TokenType, IfToken, \
     ExpandAction, WhileToken, ProgramUnit
@@ -16,8 +18,11 @@ from search.abstract_search import SearchAlgorithm
 # TODO do something with max program depth. This should happen throughout all the code.
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
+from search.invent import invent2
+
 LOOP_LIMIT = 100
 EXPLORATION_CONSTANT = 1.0 / math.sqrt(2)
+MAX_TOKEN_DEPTH = 3
 
 
 class MCTS(SearchAlgorithm):
@@ -28,21 +33,38 @@ class MCTS(SearchAlgorithm):
         self.smallest_loss: float = float("inf")
         self.max_expected_loss: float = float("inf")    # is used for normalizing exploitation factor
         self.search_tree: Union[SearchTreeNode, None] = None
+        self.invented_tokens = List[InventedToken]
+        self.input_envs: Tuple[Environment]
+        self.output_envs: Tuple[Environment]
+        self.dict_with_obtained_output_environments: Dict[Tuple[Environment], SearchTreeNode] = {}
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
               bool_tokens: set[Type[BoolToken]]):
 
+        # retrieve input and output environments
+        self.input_envs: Tuple[Environment] = tuple(example.input_environment for example in training_examples)
+        self.output_envs: Tuple[Environment] = tuple(example.output_environment for example in training_examples)
+
         # set the best program to be an empty token list and calculate the associated loss
-        self._best_program = MCTSProgram([], complete=True)
-        self.smallest_loss = MCTS.compute_loss_of_program(self._best_program, training_examples)
+        self._best_program = Program([])
+        resulting_envs = MCTS.get_resulting_envs(program=self._best_program, input_envs=self.input_envs)
+        self.smallest_loss = MCTS.compute_loss(resulting_envs, self.output_envs)
 
         # set the max_expected_loss, which will be used to normalize the exploitation factor in the UCT
-        self.max_expected_loss = MCTS.compute_max_expected_loss(training_examples)
+        # self.max_expected_loss = MCTS.compute_max_expected_loss(training_examples)
+        self.max_expected_loss = self.smallest_loss
+
+        # compute invented tokens that are composed of several other tokens
+        self.invented_tokens: List[InventedToken] = \
+            invent2(tokenSet=trans_tokens, boolTokenSet=bool_tokens, maxLength=MAX_TOKEN_DEPTH)
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
-            SearchTreeNode.initialize_search_tree(trans_tokens=trans_tokens, loop_limit=LOOP_LIMIT)
+            SearchTreeNode.initialize_search_tree(trans_tokens=self.invented_tokens)
+
+        # initialize a dictionary that keeps track of outcomes of programs
+        self.dict_with_obtained_output_environments[resulting_envs] = self.search_tree
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def iteration(self, training_example: List[Example], trans_tokens: set[Type[TransToken]],
@@ -70,7 +92,11 @@ class MCTS(SearchAlgorithm):
         return True
 
     @staticmethod
-    def compute_loss_of_program(program: MCTSProgram, examples: List[Example]) -> float:
+    def get_resulting_envs(program: Program, input_envs: Tuple[Environment]):
+        return tuple(map(lambda env: program.interp(env), input_envs))
+
+    @staticmethod
+    def compute_loss_of_program(program: Program, examples: List[Example]) -> float:
         """Gets the average loss function of applying the program to each example.
         Returns float number equal to infinity if one of the examples could not be interpreted with the program"""
 
@@ -87,6 +113,20 @@ class MCTS(SearchAlgorithm):
         return total_loss / len(examples)
 
     @staticmethod
+    def compute_loss(resulting_envs: Tuple[Environment], wanted_envs: Tuple[Environment]):
+        total_loss = 0.0
+        try:
+            for result_env, wanted_env in zip(resulting_envs, wanted_envs):
+                loss = result_env.distance(wanted_env)
+                total_loss += loss
+        except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
+                LoopIterationLimitReached):
+            raise InvalidProgramException
+
+        return total_loss / len(resulting_envs)
+
+
+    @staticmethod
     def compute_max_expected_loss(examples: List[Example]):
         env = examples[0].input_environment
         if isinstance(env, RobotEnvironment):
@@ -94,7 +134,7 @@ class MCTS(SearchAlgorithm):
         if isinstance(env, PixelEnvironment):
             return examples[0].output_environment.distance(examples[0].input_environment)
         if isinstance(env, StringEnvironment):
-            return MCTS.compute_loss_of_program(MCTSProgram([], complete=True), examples)
+            return MCTS.compute_loss_of_program(Program([]), examples)
 
     @staticmethod
     def compute_urgency(node: SearchTreeNode) -> float:

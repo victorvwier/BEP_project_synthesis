@@ -193,7 +193,7 @@ class MCTSProgram(Program):
         return new_env
 
     def __repr__(self):
-        return "Program([%s])" % ", ".join([str(token) for token in self.program])
+        return "MCTSProgram([%s])" % ", ".join([str(token) for token in self.program])
 
     def apply_action(self, action: Action):
         if self.complete:
@@ -456,10 +456,11 @@ class WhileToken(CompletableToken):
 class SearchTreeNode(NodeMixin):
     def __init__(
             self,
-            program: MCTSProgram,
-            unexplored_succeeding_actions: deque[Action],
-            preceding_action: Action = None,  # might not be necessary, but could be interesting for analyzing
-            # max_program_depth_of_children: int = MAX_PROGRAM_DEPTH - 1,
+            # program: MCTSProgram,
+            program: Program,
+            # unexplored_succeeding_actions: deque[Action],
+            # preceding_action: Action = None,  # might not be necessary, but could be interesting for analyzing
+            unexplored_succeeding_tokens: List[EnvToken],
             number_of_visits: int = 0,
             total_obtained_reward: float = 0.0,       # should be between 0 and 1
             greatest_obtained_reward: float = 0.0,    # should be between 0 and 1
@@ -467,9 +468,9 @@ class SearchTreeNode(NodeMixin):
             children=None
     ):
         self.program = program
-        self.unexplored_succeeding_actions = unexplored_succeeding_actions
-        self.preceding_action = preceding_action
-        # self.max_program_depth_of_children = max_program_depth_of_children
+        # self.unexplored_succeeding_actions = unexplored_succeeding_actions
+        # self.preceding_action = preceding_action
+        self.unexplored_succeeding_token = unexplored_succeeding_tokens
         self.number_of_visits = number_of_visits
         self._total_obtained_reward = total_obtained_reward
         self._greatest_obtained_reward = greatest_obtained_reward
@@ -512,18 +513,22 @@ class SearchTreeNode(NodeMixin):
         return "SearchTreeNode(Program: %s)" % self.program
 
     @staticmethod
-    def initialize_search_tree(trans_tokens, loop_limit: int = LOOP_LIMIT):
+    def initialize_search_tree(
+            trans_tokens,
+            # loop_limit: int = LOOP_LIMIT,
+    ):
 
         # TODO use a random order of pushing or popping actions. Changes in the whole code would be required
-        unexplored_actions: deque[Action] = deque([])
-
-        for trans_token in trans_tokens:
-            unexplored_actions.append(ExpandAction(ProgramUnit(trans_token())))
-
-        unexplored_actions.append(ExpandAction(ProgramUnit(IfToken())))
-        unexplored_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=loop_limit))))
+        # unexplored_actions: deque[Action] = deque([])
+        #
+        # for trans_token in trans_tokens:
+        #     unexplored_actions.append(ExpandAction(ProgramUnit(trans_token())))
+        #
+        # unexplored_actions.append(ExpandAction(ProgramUnit(IfToken())))
+        # unexplored_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=loop_limit))))
 
         return SearchTreeNode(
-            program=MCTSProgram([]),
-            unexplored_succeeding_actions=unexplored_actions,
+            program=Program([]),
+            # unexplored_succeeding_actions=unexplored_actions,
+            unexplored_succeeding_tokens=trans_tokens,
         )
