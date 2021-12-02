@@ -5,7 +5,7 @@ from common.experiment import TestCase, Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import Token, EnvToken, BoolToken
 
-from search.abstract_search import Search
+from search.abstract_search import SearchAlgorithm
 from search.search_result import SearchResult
 from search.vlns.large_neighborhood_search.accept.accept import Accept
 from search.vlns.large_neighborhood_search.destroy.destroy import Destroy
@@ -13,7 +13,7 @@ from search.vlns.large_neighborhood_search.repair.repair import Repair
 from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken
 
 
-class LNS(Search):
+class LNS(SearchAlgorithm):
 
     def __init__(self, time_limit: float, accept: Accept, destroy: Destroy, repair: Repair):
         super().__init__(time_limit)
@@ -30,7 +30,7 @@ class LNS(Search):
         self.best_cost_per_iteration = []
         self.current_cost_per_iteration = []
 
-    def setup(self, test_case: TestCase, trans_tokens: set[EnvToken], bool_tokens: set[BoolToken]):
+    def setup(self, test_case: list[Example], trans_tokens: set[EnvToken], bool_tokens: set[BoolToken]):
         self.repair.set_token_libraries(trans_tokens, bool_tokens)
         self.repair.cost = lambda s: self.cost_train(test_case, s)
 
@@ -43,7 +43,7 @@ class LNS(Search):
         self.best_cost_per_iteration = []
         self.current_cost_per_iteration = []
 
-    def iteration(self, test_case: TestCase, trans_tokens: set[EnvToken], bool_tokens: set[BoolToken]) -> bool:
+    def iteration(self, test_case: list[Example], trans_tokens: set[EnvToken], bool_tokens: set[BoolToken]) -> bool:
         destroyed = self.destroy.destroy(self.x_current)
         x_temp = self.repair.repair(destroyed)
         c_temp = self.cost_train(test_case, x_temp)
