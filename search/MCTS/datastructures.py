@@ -460,7 +460,7 @@ class SearchTreeNode(NodeMixin):
             program: Program,
             # unexplored_succeeding_actions: deque[Action],
             # preceding_action: Action = None,  # might not be necessary, but could be interesting for analyzing
-            unexplored_succeeding_tokens: List[EnvToken],
+            unexplored_succeeding_tokens: deque[EnvToken],
             number_of_visits: int = 0,
             total_obtained_reward: float = 0.0,       # should be between 0 and 1
             greatest_obtained_reward: float = 0.0,    # should be between 0 and 1
@@ -470,7 +470,7 @@ class SearchTreeNode(NodeMixin):
         self.program = program
         # self.unexplored_succeeding_actions = unexplored_succeeding_actions
         # self.preceding_action = preceding_action
-        self.unexplored_succeeding_token = unexplored_succeeding_tokens
+        self.unexplored_succeeding_tokens = unexplored_succeeding_tokens
         self.number_of_visits = number_of_visits
         self._total_obtained_reward = total_obtained_reward
         self._greatest_obtained_reward = greatest_obtained_reward
@@ -514,7 +514,7 @@ class SearchTreeNode(NodeMixin):
 
     @staticmethod
     def initialize_search_tree(
-            trans_tokens,
+            env_tokens: deque[EnvToken],
             # loop_limit: int = LOOP_LIMIT,
     ):
 
@@ -530,5 +530,5 @@ class SearchTreeNode(NodeMixin):
         return SearchTreeNode(
             program=Program([]),
             # unexplored_succeeding_actions=unexplored_actions,
-            unexplored_succeeding_tokens=trans_tokens,
+            unexplored_succeeding_tokens=env_tokens,
         )

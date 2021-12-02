@@ -2,7 +2,7 @@ import copy
 import math
 import random
 from collections import deque
-from typing import List, Union, Type, Tuple, Dict, Iterator
+from typing import List, Union, Type, Tuple, Dict
 
 from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment, Environment
 from common.experiment import Example
@@ -10,8 +10,8 @@ from common.prorgam import Program
 from common.tokens.abstract_tokens import EnvToken, TransToken, BoolToken, InvalidTransition, InventedToken
 from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached
 
-from search.MCTS.datastructures import MCTSProgram, SearchTreeNode, Action, CompleteAction, TokenType, IfToken, \
-    ExpandAction, WhileToken, ProgramUnit
+from search.MCTS.datastructures import MCTSProgram, SearchTreeNode, CompleteAction, TokenType, \
+    ExpandAction, ProgramUnit
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException
 from search.abstract_search import SearchAlgorithm
 
@@ -25,13 +25,21 @@ EXPLORATION_CONSTANT = 1.0 / math.sqrt(2)
 MAX_TOKEN_DEPTH = 3
 
 
+def deepcopy_program(program: Program) -> Program:
+    return Program(
+        tokens=[token for token in program.sequence],
+        recurse_limit=program.recursive_call_limit,
+        loop_limit=program.loop_limit,
+    )
+
+
 class MCTS(SearchAlgorithm):
 
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
         self._best_program: MCTSProgram
         self.smallest_loss: float = float("inf")
-        self.max_expected_loss: float = float("inf")    # is used for normalizing exploitation factor
+        self.max_expected_loss: float = float("inf")  # is used for normalizing exploitation factor
         self.search_tree: Union[SearchTreeNode, None] = None
         self.invented_tokens = List[InventedToken]
         self.input_envs: Tuple[Environment]
@@ -61,7 +69,7 @@ class MCTS(SearchAlgorithm):
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
-            SearchTreeNode.initialize_search_tree(trans_tokens=self.invented_tokens)
+            SearchTreeNode.initialize_search_tree(env_tokens=deque(self.invented_tokens))
 
         # initialize a dictionary that keeps track of outcomes of programs
         self.dict_with_obtained_output_environments[resulting_envs] = self.search_tree
@@ -76,7 +84,11 @@ class MCTS(SearchAlgorithm):
 
         # TODO implement the following subprocesses
         selected_node = MCTS.select(self.search_tree)
-        new_node = MCTS.expand(selected_node, trans_tokens, bool_tokens)
+        new_node = self.expand(
+            node=selected_node,
+            # trans_tokens,
+            # bool_tokens
+        )
         try:
             reward = self.simulate_and_return_reward(
                 node=new_node,
@@ -125,7 +137,6 @@ class MCTS(SearchAlgorithm):
 
         return total_loss / len(resulting_envs)
 
-
     @staticmethod
     def compute_max_expected_loss(examples: List[Example]):
         env = examples[0].input_environment
@@ -138,7 +149,7 @@ class MCTS(SearchAlgorithm):
 
     @staticmethod
     def compute_urgency(node: SearchTreeNode) -> float:
-        assert(node.number_of_visits > 0)
+        assert (node.number_of_visits > 0)
 
         # both are expected to be between 0 and 1
         average_reward = node.total_obtained_reward / node.number_of_visits
@@ -185,7 +196,8 @@ class MCTS(SearchAlgorithm):
     def select(current_node: SearchTreeNode) -> SearchTreeNode:
 
         # if current_node has unexplored actions, select current_node
-        if len(current_node.unexplored_succeeding_actions) > 0:
+        # if len(current_node.unexplored_succeeding_actions) > 0:
+        if len(current_node.unexplored_succeeding_tokens) > 0:
             return current_node
 
         # else use tree policy to select child node with greatest urgency
@@ -203,47 +215,55 @@ class MCTS(SearchAlgorithm):
 
         return MCTS.select(selected_child)
 
-    @staticmethod
-    def expand(node: SearchTreeNode, trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) \
-            -> SearchTreeNode:
+    # @staticmethod
+    def expand(
+            self,
+            node: SearchTreeNode,
+            # trans_tokens: set[Type[TransToken]],
+            # bool_tokens: set[Type[BoolToken]]
+    ) -> SearchTreeNode:
         """Expands the given node by creating a child node from an unexplored action. This child node is returned"""
 
         # TODO if making deepcopy is to time intensive, it is also possible to make program while selecting nodes
-        selected_action = \
-            node.unexplored_succeeding_actions.popleft()
-        new_program: MCTSProgram = copy.deepcopy(node.program)
-        new_program.apply_action(selected_action)
+        selected_token = \
+            node.unexplored_succeeding_tokens.pop()
+        new_program: Program = deepcopy_program(node.program)
+        new_program.sequence.append(selected_token)
 
-        # if the applied action completed the program, there are no possible succeeding actions
-        if new_program.complete:
-            return SearchTreeNode(
-                program=new_program,
-                unexplored_succeeding_actions=deque([]),
-                preceding_action=selected_action,
-                number_of_visits=0,
-                total_obtained_reward=0.0,
-                greatest_obtained_reward=0.0,
-                parent=node,
-            )
+        # # if the applied action completed the program, there are no possible succeeding actions
+        # if new_program.complete:
+        #     return SearchTreeNode(
+        #         program=new_program,
+        #         unexplored_succeeding_tokens=deque([]),
+        #         # preceding_action=selected_action,
+        #         number_of_visits=0,
+        #         total_obtained_reward=0.0,
+        #         greatest_obtained_reward=0.0,
+        #         parent=node,
+        #     )
 
         # else, make list of all possible actions
-        new_possible_actions: deque[Action] = deque([])
-        required_token_type = new_program.required_token_type_for_expansion
-        if new_program.complete_action_allowed:
-            new_possible_actions.append(CompleteAction())
-        if required_token_type == TokenType.BOOL_TOKEN:
-            for token in bool_tokens:
-                new_possible_actions.append(ExpandAction(token()))
-        else:
-            for token in trans_tokens:
-                new_possible_actions.append(ExpandAction(ProgramUnit(token())))
-            new_possible_actions.append(ExpandAction(ProgramUnit(IfToken())))
-            new_possible_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=LOOP_LIMIT))))
+        # new_possible_actions: deque[Action] = deque([])
+        # required_token_type = new_program.required_token_type_for_expansion
+        # if new_program.complete_action_allowed:
+        #     new_possible_actions.append(CompleteAction())
+        # if required_token_type == TokenType.BOOL_TOKEN:
+        #     for token in bool_tokens:
+        #         new_possible_actions.append(ExpandAction(token()))
+        # else:
+        #     for token in trans_tokens:
+        #         new_possible_actions.append(ExpandAction(ProgramUnit(token())))
+        #     new_possible_actions.append(ExpandAction(ProgramUnit(IfToken())))
+        #     new_possible_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=LOOP_LIMIT))))
+        # new_possible_succeeding_tokens = deque([])
+        # for token in self.invented_tokens:
+        #     new_possible_succeeding_tokens.append(token)
 
         new_node = SearchTreeNode(
             program=new_program,
-            unexplored_succeeding_actions=new_possible_actions,
-            preceding_action=selected_action,
+            # unexplored_succeeding_actions=new_possible_actions,
+            # preceding_action=selected_action,
+            unexplored_succeeding_tokens=deque(self.invented_tokens),
             number_of_visits=0,
             total_obtained_reward=0.0,
             greatest_obtained_reward=0.0,
@@ -282,7 +302,7 @@ class MCTS(SearchAlgorithm):
 
             # compute reward, which is expected to be between 0 and 1
             reward = 1.0 * (self.max_expected_loss - loss) / self.max_expected_loss
-            assert(reward < 1.001)
+            assert (reward < 1.001)
             return reward
 
         # catch exceptions that are thrown upon interpreting the program
