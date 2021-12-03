@@ -1,1 +1,2 @@
-python3 -m cProfile -s cumtime example.py
+#!/bin/bash
+python3 -m cProfile -s cumtime main.py
