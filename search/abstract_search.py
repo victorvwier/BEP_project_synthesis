@@ -2,9 +2,11 @@ import time
 from statistics import mean
 from typing import List
 
+from common.environment import StringEnvironment
 from common.prorgam import Program
-from common.tokens.abstract_tokens import Token
+from common.tokens.abstract_tokens import Token, InvalidTransition
 from common.experiment import Example
+from common.tokens.control_tokens import LoopIterationLimitReached
 from search.search_result import SearchResult
 
 
@@ -61,11 +63,11 @@ class SearchAlgorithm:
         return self.extend_result(SearchResult(self.best_program, run_time))
 
     @staticmethod
-    def cost_train(exs: list[Example], p: Program):
+    def cost(exs: list[Example], p: Program):
         def ex_cost(ex: Example):
             try:
                 return p.interp(ex.input_environment).distance(ex.output_environment)
-            except:
+            except (InvalidTransition, LoopIterationLimitReached):
                 return float('inf')
 
         return mean([ex_cost(ex) for ex in exs])
