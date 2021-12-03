@@ -78,6 +78,29 @@ class RobotEnvironment(Environment):
         return (self.rx, self.ry, self.bx, self.by, self.holding) \
                == (other.rx, other.ry, other.bx, other.by, other.holding)
 
+    def to_formatted_string(self):
+        char_empty = chr(11034)  # ⬚
+        char_robot = chr(9632)  # ■ robot possibly holding ball
+        char_ball = chr(9675)  # ○
+        char_robot_on_ball = chr(9689)  # ◙ robot not holding ball
+        rows = []
+        for y in range(self.size):
+            row = []
+            for x in range(self.size):
+                char = char_empty
+                if (x, y) == (self.bx, self.by):
+                    char = char_ball
+                if (x, y) == (self.rx, self.ry):
+                    char = char_robot
+                if (x, y) == (self.bx, self.by) == (self.rx, self.ry) and not self.holding:
+                    char = char_robot_on_ball
+                row.append(char)
+            rows.append(" ".join(row))
+        result = "\n".join(rows[::-1])
+        return result
+
+
+
 
 @dataclass(eq=True)
 class StringEnvironment(Environment):
@@ -140,6 +163,16 @@ class StringEnvironment(Environment):
     def __str__(self):
         return "StringEnvironment(Pointer at {pos} in \"{string_array}\")".format(pos=self.pos, string_array=self.to_string())
 
+    def to_formatted_string(self):
+        arrow = ["^" if i == self.pos else " " for i in range(len(self.string_array))]
+        result = self.to_string()
+        if result:
+            result += ("\n" + " " * self.pos + "^" + str(self.pos))
+        else:
+            result = "(empty string)"
+        return result
+
+
 
 @dataclass(eq=True)
 class PixelEnvironment(Environment):
@@ -185,3 +218,20 @@ class PixelEnvironment(Environment):
 
     def distance(self, other: "PixelEnvironment") -> int:
         return self._hamming_distance(self.pixels, other.pixels)
+
+    def to_formatted_string(self):
+        char_empty = chr(11034)  # ⬚
+        char_filled = chr(9632)  # ■
+        char_pointer_empty = chr(9675)  # ○
+        char_pointer_filled = chr(9679)  # ●
+        rows = []
+        for y in range(self.height):
+            row = []
+            for x in range(self.width):
+                char = char_filled if self.pixels[x][y] else char_empty
+                if (self.x, self.y) == (x, y):
+                    char = char_pointer_filled if self.pixels[x][y] else char_pointer_empty
+                row.append(char)
+            rows.append(" ".join(row))
+        result = "\n".join(rows[::-1])
+        return result
