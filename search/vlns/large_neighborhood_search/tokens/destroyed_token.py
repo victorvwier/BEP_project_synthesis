@@ -8,6 +8,9 @@ class DestroyedToken(Token):
         self.destroyed_token = destroyed_token
 
     def apply(self, env: Environment):
+        if self.destroyed_token is None:
+            return env
+
         return self.destroyed_token.apply(env)
 
     def __str__(self):

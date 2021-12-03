@@ -4,7 +4,7 @@ from common.tokens.abstract_tokens import EnvToken, BoolToken
 from common.tokens.control_tokens import If, LoopWhile
 from search.vlns.large_neighborhood_search.repair.repair import Repair
 from search.vlns.large_neighborhood_search.tokens.destroyed_token import DestroyedToken
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SequenceToken, SeqToken
+from search.vlns.large_neighborhood_search.tokens.sequence_token import SequenceToken, SeqToken, EmptySequenceToken
 
 
 class StochasticSequenceRepair(Repair):

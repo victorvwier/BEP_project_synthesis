@@ -2,7 +2,7 @@ from collections import deque
 from typing import Deque
 
 from common.environment import Environment
-from common.tokens.abstract_tokens import EnvToken, Token
+from common.tokens.abstract_tokens import EnvToken, Token, copy
 from common.tokens.control_tokens import If, LoopWhile
 
 
@@ -46,7 +46,7 @@ class SequenceToken(SeqToken):
         if len(seq) == 0:
             return EmptySequenceToken()
 
-        head = seq.popleft()
+        head = copy.copy(seq.popleft())
 
         if isinstance(head, If):
             head.e1 = [SequenceToken.from_list(head.e1)]
