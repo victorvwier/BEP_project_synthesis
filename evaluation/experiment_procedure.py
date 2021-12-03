@@ -18,7 +18,7 @@ import common.tokens.string_tokens as string_tokens
 from search.search_result import SearchResult
 
 MAX_EXECUTION_TIME_IN_SECONDS = 10
-MULTI_PROCESS = True
+MULTI_PROCESS = False
 NO_PROCESSES = os.cpu_count() - 1
 
 def extract_domain_from_environment(environment):
