@@ -198,7 +198,7 @@ class Drop(TransToken):
 
         env.string_array = nstr[0:i] + nstr[i + 1:]
 
-        env.pos = min(len(env.string_array) - 1, env.pos)
+        env.pos = max(min(len(env.string_array) - 1, env.pos), 0)
 
         return env
 
