@@ -11,7 +11,6 @@ from common.tokens.pixel_tokens import *
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 from search.search_result import SearchResult
-from utilities import PTNode
 
 MAX_NUMBER_OF_ITERATIONS = 20
 MAX_TOKEN_FUNCTION_DEPTH = 3
@@ -33,7 +32,7 @@ class AStar(SearchAlgorithm):
         self.loss_function: Callable[[int, int], int] = lambda g, h: g + h
         self.program_generator: Iterator[Program] = self.best_first_search(self.input_envs, self.output_envs, self.tokens, self.loss_function, self._heuristic_min)
         self._best_program = Program([])
-        self._program_tree = PTNode("root")
+        self._expanded_programs: list[Program] = list()
 
     def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
         if p := next(self.program_generator):
@@ -42,7 +41,7 @@ class AStar(SearchAlgorithm):
         return True
 
     def extend_result(self, search_result: SearchResult):
-        print(json.dumps(self._program_tree.get_flame_graph_dict(), indent=2))
+        search_result.dictionary['expanded_programs'] = self._expanded_programs
         return search_result
 
     @staticmethod
@@ -75,7 +74,7 @@ class AStar(SearchAlgorithm):
         while queue:
             total_cost, _, node = heappop(queue)  # total_cost: the estimated cost for the total path
             path_cost, _, _ = reached[node]  # path_cost: the minimal cost so far for a path to this node
-            self._program_tree.add_program(self._find_program(node, reached))
+            self._expanded_programs.append(self._find_program(node, reached))
             if self._correct(node, end_node):
                 break
             else:
