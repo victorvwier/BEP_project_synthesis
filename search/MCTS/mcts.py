@@ -281,26 +281,8 @@ class MCTS(SearchAlgorithm):
             # bool_tokens: set[Type[BoolToken]]
     ) -> float:
 
-        # program: MCTSProgram = copy.deepcopy(node.program)
-
-        # complete the program
-        # while not program.complete:
-        #     if program.complete_action_allowed:
-        #         program.apply_action(CompleteAction())
-        #     elif program.required_token_type_for_expansion == TokenType.BOOL_TOKEN:
-        #         random_bool_token: BoolToken = random.choice(tuple(bool_tokens))()
-        #         program.apply_action(ExpandAction(random_bool_token))
-        #     elif program.required_token_type_for_expansion == TokenType.ENV_TOKEN:
-        #       # TODO see what happens if also IfToken and WhileToken are included in the options for the random choice
-        #         random_env_token: EnvToken = random.choice(tuple(trans_tokens))()
-        #         program.apply_action(ExpandAction(ProgramUnit(random_env_token)))
-        #     else:
-        #        raise Exception("Something went wrong. Program should be complete or required_token_type_for_extension"
-        #                         "should return eiter ENV_TOKEN or BOOL_TOKEN")
-
-        # try interpreting the found program on the provided examples
         try:
-            # loss = MCTS.compute_loss_of_program(program=program, examples=examples)
+            # try interpreting the found program on the provided examples
             resulting_envs = MCTS.get_resulting_envs(
                 program=node.program,
                 input_envs=self.input_envs,
@@ -332,25 +314,11 @@ class MCTS(SearchAlgorithm):
 
     def back_propagate(self, node: SearchTreeNode, reward: float):
 
-        # # if node can not be explored any further, it can just be removed from the tree immidiately
-        # node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
-        # if not node_has_other_extensions:
-        #     MCTS.remove_nodes_with_no_possible_extensions(node)
-        #     return
-
         # else, update all relevant attributes
         node.number_of_visits += 1
         node.total_obtained_reward += reward
-
         if reward > node.greatest_obtained_reward:
             node.greatest_obtained_reward = reward
-
-        parent = node.parent
-        node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
-        if not node_has_other_extensions:
-            # MCTS.remove_nodes_with_no_possible_extensions(node)
-            node.parent = None
-            # return
 
         # recursively do the same for all the ancestors of the current node.
         if node.parent is not None:
