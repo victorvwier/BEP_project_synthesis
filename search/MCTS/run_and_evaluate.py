@@ -48,15 +48,40 @@ def parse_debugging_and_basic_performance_experiments():
     return experiments
 
 
+def parse_single_string_experiment(filename: str):
+    string_experiment = StringParser().parse_all(
+        experiment_name="String experiment: %s" % filename,
+        file_prefix=filename,
+    )
+    return string_experiment
+
+
 if __name__ == "__main__":
 
-    print("Start reading in all experiments...")
-    debug_experiments = parse_debugging_and_basic_performance_experiments()
-    print("Done reading in all experiments!")
+    # # running debug experiments
+    # print("Start reading in all experiments...")
+    # debug_experiments = parse_debugging_and_basic_performance_experiments()
+    # print("Done reading in all experiments!")
+    # write_performances_of_experiments_to_file(
+    #     debug_experiments,
+    #     "evaluation/results/MCTS_with_improved_levenstein_distance.txt",
+    #     search_algorithm=MCTS
+    # )
+
+    # run single string experiment
+    print("Start reading in single string experiment...")
+    string_experiment = parse_single_string_experiment("1-81-1.pl")
+    print("Done reading in string experiment!")
     write_performances_of_experiments_to_file(
-        debug_experiments,
-        "evaluation/results/Brute_debug_results1.txt",
+        [string_experiment],
+        "evaluation/results/MCTS_string_1_81_1_version_1_0_improved_levenstein_distance.txt",
         search_algorithm=MCTS
     )
+
+
+    # print(hash(RobotEnvironment(3, 1, 1, 1, 1, False)))
+    # print(hash(RobotEnvironment(3, 2, 1, 1, 1, False)))
+    # print(hash(RobotEnvironment(3, 1, 1, 1, 1, True)))
+    # print(hash(RobotEnvironment(5, 1, 1, 1, 1, False)))
 
     print("done!")
