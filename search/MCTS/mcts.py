@@ -341,8 +341,16 @@ class MCTS(SearchAlgorithm):
         # else, update all relevant attributes
         node.number_of_visits += 1
         node.total_obtained_reward += reward
+
         if reward > node.greatest_obtained_reward:
             node.greatest_obtained_reward = reward
+
+        parent = node.parent
+        node_has_other_extensions: bool = len(node.children) + len(node.unexplored_succeeding_actions) > 0
+        if not node_has_other_extensions:
+            # MCTS.remove_nodes_with_no_possible_extensions(node)
+            node.parent = None
+            # return
 
         # recursively do the same for all the ancestors of the current node.
         if node.parent is not None:
