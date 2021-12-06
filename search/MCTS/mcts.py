@@ -8,7 +8,7 @@ from common.environment import StringEnvironment, RobotEnvironment, PixelEnviron
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import TransToken, BoolToken, InvalidTransition, InventedToken
-from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached
+from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached, If, LoopWhile
 
 from search.MCTS.datastructures import MCTSProgram, SearchTreeNode
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
@@ -64,8 +64,9 @@ class MCTS(SearchAlgorithm):
         self.max_expected_loss = self.smallest_loss
 
         # compute invented tokens that are composed of several other tokens
-        self.invented_tokens: List[InventedToken] = \
-            invent2(tokenSet=trans_tokens, boolTokenSet=bool_tokens, maxLength=MAX_TOKEN_DEPTH)
+        self.invented_tokens: List[InventedToken] = MCTS.MCTS_invent(trans_tokens=trans_tokens, bool_tokens=bool_tokens)
+            # invent2(tokenSet=trans_tokens, boolTokenSet=bool_tokens, maxLength=MAX_TOKEN_DEPTH)
+
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
@@ -103,6 +104,34 @@ class MCTS(SearchAlgorithm):
 
         # return True to indicate that another iteration is required
         return True
+
+    @staticmethod
+    def MCTS_invent(trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) -> List[InventedToken]:
+        """Returns a list of tokens invented using the given tokens.
+        The invented tokens will be:
+            - just a single token for each given trans_token
+            - an if and while token for each combination of bool_token and trans_token
+            - an if and while token for each combination of bool_token and combo of two different_trans_tokens
+        """
+        invented_tokens: List[InventedToken] = []
+        for token_type in trans_tokens:
+            invented_tokens.append(InventedToken([token_type()]))
+
+        for bool_token in bool_tokens:
+            for trans_token_1 in trans_tokens:
+                for trans_token_2 in trans_tokens:
+                    if trans_token_1 == trans_token_2:
+                        invented_tokens.append(InventedToken([If(bool_token(), [trans_token_1()], [])]))
+                        invented_tokens.append(InventedToken([LoopWhile(bool_token(), [trans_token_1()])]))
+                    else:
+                        invented_tokens.append(InventedToken([
+                            If(bool_token(), [trans_token_1(), trans_token_2()], [])
+                        ]))
+                        invented_tokens.append(InventedToken([
+                            LoopWhile(bool_token(), [trans_token_1(), trans_token_2()])
+                        ]))
+
+        return invented_tokens
 
     @staticmethod
     def get_resulting_envs(program: Program, input_envs: Tuple[Environment]):
