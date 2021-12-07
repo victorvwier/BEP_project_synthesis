@@ -40,6 +40,8 @@ class TokenScore():
         self.score = score
         self.visits = visits
 
+    def __repr__(self):
+        return "TokenScore(score: %s, visits: %s)" % (self.score, self.visits)
 
 class MCTS(SearchAlgorithm):
 
@@ -93,7 +95,7 @@ class MCTS(SearchAlgorithm):
             return False
 
         # TODO implement the following subprocesses
-        (selected_node, program) = MCTS.select(self.search_tree, Program([]))
+        (selected_node, program) = self.select(self.search_tree, Program([]))
         new_node = self.expand(
             node=selected_node,
             program=program,
@@ -196,8 +198,7 @@ class MCTS(SearchAlgorithm):
         if isinstance(env, StringEnvironment):
             return MCTS.compute_loss_of_program(Program([]), examples)
 
-    @staticmethod
-    def compute_urgency(node: SearchTreeNode) -> float:
+    def compute_urgency(self, node: SearchTreeNode) -> float:
         assert (node.number_of_visits > 0)
 
         # both are expected to be between 0 and 1
@@ -206,10 +207,15 @@ class MCTS(SearchAlgorithm):
 
         # TODO see what happens when greatest_reward or a combo is used for exploitation_component
         exploitation_component = average_reward
+        # exploitation_component = average_reward + (1 + self.get_average_token_score(node.chosen_token))
         exploration_component = 2.0 * EXPLORATION_CONSTANT * math.sqrt(
             2 * math.log(node.parent.number_of_visits) / node.number_of_visits)
 
         return exploitation_component + exploration_component
+
+    def get_average_token_score(self, token: InventedToken):
+        token_score = self.token_scores_dict[token]
+        return token_score.score / token_score.visits
 
     @staticmethod
     def remove_nodes_with_no_possible_extensions(current_node: SearchTreeNode):
@@ -241,8 +247,7 @@ class MCTS(SearchAlgorithm):
 
         return
 
-    @staticmethod
-    def select(current_node: SearchTreeNode, current_program) -> Tuple[SearchTreeNode, Program]:
+    def select(self, current_node: SearchTreeNode, current_program) -> Tuple[SearchTreeNode, Program]:
 
         # if current_node has unexplored actions, select current_node
         # if len(current_node.unexplored_succeeding_actions) > 0:
@@ -257,7 +262,7 @@ class MCTS(SearchAlgorithm):
         selected_child_urgency = -1000
 
         for child in children:
-            urgency = MCTS.compute_urgency(child)
+            urgency = self.compute_urgency(child)
             if urgency > selected_child_urgency:
                 selected_child = child
                 selected_child_urgency = urgency
@@ -265,7 +270,7 @@ class MCTS(SearchAlgorithm):
         # Append the current_program with the token belonging to selected_child
         current_program.sequence.append(selected_child.chosen_token)
 
-        return MCTS.select(
+        return self.select(
             current_node=selected_child,
             current_program=current_program,
         )
@@ -331,9 +336,9 @@ class MCTS(SearchAlgorithm):
             parent: SearchTreeNode = node.parent
             token_score = self.token_scores_dict[node.chosen_token]
             if loss < parent.loss:
-                token_score += 1
+                token_score.score += 1
             elif loss > parent.loss:
-                token_score -= 1
+                token_score.score -= 1
             token_score.visits += 1
 
             # check if the current program is beats self._best_program
