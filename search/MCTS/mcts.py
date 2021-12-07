@@ -10,7 +10,7 @@ from common.prorgam import Program
 from common.tokens.abstract_tokens import TransToken, BoolToken, InvalidTransition, InventedToken
 from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached, If, LoopWhile
 
-from search.MCTS.datastructures import MCTSProgram, SearchTreeNode
+from search.MCTS.datastructures import SearchTreeNode
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
     SimilarProgramAlreadyFoundException
 from search.abstract_search import SearchAlgorithm
@@ -18,7 +18,6 @@ from search.abstract_search import SearchAlgorithm
 # TODO do something with max program depth. This should happen throughout all the code.
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
-from search.invent import invent2
 
 LOOP_LIMIT = 100
 EXPLORATION_CONSTANT = 1.0 / math.sqrt(2)
@@ -37,7 +36,7 @@ class MCTS(SearchAlgorithm):
 
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
-        self._best_program: MCTSProgram
+        self._best_program: Program
         self.smallest_loss: float = float("inf")
         self.max_expected_loss: float = float("inf")  # is used for normalizing exploitation factor
         self.search_tree: Union[SearchTreeNode, None] = None
@@ -60,13 +59,10 @@ class MCTS(SearchAlgorithm):
         self.smallest_loss = MCTS.compute_loss(resulting_envs, self.output_envs)
 
         # set the max_expected_loss, which will be used to normalize the exploitation factor in the UCT
-        # self.max_expected_loss = MCTS.compute_max_expected_loss(training_examples)
         self.max_expected_loss = self.smallest_loss
 
         # compute invented tokens that are composed of several other tokens
         self.invented_tokens: List[InventedToken] = MCTS.MCTS_invent(trans_tokens=trans_tokens, bool_tokens=bool_tokens)
-            # invent2(tokenSet=trans_tokens, boolTokenSet=bool_tokens, maxLength=MAX_TOKEN_DEPTH)
-
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
@@ -80,22 +76,19 @@ class MCTS(SearchAlgorithm):
                   bool_tokens: set[Type[BoolToken]]) -> bool:
 
         # return False to indicate no other iterations are necessary
-        if self.smallest_loss <= 0.001:
+        if self.smallest_loss <= 0.0001:
             return False
 
         # TODO implement the following subprocesses
-        selected_node = MCTS.select(self.search_tree)
+        (selected_node, program) = MCTS.select(self.search_tree, Program([]))
         new_node = self.expand(
             node=selected_node,
-            # trans_tokens,
-            # bool_tokens
+            program=program,
         )
         try:
             reward = self.simulate_and_return_reward(
                 node=new_node,
-                # examples=training_example,
-                # trans_tokens=trans_tokens,
-                # bool_tokens=bool_tokens,
+                program=program,
             )
             self.back_propagate(new_node, reward)
         except (InvalidProgramException, SimilarProgramAlreadyFoundException):
@@ -119,11 +112,13 @@ class MCTS(SearchAlgorithm):
 
         for bool_token in bool_tokens:
             for trans_token_1 in trans_tokens:
+                invented_tokens.append(InventedToken([If(bool_token(), [trans_token_1()], [])]))
+                invented_tokens.append(InventedToken([LoopWhile(bool_token(), [trans_token_1()])]))
+
+        for bool_token in bool_tokens:
+            for trans_token_1 in trans_tokens:
                 for trans_token_2 in trans_tokens:
-                    if trans_token_1 == trans_token_2:
-                        invented_tokens.append(InventedToken([If(bool_token(), [trans_token_1()], [])]))
-                        invented_tokens.append(InventedToken([LoopWhile(bool_token(), [trans_token_1()])]))
-                    else:
+                    if trans_token_1 != trans_token_2:
                         invented_tokens.append(InventedToken([
                             If(bool_token(), [trans_token_1(), trans_token_2()], [])
                         ]))
@@ -224,15 +219,15 @@ class MCTS(SearchAlgorithm):
         return
 
     @staticmethod
-    def select(current_node: SearchTreeNode) -> SearchTreeNode:
+    def select(current_node: SearchTreeNode, current_program) -> Tuple[SearchTreeNode, Program]:
 
         # if current_node has unexplored actions, select current_node
         # if len(current_node.unexplored_succeeding_actions) > 0:
         if len(current_node.unexplored_succeeding_tokens) > 0:
-            return current_node
+            return current_node, current_program
 
         # else use tree policy to select child node with greatest urgency
-        children = current_node.children
+        children: List[SearchTreeNode] = current_node.children
 
         assert (len(children) > 0)
         selected_child = None
@@ -244,56 +239,32 @@ class MCTS(SearchAlgorithm):
                 selected_child = child
                 selected_child_urgency = urgency
 
-        return MCTS.select(selected_child)
+        # Append the current_program with the token belonging to selected_child
+        current_program.sequence.append(selected_child.chosen_token)
 
-    # @staticmethod
+        return MCTS.select(
+            current_node=selected_child,
+            current_program=current_program,
+        )
+
     def expand(
             self,
             node: SearchTreeNode,
-            # trans_tokens: set[Type[TransToken]],
-            # bool_tokens: set[Type[BoolToken]]
+            program: Program,
     ) -> SearchTreeNode:
-        """Expands the given node by creating a child node from an unexplored action. This child node is returned"""
+        """Expands the given node by selecting a token and creating a child node. This token is added to the given
+        program. This new child node and appended program are returned."""
 
-        # TODO if making deepcopy is to time intensive, it is also possible to make program while selecting nodes
+        # TODO use a better way to select the unexplored tokens
         selected_token = \
-            node.unexplored_succeeding_tokens.pop()
-        new_program: Program = deepcopy_program(node.program)
-        new_program.sequence.append(selected_token)
+            node.unexplored_succeeding_tokens.popleft()
 
-        # # if the applied action completed the program, there are no possible succeeding actions
-        # if new_program.complete:
-        #     return SearchTreeNode(
-        #         program=new_program,
-        #         unexplored_succeeding_tokens=deque([]),
-        #         # preceding_action=selected_action,
-        #         number_of_visits=0,
-        #         total_obtained_reward=0.0,
-        #         greatest_obtained_reward=0.0,
-        #         parent=node,
-        #     )
-
-        # else, make list of all possible actions
-        # new_possible_actions: deque[Action] = deque([])
-        # required_token_type = new_program.required_token_type_for_expansion
-        # if new_program.complete_action_allowed:
-        #     new_possible_actions.append(CompleteAction())
-        # if required_token_type == TokenType.BOOL_TOKEN:
-        #     for token in bool_tokens:
-        #         new_possible_actions.append(ExpandAction(token()))
-        # else:
-        #     for token in trans_tokens:
-        #         new_possible_actions.append(ExpandAction(ProgramUnit(token())))
-        #     new_possible_actions.append(ExpandAction(ProgramUnit(IfToken())))
-        #     new_possible_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=LOOP_LIMIT))))
-        # new_possible_succeeding_tokens = deque([])
-        # for token in self.invented_tokens:
-        #     new_possible_succeeding_tokens.append(token)
+        # append the given program with the selected
+        program.sequence.append(selected_token)
 
         new_node = SearchTreeNode(
-            program=new_program,
-            # unexplored_succeeding_actions=new_possible_actions,
-            # preceding_action=selected_action,
+            # program=new_program,
+            chosen_token=selected_token,
             unexplored_succeeding_tokens=deque(self.invented_tokens),
             number_of_visits=0,
             total_obtained_reward=0.0,
@@ -305,18 +276,17 @@ class MCTS(SearchAlgorithm):
     def simulate_and_return_reward(
             self,
             node: SearchTreeNode,
-            # examples: List[Example],
-            # trans_tokens: set[Type[TransToken]],
-            # bool_tokens: set[Type[BoolToken]]
+            program: Program,
     ) -> float:
 
         try:
             # try interpreting the found program on the provided examples
             resulting_envs = MCTS.get_resulting_envs(
-                program=node.program,
+                program=program,
                 input_envs=self.input_envs,
             )
 
+            # TODO somehow check which one is shorter and keep that one. E.g. save node AND program length
             # check that the resulting_envs have not been found before and then add them to the dictionary
             if resulting_envs in self.dict_with_obtained_output_environments:
                 raise SimilarProgramAlreadyFoundException("Another program resulting in the exact same output "
@@ -328,7 +298,7 @@ class MCTS(SearchAlgorithm):
             # check if the current program is beats self._best_program
             if loss < self.smallest_loss:
                 # self._best_program = program
-                self._best_program = node.program
+                self._best_program = program
                 self.smallest_loss = loss
 
             # compute reward, which is expected to be between 0 and 1
