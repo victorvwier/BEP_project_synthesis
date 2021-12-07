@@ -60,7 +60,7 @@ class SearchTreeNode(NodeMixin):
         self._greatest_obtained_reward = reward
 
     def __repr__(self):
-        return "SearchTreeNode(Program: %s, visits: %s, height: %s)" \
+        return "SearchTreeNode(Token: %s, visits: %s, height: %s)" \
                % (self.chosen_token, self.number_of_visits, self.height)
 
     @staticmethod

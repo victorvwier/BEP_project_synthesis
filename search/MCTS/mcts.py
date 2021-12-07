@@ -4,6 +4,8 @@ import math
 from collections import deque
 from typing import List, Union, Type, Tuple, Dict
 
+from anytree import RenderTree
+
 from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment, Environment
 from common.experiment import Example
 from common.prorgam import Program
@@ -18,6 +20,7 @@ from search.abstract_search import SearchAlgorithm
 # TODO do something with max program depth. This should happen throughout all the code.
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
+from search.search_result import SearchResult
 
 LOOP_LIMIT = 100
 EXPLORATION_CONSTANT = 1.0 / math.sqrt(2)
@@ -97,6 +100,16 @@ class MCTS(SearchAlgorithm):
 
         # return True to indicate that another iteration is required
         return True
+
+    def extend_result(self, search_result: SearchResult):
+        search_result.dictionary["search_tree"] = self.search_tree
+
+        tree_string = ""
+        for pre, fill, node in RenderTree(self.search_tree):
+            tree_string += "%s%s \n" % (pre, str(node))
+        search_result.dictionary["rendered_tree"] = tree_string
+
+        return search_result
 
     @staticmethod
     def MCTS_invent(trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) -> List[InventedToken]:
