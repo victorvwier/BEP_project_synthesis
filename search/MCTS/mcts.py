@@ -12,9 +12,9 @@ from common.prorgam import Program
 from common.tokens.abstract_tokens import TransToken, BoolToken, InvalidTransition, InventedToken
 from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached, If, LoopWhile
 
-from search.MCTS.datastructures import SearchTreeNode
+from search.MCTS.datastructures import SearchTreeNode, TokenScore
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
-    SimilarProgramAlreadyFoundException
+    SimilarProgramAlreadyFoundException, SelectedTokenHasIntiniteTokenScoreException
 from search.abstract_search import SearchAlgorithm
 
 # TODO do something with max program depth. This should happen throughout all the code.
@@ -35,14 +35,6 @@ def deepcopy_program(program: Program) -> Program:
     )
 
 
-class TokenScore():
-    def __init__(self, score: int = 0, visits: int = 0):
-        self.score = score
-        self.visits = visits
-
-    def __repr__(self):
-        return "TokenScore(score: %s, visits: %s)" % (self.score, self.visits)
-
 class MCTS(SearchAlgorithm):
 
     def __init__(self, time_limit_sec: float):
@@ -51,7 +43,7 @@ class MCTS(SearchAlgorithm):
         self.smallest_loss: float = float("inf")
         self.max_expected_loss: float = float("inf")  # is used for normalizing exploitation factor
         self.search_tree: Union[SearchTreeNode, None] = None
-        self.invented_tokens = List[InventedToken]
+        self.invented_tokens: List[InventedToken] = []
         self.input_envs: Tuple[Environment]
         self.output_envs: Tuple[Environment]
         self.dict_with_obtained_output_environments: Dict[Tuple[Environment], SearchTreeNode] = {}
@@ -94,13 +86,12 @@ class MCTS(SearchAlgorithm):
         if self.smallest_loss <= 0.0001:
             return False
 
-        # TODO implement the following subprocesses
         (selected_node, program) = self.select(self.search_tree, Program([]))
-        new_node = self.expand(
-            node=selected_node,
-            program=program,
-        )
         try:
+            new_node = self.expand(
+                node=selected_node,
+                program=program,
+            )
             reward = self.simulate_and_return_reward(
                 node=new_node,
                 program=program,
@@ -109,6 +100,9 @@ class MCTS(SearchAlgorithm):
         except (InvalidProgramException, SimilarProgramAlreadyFoundException):
             # TODO possibly have different strategy for when a similar program was already found
             MCTS.remove_nodes_with_no_possible_extensions(new_node)
+        except SelectedTokenHasIntiniteTokenScoreException:
+            if not (len(selected_node.children) + len(selected_node.unexplored_succeeding_tokens) > 0):
+                MCTS.remove_nodes_with_no_possible_extensions(selected_node)
 
         # return True to indicate that another iteration is required
         return True
@@ -215,7 +209,7 @@ class MCTS(SearchAlgorithm):
 
     def get_average_token_score(self, token: InventedToken):
         token_score = self.token_scores_dict[token]
-        return token_score.score / token_score.visits
+        return 1.0 * token_score.score / token_score.visits
 
     @staticmethod
     def remove_nodes_with_no_possible_extensions(current_node: SearchTreeNode):
@@ -287,6 +281,36 @@ class MCTS(SearchAlgorithm):
         selected_token = \
             node.unexplored_succeeding_tokens.popleft()
 
+        # check if token still in dictionary
+        if not (selected_token in self.token_scores_dict):
+
+            # try deleting the token from invented_tokens
+            try:
+                self.invented_tokens.remove(selected_token)
+            except ValueError:
+                pass
+
+            raise SelectedTokenHasIntiniteTokenScoreException(
+                "The selected token was deleted from the dictionary since it ha a token score of -inf which indicates "
+                "that it should not be selected, but that it should be deleted instead"
+            )
+
+        if math.isinf(self.token_scores_dict[selected_token].score):
+
+            # try deleting the token from invented_tokens
+            try:
+                self.invented_tokens.remove(selected_token)
+            except ValueError:
+                pass
+
+            # delete token from dictionary
+            del self.token_scores_dict[selected_token]
+
+            raise SelectedTokenHasIntiniteTokenScoreException(
+                "The selected token has a token score of -inf which indicates that it should not be selected, but "
+                "that it should be deleted instead"
+            )
+
         # append the given program with the selected
         program.sequence.append(selected_token)
 
@@ -323,7 +347,6 @@ class MCTS(SearchAlgorithm):
                 # before raising exception, update token_score
                 token_score = self.token_scores_dict[node.chosen_token]
                 token_score.score += -1
-                token_score.visits += 1
 
                 raise SimilarProgramAlreadyFoundException("Another program resulting in the exact same output "
                                                           "environments was already found.")
@@ -338,8 +361,9 @@ class MCTS(SearchAlgorithm):
             if loss < parent.loss:
                 token_score.score += 1
             elif loss > parent.loss:
-                token_score.score -= 1
-            token_score.visits += 1
+                token_score.score += -1
+            else:
+                token_score.score += 0
 
             # check if the current program is beats self._best_program
             if loss < self.smallest_loss:
@@ -359,7 +383,6 @@ class MCTS(SearchAlgorithm):
             # before raising exception, update token_score
             token_score = self.token_scores_dict[node.chosen_token]
             token_score.score += -1
-            token_score.visits += 1
 
             raise InvalidProgramException
 

@@ -1,17 +1,55 @@
+import math
 from collections import deque
-from typing import List, Union
+from typing import Union
 
 from anytree import NodeMixin
 
-from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken, InventedToken
+from common.tokens.abstract_tokens import InventedToken
 
-from common.prorgam import Program
 from search.MCTS.exceptions import InvalidRewardValue
 
 # MAX_PROGRAM_DEPTH = 200
 # MAX_SIMULATION_DEPTH = 3
 # TODO check if loop_limit is given along with functions everywhere where possible
 LOOP_LIMIT = 100
+MAX_TOKEN_TRY = 10
+
+
+class TokenScore:
+    def __init__(self, score: int = 0, visits: int = 0):
+        """Keeps track of score of a token. Score will be set to -inf"""
+        self._score = score
+        self._visits = visits
+
+    @property
+    def visits(self):
+        return self._visits
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, new_score):
+
+        # checks if score was not set to a (negative) infinity earlier.
+        assert(not math.isinf(self.score))
+
+        if self.visits >= (MAX_TOKEN_TRY-1):
+            pass
+
+        # if this is the fifth time the score is updated and it was -1 every time, set score to infinity
+        if new_score == -MAX_TOKEN_TRY and self.visits == (MAX_TOKEN_TRY-1):
+            if self.score == (-self._visits):
+                self._score = float("-inf")
+                self._visits += 1
+                return
+
+        self._score = new_score
+        self._visits += 1
+
+    def __repr__(self):
+        return "TokenScore(score: %s, visits: %s)" % (self.score, self.visits)
 
 
 class SearchTreeNode(NodeMixin):
@@ -67,7 +105,7 @@ class SearchTreeNode(NodeMixin):
 
     @staticmethod
     def initialize_search_tree(
-            env_tokens: deque[EnvToken],
+            env_tokens: deque[InventedToken],
             loss: float,
     ):
 

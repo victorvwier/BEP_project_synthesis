@@ -42,3 +42,9 @@ class InvalidProgramException(Exception):
 
 class SimilarProgramAlreadyFoundException(Exception):
     """Raised when a similar program was found already."""
+    pass
+
+
+class SelectedTokenHasIntiniteTokenScoreException(Exception):
+    """Raised when a token has a token_score of -inf."""
+    pass
