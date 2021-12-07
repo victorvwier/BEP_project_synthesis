@@ -48,3 +48,7 @@ class SimilarProgramAlreadyFoundException(Exception):
 class SelectedTokenHasIntiniteTokenScoreException(Exception):
     """Raised when a token has a token_score of -inf."""
     pass
+
+
+class RootHasNoOptionsException(Exception):
+    pass

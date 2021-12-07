@@ -14,7 +14,7 @@ from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIteratio
 
 from search.MCTS.datastructures import SearchTreeNode, TokenScore
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
-    SimilarProgramAlreadyFoundException, SelectedTokenHasIntiniteTokenScoreException
+    SimilarProgramAlreadyFoundException, SelectedTokenHasIntiniteTokenScoreException, RootHasNoOptionsException
 from search.abstract_search import SearchAlgorithm
 
 # TODO do something with max program depth. This should happen throughout all the code.
@@ -86,8 +86,8 @@ class MCTS(SearchAlgorithm):
         if self.smallest_loss <= 0.0001:
             return False
 
-        (selected_node, program) = self.select(self.search_tree, Program([]))
         try:
+            (selected_node, program) = self.select(self.search_tree, Program([]))
             new_node = self.expand(
                 node=selected_node,
                 program=program,
@@ -103,6 +103,8 @@ class MCTS(SearchAlgorithm):
         except SelectedTokenHasIntiniteTokenScoreException:
             if not (len(selected_node.children) + len(selected_node.unexplored_succeeding_tokens) > 0):
                 MCTS.remove_nodes_with_no_possible_extensions(selected_node)
+        except RootHasNoOptionsException:
+            return False
 
         # return True to indicate that another iteration is required
         return True
@@ -221,12 +223,18 @@ class MCTS(SearchAlgorithm):
         # remove the node from the tree
         current_node.parent = None
 
+        if parent is None:
+            return
+
         parent_has_other_extensions: bool = len(parent.children) + len(parent.unexplored_succeeding_tokens) > 0
 
         # delete ancestors until you find a parent that still has a possibility for exploitation
         while not parent_has_other_extensions:
             current_node = parent
             parent = current_node.parent
+            if parent is None:
+                return
+
             current_node.parent = None
             parent_has_other_extensions = len(parent.children) + len(parent.unexplored_succeeding_tokens) > 0
 
@@ -251,7 +259,11 @@ class MCTS(SearchAlgorithm):
         # else use tree policy to select child node with greatest urgency
         children: List[SearchTreeNode] = current_node.children
 
+        if (len(children) == 0) and current_node.is_root:
+            raise RootHasNoOptionsException("Root has no children or unexplored tokens")
+
         assert (len(children) > 0)
+
         selected_child = None
         selected_child_urgency = -1000
 
