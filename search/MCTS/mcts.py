@@ -35,6 +35,12 @@ def deepcopy_program(program: Program) -> Program:
     )
 
 
+class TokenScore():
+    def __init__(self, score: int = 0, visits: int = 0):
+        self.score = score
+        self.visits = visits
+
+
 class MCTS(SearchAlgorithm):
 
     def __init__(self, time_limit_sec: float):
@@ -47,6 +53,7 @@ class MCTS(SearchAlgorithm):
         self.input_envs: Tuple[Environment]
         self.output_envs: Tuple[Environment]
         self.dict_with_obtained_output_environments: Dict[Tuple[Environment], SearchTreeNode] = {}
+        self.token_scores_dict: Dict[InventedToken, TokenScore] = {}
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
@@ -66,10 +73,13 @@ class MCTS(SearchAlgorithm):
 
         # compute invented tokens that are composed of several other tokens
         self.invented_tokens: List[InventedToken] = MCTS.MCTS_invent(trans_tokens=trans_tokens, bool_tokens=bool_tokens)
+        # add each token to the dictionary with score 0
+        for token in self.invented_tokens:
+            self.token_scores_dict[token] = TokenScore(score=0, visits=0)
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
-            SearchTreeNode.initialize_search_tree(env_tokens=deque(self.invented_tokens))
+            SearchTreeNode.initialize_search_tree(env_tokens=deque(self.invented_tokens), loss=self.smallest_loss)
 
         # initialize a dictionary that keeps track of outcomes of programs
         self.dict_with_obtained_output_environments[resulting_envs] = self.search_tree
@@ -278,6 +288,7 @@ class MCTS(SearchAlgorithm):
         new_node = SearchTreeNode(
             # program=new_program,
             chosen_token=selected_token,
+            loss=1000,      # will be changed in simulation step
             unexplored_succeeding_tokens=deque(self.invented_tokens),
             number_of_visits=0,
             total_obtained_reward=0.0,
@@ -291,7 +302,8 @@ class MCTS(SearchAlgorithm):
             node: SearchTreeNode,
             program: Program,
     ) -> float:
-
+        """Computes the loss and reward for the given program. Also updates the token_score of node.chosen_token based
+        on this computed reward. Returns the reward."""
         try:
             # try interpreting the found program on the provided examples
             resulting_envs = MCTS.get_resulting_envs(
@@ -302,11 +314,27 @@ class MCTS(SearchAlgorithm):
             # TODO somehow check which one is shorter and keep that one. E.g. save node AND program length
             # check that the resulting_envs have not been found before and then add them to the dictionary
             if resulting_envs in self.dict_with_obtained_output_environments:
+
+                # before raising exception, update token_score
+                token_score = self.token_scores_dict[node.chosen_token]
+                token_score.score += -1
+                token_score.visits += 1
+
                 raise SimilarProgramAlreadyFoundException("Another program resulting in the exact same output "
                                                           "environments was already found.")
             self.dict_with_obtained_output_environments[resulting_envs] = node
 
             loss = MCTS.compute_loss(resulting_envs, self.output_envs)
+            node.loss = loss
+
+            # update token_score
+            parent: SearchTreeNode = node.parent
+            token_score = self.token_scores_dict[node.chosen_token]
+            if loss < parent.loss:
+                token_score += 1
+            elif loss > parent.loss:
+                token_score -= 1
+            token_score.visits += 1
 
             # check if the current program is beats self._best_program
             if loss < self.smallest_loss:
@@ -322,6 +350,12 @@ class MCTS(SearchAlgorithm):
         # catch exceptions that are thrown upon interpreting the program
         except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
                 LoopIterationLimitReached):
+
+            # before raising exception, update token_score
+            token_score = self.token_scores_dict[node.chosen_token]
+            token_score.score += -1
+            token_score.visits += 1
+
             raise InvalidProgramException
 
     def back_propagate(self, node: SearchTreeNode, reward: float):

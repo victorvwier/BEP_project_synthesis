@@ -3,7 +3,7 @@ from typing import List, Union
 
 from anytree import NodeMixin
 
-from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken
+from common.tokens.abstract_tokens import TransToken, EnvToken, BoolToken, InventedToken
 
 from common.prorgam import Program
 from search.MCTS.exceptions import InvalidRewardValue
@@ -18,8 +18,9 @@ class SearchTreeNode(NodeMixin):
     def __init__(
             self,
             # program: Program,
-            chosen_token: Union[EnvToken, None],
-            unexplored_succeeding_tokens: deque[EnvToken],
+            chosen_token: Union[InventedToken, None],
+            unexplored_succeeding_tokens: deque[InventedToken],
+            loss: float,
             number_of_visits: int = 0,
             total_obtained_reward: float = 0.0,       # should be between 0 and 1
             greatest_obtained_reward: float = 0.0,    # should be between 0 and 1
@@ -29,6 +30,7 @@ class SearchTreeNode(NodeMixin):
         # self.program = program
         self.chosen_token = chosen_token
         self.unexplored_succeeding_tokens = unexplored_succeeding_tokens
+        self.loss = loss
         self.number_of_visits = number_of_visits
         self._total_obtained_reward = total_obtained_reward
         self._greatest_obtained_reward = greatest_obtained_reward
@@ -66,21 +68,12 @@ class SearchTreeNode(NodeMixin):
     @staticmethod
     def initialize_search_tree(
             env_tokens: deque[EnvToken],
-            # loop_limit: int = LOOP_LIMIT,
+            loss: float,
     ):
-
-        # TODO use a random order of pushing or popping actions. Changes in the whole code would be required
-        # unexplored_actions: deque[Action] = deque([])
-        #
-        # for trans_token in trans_tokens:
-        #     unexplored_actions.append(ExpandAction(ProgramUnit(trans_token())))
-        #
-        # unexplored_actions.append(ExpandAction(ProgramUnit(IfToken())))
-        # unexplored_actions.append(ExpandAction(ProgramUnit(WhileToken(max_number_of_iterations=loop_limit))))
 
         return SearchTreeNode(
             # program=Program([]),
             chosen_token=None,
-            # unexplored_succeeding_actions=unexplored_actions,
             unexplored_succeeding_tokens=env_tokens,
+            loss=loss
         )
