@@ -8,18 +8,13 @@ from common.tokens.abstract_tokens import InventedToken
 
 from search.MCTS.exceptions import InvalidRewardValue
 
-# MAX_PROGRAM_DEPTH = 200
-# MAX_SIMULATION_DEPTH = 3
-# TODO check if loop_limit is given along with functions everywhere where possible
-LOOP_LIMIT = 100
-MAX_TOKEN_TRY = 10
-
 
 class TokenScore:
-    def __init__(self, score: int = 0, visits: int = 0):
+    def __init__(self, score: int, visits: int, max_token_try: int):
         """Keeps track of score of a token. Score will be set to -inf"""
         self._score = score
         self._visits = visits
+        self._max_token_try = max_token_try
 
     @property
     def visits(self):
@@ -35,11 +30,11 @@ class TokenScore:
         # checks if score was not set to a (negative) infinity earlier.
         assert(not math.isinf(self.score))
 
-        if self.visits >= (MAX_TOKEN_TRY-1):
+        if self.visits >= (self._max_token_try-1):
             pass
 
         # if this is the fifth time the score is updated and it was -1 every time, set score to infinity
-        if new_score == -MAX_TOKEN_TRY and self.visits == (MAX_TOKEN_TRY-1):
+        if new_score == -self._max_token_try and self.visits == (self._max_token_try-1):
             if self.score == (-self._visits):
                 self._score = float("-inf")
                 self._visits += 1

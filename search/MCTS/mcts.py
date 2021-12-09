@@ -16,15 +16,10 @@ from search.MCTS.datastructures import SearchTreeNode, TokenScore
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
     SimilarProgramAlreadyFoundException, SelectedTokenHasIntiniteTokenScoreException, RootHasNoOptionsException
 from search.abstract_search import SearchAlgorithm
-
-# TODO do something with max program depth. This should happen throughout all the code.
-# MAX_PROGRAM_DEPTH = 200
-# MAX_SIMULATION_DEPTH = 3
 from search.search_result import SearchResult
 
-LOOP_LIMIT = 100
-EXPLORATION_CONSTANT = 1.0 / math.sqrt(2)
-MAX_TOKEN_DEPTH = 3
+EXPLORATION_CONSTANT = 2.0 / math.sqrt(2)
+MAX_TOKEN_TRY = 8
 
 
 def deepcopy_program(program: Program) -> Program:
@@ -69,7 +64,7 @@ class MCTS(SearchAlgorithm):
         self.invented_tokens: List[InventedToken] = MCTS.MCTS_invent(trans_tokens=trans_tokens, bool_tokens=bool_tokens)
         # add each token to the dictionary with score 0
         for token in self.invented_tokens:
-            self.token_scores_dict[token] = TokenScore(score=0, visits=0)
+            self.token_scores_dict[token] = TokenScore(score=0, visits=0, max_token_try=MAX_TOKEN_TRY)
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
