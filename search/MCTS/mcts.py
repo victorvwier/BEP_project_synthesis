@@ -171,7 +171,12 @@ class MCTS(SearchAlgorithm):
         total_loss = 0.0
         try:
             for result_env, wanted_env in zip(resulting_envs, wanted_envs):
-                loss = result_env.distance(wanted_env)
+                not_correct_punishment: int = 0
+                if result_env.correct(wanted_env):
+                    not_correct_punishment = 0
+                else:
+                    not_correct_punishment = 1
+                loss = result_env.distance(wanted_env) + not_correct_punishment
                 total_loss += loss
         except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
                 LoopIterationLimitReached):
