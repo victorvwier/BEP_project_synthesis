@@ -34,6 +34,21 @@ class InvalidRewardValue(Exception):
     """Raised when the value of reward is greater than 1.001 or a lot smaller than zero"""
     pass
 
+
 class InvalidProgramException(Exception):
     """Raised when the program threw an exception upon interpreting an Environment"""
+    pass
+
+
+class SimilarProgramAlreadyFoundException(Exception):
+    """Raised when a similar program was found already."""
+    pass
+
+
+class SelectedTokenHasIntiniteTokenScoreException(Exception):
+    """Raised when a token has a token_score of -inf."""
+    pass
+
+
+class RootHasNoOptionsException(Exception):
     pass
