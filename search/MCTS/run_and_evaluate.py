@@ -1,8 +1,13 @@
+from typing import List
+
+from anytree import Node, RenderTree
+
+from common.experiment import Experiment
 from evaluation.experiment_procedure import write_performances_of_experiments_to_file
 from example_parser.pixel_parser import PixelParser
 from example_parser.robot_parser import RobotParser
 from example_parser.string_parser import StringParser
-from search.MCTS.mcts import MCTS
+from search.MCTS.mcts import MCTS, MAX_TOKEN_TRY, EXPLORATION_CONSTANT
 from search.brute.brute import Brute
 
 
@@ -17,7 +22,7 @@ def parse_debugging_and_basic_performance_experiments():
                                 "number_of_examples: %s, "
                                 "task_number: %s "
                                 "trial_number: 1" % (number_of_examples, task_number),
-                                file_prefix="%s-%s-1.pl" % (number_of_examples, task_number)
+                file_prefix="%s-%s-1.pl" % (number_of_examples, task_number)
             )
             experiments.append(string_experiment)
 
@@ -48,6 +53,24 @@ def parse_debugging_and_basic_performance_experiments():
     return experiments
 
 
+def parse_experiments_string_fine_tuning() -> List[Experiment]:
+    experiments = []
+
+    for complexity in range(1, 10, 4):  # get experiments with complexity 1, 5 and 9
+        test_cases = []
+        for task in range(100, 126, 1):  # get tasks 100 until 125
+            test_case = StringParser().parse_file("%s-%s-1.pl" % (complexity, task))
+            test_cases.append(test_case)
+        experiment = Experiment(
+            name="String fine tune experiment - Complexity: %s, task: 100-125, trial: 1" % complexity,
+            domain_name="string",
+            test_cases=test_cases
+        )
+        experiments.append(experiment)
+
+    return experiments
+
+
 def parse_single_string_experiment(filename: str):
     string_experiment = StringParser().parse_all(
         experiment_name="String experiment: %s" % filename,
@@ -57,31 +80,50 @@ def parse_single_string_experiment(filename: str):
 
 
 if __name__ == "__main__":
-
     # # running debug experiments
     # print("Start reading in all experiments...")
     # debug_experiments = parse_debugging_and_basic_performance_experiments()
     # print("Done reading in all experiments!")
     # write_performances_of_experiments_to_file(
     #     debug_experiments,
-    #     "evaluation/results/MCTS_with_improved_levenstein_distance.txt",
+    #     "evaluation/results/MCTS_debug_results_v_2_0_execution_time_10_seconds.txt",
     #     search_algorithm=MCTS
     # )
 
-    # run single string experiment
-    print("Start reading in single string experiment...")
-    string_experiment = parse_single_string_experiment("1-81-1.pl")
-    print("Done reading in string experiment!")
+    # # run single string experiment
+    # print("Start reading in single string experiment...")
+    # string_experiment = parse_single_string_experiment("9-81-1.pl")
+    # print("Done reading in string experiment!")
+    # write_performances_of_experiments_to_file(
+    #     [string_experiment],
+    #     "evaluation/results/MCTS_string_9_81_1_version_1_1_improved_levenstein_distance.txt",
+    #     search_algorithm=MCTS
+    # )
+
+    # running string fine tuning experiments
+    print("Start reading in all experiments...")
+    string_experiments = parse_experiments_string_fine_tuning()
+    print("Done reading in all experiments!")
     write_performances_of_experiments_to_file(
-        [string_experiment],
-        "evaluation/results/MCTS_string_1_81_1_version_1_0_improved_levenstein_distance.txt",
+        string_experiments,
+        "evaluation/results/MCTS_string_fine_tuning_18_v_2_0_execution_time_10_seconds___%s__%s.txt"
+        % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
         search_algorithm=MCTS
     )
 
-
-    # print(hash(RobotEnvironment(3, 1, 1, 1, 1, False)))
-    # print(hash(RobotEnvironment(3, 2, 1, 1, 1, False)))
-    # print(hash(RobotEnvironment(3, 1, 1, 1, 1, True)))
-    # print(hash(RobotEnvironment(5, 1, 1, 1, 1, False)))
+    # parent1 = Node("parent1")
+    # parent2 = Node("parent2")
+    # child1 = Node("kim", parent=parent1)
+    # child2 = Node("harm", parent=parent1)
+    # for pre, fill, node in RenderTree(parent1):
+    #     print("%s%s" % (pre, node.name))
+    #
+    # parent2.children = [child1, child2]
+    #
+    # for pre, fill, node in RenderTree(parent2):
+    #     print("%s%s" % (pre, node.name))
+    #
+    # for pre, fill, node in RenderTree(parent1):
+    #     print("%s%s" % (pre, node.name))
 
     print("done!")
