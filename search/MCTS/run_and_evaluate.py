@@ -71,6 +71,24 @@ def parse_experiments_string_fine_tuning() -> List[Experiment]:
     return experiments
 
 
+def parse_experiments_robot_fine_tuning() -> List[Experiment]:
+    experiments = []
+
+    for complexity in range(2, 11, 2):  # get experiments with complexity 2, 4, 6, 8, 10
+        test_cases = []
+        for task in range(5, 10):  # get tasks 5 until 9
+            test_case = RobotParser().parse_file("%s-%s-1.pl" % (complexity, task))
+            test_cases.append(test_case)
+        experiment = Experiment(
+            name="Robot fine tune experiment - Complexity: %s, task: 5-9, trial: 1" % complexity,
+            domain_name="robot",
+            test_cases=test_cases
+        )
+        experiments.append(experiment)
+
+    return experiments
+
+
 def parse_single_string_experiment(filename: str):
     string_experiment = StringParser().parse_all(
         experiment_name="String experiment: %s" % filename,
@@ -100,13 +118,24 @@ if __name__ == "__main__":
     #     search_algorithm=MCTS
     # )
 
+    # # running string fine tuning experiments
+    # print("Start reading in all experiments...")
+    # string_experiments = parse_experiments_string_fine_tuning()
+    # print("Done reading in all experiments!")
+    # write_performances_of_experiments_to_file(
+    #     string_experiments,
+    #     "evaluation/results/MCTS_string_fine_tuning_18_v_2_0_execution_time_10_seconds___%s__%s.txt"
+    #     % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
+    #     search_algorithm=MCTS
+    # )
+
     # running string fine tuning experiments
     print("Start reading in all experiments...")
-    string_experiments = parse_experiments_string_fine_tuning()
+    string_experiments = parse_experiments_robot_fine_tuning()
     print("Done reading in all experiments!")
     write_performances_of_experiments_to_file(
         string_experiments,
-        "evaluation/results/MCTS_string_fine_tuning_18_v_2_0_execution_time_10_seconds___%s__%s.txt"
+        "evaluation/results/MCTS_robot_fine_tuning_6_v_2_0_execution_time_10_seconds___%s__%s.txt"
         % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
         search_algorithm=MCTS
     )
