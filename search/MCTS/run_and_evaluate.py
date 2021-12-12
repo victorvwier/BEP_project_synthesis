@@ -7,7 +7,7 @@ from evaluation.experiment_procedure import write_performances_of_experiments_to
 from example_parser.pixel_parser import PixelParser
 from example_parser.robot_parser import RobotParser
 from example_parser.string_parser import StringParser
-from search.MCTS.mcts import MCTS, MAX_TOKEN_TRY, EXPLORATION_CONSTANT
+from search.MCTS.mcts import MCTS
 from search.brute.brute import Brute
 
 
@@ -89,6 +89,24 @@ def parse_experiments_robot_fine_tuning() -> List[Experiment]:
     return experiments
 
 
+def parse_experiments_pixel_fine_tuning() -> List[Experiment]:
+    experiments = []
+
+    for complexity in range(1, 6):  # get experiments with complexity 1 until 5
+        test_cases = []
+        for task in range(5, 10):  # get tasks 5 until 9
+            test_case = PixelParser().parse_file("%s-%s-2.pl" % (complexity, task))
+            test_cases.append(test_case)
+        experiment = Experiment(
+            name="Pixel fine tune experiment - Complexity: %s, task: 5-9, trial: 2" % complexity,
+            domain_name="pixel",
+            test_cases=test_cases
+        )
+        experiments.append(experiment)
+
+    return experiments
+
+
 def parse_single_string_experiment(filename: str):
     string_experiment = StringParser().parse_all(
         experiment_name="String experiment: %s" % filename,
@@ -98,15 +116,15 @@ def parse_single_string_experiment(filename: str):
 
 
 if __name__ == "__main__":
-    # # running debug experiments
-    # print("Start reading in all experiments...")
-    # debug_experiments = parse_debugging_and_basic_performance_experiments()
-    # print("Done reading in all experiments!")
-    # write_performances_of_experiments_to_file(
-    #     debug_experiments,
-    #     "evaluation/results/MCTS_debug_results_v_2_0_execution_time_10_seconds.txt",
-    #     search_algorithm=MCTS
-    # )
+    # running debug experiments
+    print("Start reading in all experiments...")
+    debug_experiments = parse_debugging_and_basic_performance_experiments()
+    print("Done reading in all experiments!")
+    write_performances_of_experiments_to_file(
+        debug_experiments,
+        "evaluation/results/MCTS_debug_results_final_execution_time_10_seconds.txt",
+        search_algorithm=MCTS
+    )
 
     # # run single string experiment
     # print("Start reading in single string experiment...")
@@ -124,21 +142,32 @@ if __name__ == "__main__":
     # print("Done reading in all experiments!")
     # write_performances_of_experiments_to_file(
     #     string_experiments,
-    #     "evaluation/results/MCTS_string_fine_tuning_18_v_2_0_execution_time_10_seconds___%s__%s.txt"
+    #     "evaluation/results/MCTS_string_fine_tuning_rerun_v_2_0_execution_time_10_seconds___%s__%s.txt"
     #     % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
     #     search_algorithm=MCTS
     # )
 
-    # running string fine tuning experiments
-    print("Start reading in all experiments...")
-    string_experiments = parse_experiments_robot_fine_tuning()
-    print("Done reading in all experiments!")
-    write_performances_of_experiments_to_file(
-        string_experiments,
-        "evaluation/results/MCTS_robot_fine_tuning_6_v_2_0_execution_time_10_seconds___%s__%s.txt"
-        % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
-        search_algorithm=MCTS
-    )
+    # # running robot fine tuning experiments
+    # print("Start reading in all experiments...")
+    # robot_experiments = parse_experiments_robot_fine_tuning()
+    # print("Done reading in all experiments!")
+    # write_performances_of_experiments_to_file(
+    #     robot_experiments,
+    #     "evaluation/results/MCTS_robot_fine_tuning_6_v_2_0_execution_time_10_seconds___%s__%s.txt"
+    #     % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
+    #     search_algorithm=MCTS
+    # )
+
+    # # running string fine tuning experiments
+    # print("Start reading in all experiments...")
+    # pixel_experiments = parse_experiments_pixel_fine_tuning()
+    # print("Done reading in all experiments!")
+    # write_performances_of_experiments_to_file(
+    #     pixel_experiments,
+    #     "evaluation/results/MCTS_pixel_fine_tuning_15_v_2_0_execution_time_10_seconds___%s__%s.txt"
+    #     % (MAX_TOKEN_TRY, round(EXPLORATION_CONSTANT, 2)),
+    #     search_algorithm=MCTS
+    # )
 
     # parent1 = Node("parent1")
     # parent2 = Node("parent2")

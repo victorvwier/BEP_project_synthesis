@@ -18,8 +18,7 @@ from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, Inval
 from search.abstract_search import SearchAlgorithm
 from search.search_result import SearchResult
 
-EXPLORATION_CONSTANT = 2.0 / math.sqrt(2)
-MAX_TOKEN_TRY = 8
+
 
 
 def deepcopy_program(program: Program) -> Program:
@@ -43,6 +42,8 @@ class MCTS(SearchAlgorithm):
         self.output_envs: Tuple[Environment]
         self.dict_with_obtained_output_environments: Dict[Tuple[Environment], SearchTreeNode] = {}
         self.token_scores_dict: Dict[InventedToken, TokenScore] = {}
+        self.EXPLORATION_CONSTANT: float = 1.0 / math.sqrt(2)
+        self.MAX_TOKEN_TRY: int = float("inf")
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
@@ -51,6 +52,8 @@ class MCTS(SearchAlgorithm):
         # retrieve input and output environments
         self.input_envs: Tuple[Environment] = tuple(example.input_environment for example in training_examples)
         self.output_envs: Tuple[Environment] = tuple(example.output_environment for example in training_examples)
+
+        self.set_constants_based_on_domain()
 
         # set the best program to be an empty token list and calculate the associated loss
         self._best_program = Program([])
@@ -64,7 +67,7 @@ class MCTS(SearchAlgorithm):
         self.invented_tokens: List[InventedToken] = MCTS.MCTS_invent(trans_tokens=trans_tokens, bool_tokens=bool_tokens)
         # add each token to the dictionary with score 0
         for token in self.invented_tokens:
-            self.token_scores_dict[token] = TokenScore(score=0, visits=0, max_token_try=MAX_TOKEN_TRY)
+            self.token_scores_dict[token] = TokenScore(score=0, visits=0, max_token_try=self.MAX_TOKEN_TRY)
 
         # initialize the root of the search tree
         self.search_tree: SearchTreeNode = \
@@ -103,6 +106,18 @@ class MCTS(SearchAlgorithm):
 
         # return True to indicate that another iteration is required
         return True
+
+    def set_constants_based_on_domain(self):
+        env = self.input_envs[0]
+        if isinstance(env, RobotEnvironment):
+            self.EXPLORATION_CONSTANT = 0.0 / math.sqrt(2)
+            self.MAX_TOKEN_TRY = float("inf")
+        elif isinstance(env, StringEnvironment):
+            self.EXPLORATION_CONSTANT = 2.0 / math.sqrt(2)
+            self.MAX_TOKEN_TRY = 7
+        elif isinstance(env, PixelEnvironment):
+            self.EXPLORATION_CONSTANT = 0.25 / math.sqrt(2)
+            self.MAX_TOKEN_TRY = 11
 
     def extend_result(self, search_result: SearchResult):
         search_result.dictionary["search_tree"] = self.search_tree
@@ -204,7 +219,7 @@ class MCTS(SearchAlgorithm):
         # TODO see what happens when greatest_reward or a combo is used for exploitation_component
         exploitation_component = average_reward
         # exploitation_component = average_reward + (1 + self.get_average_token_score(node.chosen_token))
-        exploration_component = 2.0 * EXPLORATION_CONSTANT * math.sqrt(
+        exploration_component = 2.0 * self.EXPLORATION_CONSTANT * math.sqrt(
             2 * math.log(node.parent.number_of_visits) / node.number_of_visits)
 
         return exploitation_component + exploration_component
