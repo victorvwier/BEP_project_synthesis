@@ -44,6 +44,7 @@ class MCTS(SearchAlgorithm):
         self.token_scores_dict: Dict[InventedToken, TokenScore] = {}
         self.EXPLORATION_CONSTANT: float = 1.0 / math.sqrt(2)
         self.MAX_TOKEN_TRY: int = float("inf")
+        self.number_of_evaluated_programs: int = 0
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
@@ -59,6 +60,7 @@ class MCTS(SearchAlgorithm):
         self._best_program = Program([])
         resulting_envs = MCTS.get_resulting_envs(program=self._best_program, input_envs=self.input_envs)
         self.smallest_loss = MCTS.compute_loss(resulting_envs, self.output_envs)
+        self.number_of_evaluated_programs += 1
 
         # set the max_expected_loss, which will be used to normalize the exploitation factor in the UCT
         self.max_expected_loss = self.smallest_loss
@@ -120,11 +122,11 @@ class MCTS(SearchAlgorithm):
             self.MAX_TOKEN_TRY = 11
 
     def extend_result(self, search_result: SearchResult):
-        search_result.dictionary["search_tree"] = self.search_tree
 
-        tree_string = ""
-        for pre, fill, node in RenderTree(self.search_tree):
-            tree_string += "%s%s \n" % (pre, str(node))
+        search_result.dictionary["number_of_evaluated_programs"] = self.number_of_evaluated_programs
+        search_result.dictionary["invented_tokens"] = self.invented_tokens
+
+        tree_string = str(RenderTree(self.search_tree))
         search_result.dictionary["rendered_tree"] = tree_string
 
         return search_result
@@ -361,6 +363,8 @@ class MCTS(SearchAlgorithm):
         """Computes the loss and reward for the given program. Also updates the token_score of node.chosen_token based
         on this computed reward. Returns the reward."""
         try:
+            self.number_of_evaluated_programs += 1
+
             # try interpreting the found program on the provided examples
             resulting_envs = MCTS.get_resulting_envs(
                 program=program,

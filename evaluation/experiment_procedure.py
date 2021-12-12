@@ -63,7 +63,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w+") as file:
+    with open(path, "w+", encoding="utf-8") as file:
 
         file.writelines(["Program: " + str(program.sequence) + "\n \n"])
 
@@ -101,9 +101,12 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
         # file = open(test_case.path_to_result_file, "a+")
         file.writelines([
-            "succes_percentage: " + str(success_percentage) + "\n",
-            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
+            "success_percentage: " + str(success_percentage) + "\n",
+            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n\n"
         ])
+
+        for key in search_result.dictionary:
+            file.writelines(["%s:%s \n" % (key, search_result.dictionary[key])])
 
     return success_percentage, execution_time_in_seconds
 

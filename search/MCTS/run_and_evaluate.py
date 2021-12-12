@@ -116,25 +116,25 @@ def parse_single_string_experiment(filename: str):
 
 
 if __name__ == "__main__":
-    # running debug experiments
-    print("Start reading in all experiments...")
-    debug_experiments = parse_debugging_and_basic_performance_experiments()
-    print("Done reading in all experiments!")
-    write_performances_of_experiments_to_file(
-        debug_experiments,
-        "evaluation/results/MCTS_debug_results_final_execution_time_10_seconds.txt",
-        search_algorithm=MCTS
-    )
-
-    # # run single string experiment
-    # print("Start reading in single string experiment...")
-    # string_experiment = parse_single_string_experiment("9-81-1.pl")
-    # print("Done reading in string experiment!")
+    # # running debug experiments
+    # print("Start reading in all experiments...")
+    # debug_experiments = parse_debugging_and_basic_performance_experiments()
+    # print("Done reading in all experiments!")
     # write_performances_of_experiments_to_file(
-    #     [string_experiment],
-    #     "evaluation/results/MCTS_string_9_81_1_version_1_1_improved_levenstein_distance.txt",
+    #     debug_experiments,
+    #     "evaluation/results/MCTS_debug_results_final_execution_time_10_seconds.txt",
     #     search_algorithm=MCTS
     # )
+
+    # # run single string experiment
+    print("Start reading in single string experiment...")
+    string_experiment = parse_single_string_experiment("9-81-1.pl")
+    print("Done reading in string experiment!")
+    write_performances_of_experiments_to_file(
+        [string_experiment],
+        "evaluation/results/MCTS_string_9_81_1_version_1_1_improved_levenstein_distance.txt",
+        search_algorithm=MCTS
+    )
 
     # # running string fine tuning experiments
     # print("Start reading in all experiments...")
