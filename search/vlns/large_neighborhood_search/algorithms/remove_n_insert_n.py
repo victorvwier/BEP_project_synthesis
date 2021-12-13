@@ -13,9 +13,9 @@ from search.vlns.large_neighborhood_search.repair.insert_n_repair2 import Insert
 
 class RemoveNInsertN(LNS):
 
-    def __init__(self):
+    def __init__(self, time_limit=10):
         super().__init__(
-            time_limit=10,
+            time_limit=time_limit,
             accept=StochasticAccept(initial_temperature=0.1, cooling_factor=0.9997),
             #accept=DeterministicAccept(),
             #destroy=ExtractNDestroy(p_extract=0.2, n_options=[0, 1, 2], n_weights=[1, 1, 1]),

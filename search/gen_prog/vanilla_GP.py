@@ -4,7 +4,7 @@ import random, itertools, heapq
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import InvalidTransition, Token
-from common.tokens.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
+from common.tokens.control_tokens import LoopIterationLimitReached
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
@@ -63,7 +63,7 @@ class VanillaGP(SearchAlgorithm):
 			if (solved):
 				return (cum_loss, 0, program)
 			return (cum_loss, 1, program)
-		except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
+		except (InvalidTransition, LoopIterationLimitReached) as e:
 			return (float("inf"), 1, program)
 
 	def gen_fitness(self):
@@ -138,7 +138,7 @@ class VanillaGP(SearchAlgorithm):
 		mutated_seq = []
 		for function in program_seq:
 			if(draw_from([True, False])):
-				new_random_function = choice(self.token_functions)
+				new_random_function = random.choice(self.token_functions)
 				mutated_seq.append(new_random_function)
 			else:
 				mutated_seq.append(function)
@@ -179,7 +179,7 @@ class VanillaGP(SearchAlgorithm):
 		super().__init__(time_limit_sec)
 
 	def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
-		self.token_functions = invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH) + [token() for token in list(trans_tokens)]
+		self.token_functions = invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH) + [token for token in list(trans_tokens)]
 		self.examples = training_examples
 
 		# Set the overall best results to the performance of the initial (empty) best program Program([])
@@ -210,7 +210,7 @@ class VanillaGP(SearchAlgorithm):
 			self._best_program = current_best_program
 
 		if (self.best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
-			print(self.current_gen_num)
+			#print(self.current_gen_num)
 			return False
 
 		self.breed_generation()
