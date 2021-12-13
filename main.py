@@ -13,11 +13,11 @@ from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import R
 if __name__ == "__main__":
     searchAlgos : List[Type[SearchAlgorithm]] = [
         [MetropolisHasting, "metro"],
-        [Brute, "brute"],
-        [MCTS, "mcts"],
-        [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"],
-        [AStar, "Astar"]
+        # [Brute, "brute"],
+        # [MCTS, "mcts"],
+        # [VanillaGP, "gp"],
+        # [RemoveNInsertN, "VLNS"],
+        # [AStar, "Astar"]
     ]
 
 
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     for alg in searchAlgos:
         result = BatchRun(
         # Task domain
-        domain="robot",
+        domain="string",
 
         # Iterables for files name. Use [] to use all values.
         # This runs all files adhering to format "2-*-[0 -> 10]"
