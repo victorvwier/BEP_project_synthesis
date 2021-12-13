@@ -40,10 +40,11 @@ class PixelParser(Parser):
         # retries the actual array and split by ','
         arr = entry.split("[")[1].split("]")[0].split(",")
         (width, height) = (e[2], e[3])
-        pixels = [[False for _ in range(height)] for _ in range(width)]
-        for i, entry in enumerate(arr):
-            (y, x) = divmod(i, width)
-            pixels[x][y] = bool(int(entry))
+        pixels = tuple([bool(int(e)) for e in arr])
+        # pixels = [[False for _ in range(height)] for _ in range(width)]
+        # for i, entry in enumerate(arr):
+        #     (y, x) = divmod(i, width)
+        #     pixels[x][y] = bool(int(entry))
 
         return PixelEnvironment(
             x=e[0]-1, y=e[1]-1,

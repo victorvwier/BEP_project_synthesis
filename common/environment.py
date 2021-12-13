@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, get_type_hints
 import copy
+import re
 
 @dataclass(eq=True, unsafe_hash=True)
 class Environment:
@@ -54,25 +55,30 @@ class RobotEnvironment(Environment):
                (self.rx, self.ry, self.bx, self.by, self.holding)
 
     def distance(self, other: "RobotEnvironment") -> int:
-        assert self.size == other.size
+        return abs(self.bx - other.bx) + abs(self.by - other.by)\
+        + abs(self.rx - other.rx) + abs(self.ry - other.ry)\
+        + abs(int(self.holding) - int(other.holding))
 
-        def d(xy1: 'tuple[int, int]', xy2: 'tuple[int, int]'):
-            return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
-
-        # position robot and position ball
-        pr = (self.rx, self.ry)
-        pb = (self.bx, self.by)
-
-        # position goal robot and position goal bal
-        pgr = (other.rx, other.ry)
-        pgb = (other.bx, other.by)
-
-        if pr != pb and pb != pgb:
-            return d(pr, pb) + d(pb, pgb) + d(pgb, pgr) + 2
-        elif pr == pb and pb != pgb:
-            return d(pr, pgb) + d(pgb, pgr) + 1
-        else:
-            return d(pr, pgr)
+    # def distance(self, other: "RobotEnvironment") -> int:
+    #     assert self.size == other.size
+    #
+    #     def d(xy1: 'tuple[int, int]', xy2: 'tuple[int, int]'):
+    #         return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+    #
+    #     # position robot and position ball
+    #     pr = (self.rx, self.ry)
+    #     pb = (self.bx, self.by)
+    #
+    #     # position goal robot and position goal bal
+    #     pgr = (other.rx, other.ry)
+    #     pgb = (other.bx, other.by)
+    #
+    #     if pr != pb and pb != pgb:
+    #         return d(pr, pb) + d(pb, pgb) + d(pgb, pgr) + 2
+    #     elif pr == pb and pb != pgb:
+    #         return d(pr, pgb) + d(pgb, pgr) + 1
+    #     else:
+    #         return d(pr, pgr)
 
     def correct(self, other: "RobotEnvironment") -> bool:
         return (self.rx, self.ry, self.bx, self.by, self.holding) \
@@ -128,7 +134,13 @@ class StringEnvironment(Environment):
 
     def __hash__(self):
         return hash((self.to_string(), self.pos))
-    
+
+    @staticmethod
+    def parse(string_encoding: str) -> 'StringEnvironment':
+        regex = r'StringEnvironment\(Pointer at (?P<pos>.*) in "(?P<string>.*)"\)'
+        args = re.search(regex, string_encoding).groupdict()
+        return StringEnvironment(args['string'], int(args['pos']))
+
     @staticmethod
     def _levenshtein(str1, str2):
         m = len(str1)
@@ -146,8 +158,36 @@ class StringEnvironment(Environment):
                                 d[i - 1][j - 1] + substitutionCost))
         return d[-1][-1]
 
-    def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
+    @staticmethod
+    def _alignment(x, y):
+        m = len(x)
+        n = len(y)
+        mem = [float('inf')] * (m + 1)
+        for i in range(m + 1):
+            mem[i] = [float('inf')] * (n + 1)
+        for i in range(m + 1):
+            mem[i][0] = i * 1
+        for j in range(1, n + 1):
+            mem[0][j] = float('inf')
+        for j in range(1, n + 1):
+            for i in range(1, m + 1):
+                cases = []
+                if x[i-1] == y[j-1]:
+                    cases.append(mem[i-1][j-1])
+                elif x[i-1].lower() == y[j-1].lower():
+                    cases.append(1 + mem[i-1][j-1])
+                cases.append(1 + mem[i-1][j])
+                cases.append(float('inf'))
+                mem[i][j] = min(cases)
+        return mem[m][n]
+
+    def distance(self, other: "StringEnvironment") -> float:
+        str1 = "".join(self.string_array)
+        str2 = "".join(other.string_array)
+        dist = self._alignment(str1, str2)
+        # if self.pos >= len(str2) or (-1 < self.pos < len(str1) and str1[self.pos] != str2[self.pos]):
+        #     dist -= 0.5
+        return dist
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
@@ -166,13 +206,14 @@ class StringEnvironment(Environment):
 
 
 
-@dataclass(eq=True)
+@dataclass(eq=True, unsafe_hash=True)
 class PixelEnvironment(Environment):
     width: int
     height: int
     x: int
     y: int
-    pixels: list[list[bool]]
+    # pixels: list[list[bool]]
+    pixels: tuple[bool]
 
     def __init__(self, width, height, x, y, pixels=None):
         super().__init__()
@@ -181,10 +222,9 @@ class PixelEnvironment(Environment):
         self.height = height
         self.x = x
         self.y = y
-        self.pixels = pixels
-        if not pixels:
-            self.pixels = [[False for _ in range(height)] for _ in range(width)]
-
+        self.pixels = pixels or tuple(False for _ in range(width * height))
+        # if not pixels:
+        #     self.pixels = [[False for _ in range(height)] for _ in range(width)]
         assert 0 <= x < width
         assert 0 <= y < height
 
@@ -192,24 +232,26 @@ class PixelEnvironment(Environment):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
 
     def __deepcopy__(self, memdict={}):
-        return PixelEnvironment(self.width, self.height, self.x, self.y, list(map(list, self.pixels)))
+        return PixelEnvironment(self.width, self.height, self.x, self.y, self.pixels)
+        # return PixelEnvironment(self.width, self.height, self.x, self.y, list(map(list, self.pixels)))
 
-    def __hash__(self):
-        return hash((tuple(tuple(x) for x in self.pixels), self.width, self.height, self.x, self.y))
+    @staticmethod
+    def _hamming_distance(tup1: tuple, tup2: tuple):
+        assert len(tup1) == len(tup2)
+        return sum([e1 != e2 for (e1, e2) in zip(tup1, tup2)])
 
-    def _hamming_distance(self, matrix1: List[List[bool]], matrix2: List[List[bool]]) -> int:
-        assert len(matrix1) == len(matrix2)
-        assert len(matrix1[0]) == len(matrix2[0])
-        element_list1 = [e for row in matrix1 for e in row]
-        element_list2 = [e for row in matrix2 for e in row]
-        diff = [abs(int(e1) - int(e2)) for (e1, e2) in zip(element_list1, element_list2)]
-        return sum(diff)
+    def distance_mod(self, other: "PixelEnvironment") -> int:
+        dist = self._hamming_distance(self.pixels, other.pixels)
+        if self.pixels[self.width*self.y+self.x] != other.pixels[other.width*other.y+other.x]:
+            dist -= 0.5
+        return dist
 
     def correct(self, other: "PixelEnvironment") -> bool:
-        return self._hamming_distance(self.pixels, other.pixels) == 0
+        return self.pixels == other.pixels
 
     def distance(self, other: "PixelEnvironment") -> int:
-        return self._hamming_distance(self.pixels, other.pixels)
+        # return self._hamming_distance(self.pixels, other.pixels)
+        return self.distance_mod(other)
 
     def to_formatted_string(self):
         char_empty = chr(11034)  # ⬚
@@ -220,10 +262,13 @@ class PixelEnvironment(Environment):
         for y in range(self.height):
             row = []
             for x in range(self.width):
-                char = char_filled if self.pixels[x][y] else char_empty
+                pos = self.width * y + x
+                char = char_filled if self.pixels[pos] else char_empty
                 if (self.x, self.y) == (x, y):
-                    char = char_pointer_filled if self.pixels[x][y] else char_pointer_empty
+                    char = char_pointer_filled if self.pixels[pos] else char_pointer_empty
                 row.append(char)
             rows.append(" ".join(row))
-        result = "\n".join(rows[::-1])
+        result = "\n".join(rows)
         return result
+
+

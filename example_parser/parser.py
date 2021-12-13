@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 from common.experiment import *
@@ -25,15 +26,33 @@ class Parser:
         file.close()
         return data
 
-    def parse_all(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "") -> Experiment:
+    def parse_random(self, experiment_name: str = "unnamed_experiment", amount: int = 10, seed=None) -> Experiment:
+        files = self.file_names
+        if seed:
+            random.seed()
+        files = random.choices(files, k=amount)
+        files = sorted(files, key=lambda x: tuple(x.split("-")))
+        return Experiment(
+            experiment_name,
+            self.domain_name,
+            list(map(self.parse_file, files)),
+        )
+
+    def parse_all(self, experiment_name: str = "unnamed_experiment", file_prefix: str = "", regex: str = "") -> Experiment:
         """Parses all files with a given prefix. If none is given, parses all files."""
         files = self.file_names
 
-        if file_prefix != "":
+        if file_prefix:
             files = list(filter(lambda x: x.startswith(file_prefix), self.file_names))
+
+        elif regex:
+            import re
+            files = list(filter(lambda x: re.search(regex, x), self.file_names))
 
         if len(files) == 0:
             raise Exception("No files were found with prefix \"{}\" at path \"{}\".".format(file_prefix, self.path))
+
+        files = sorted(files, key=lambda x: tuple(x.split("-")))
 
         return Experiment(
             experiment_name,
