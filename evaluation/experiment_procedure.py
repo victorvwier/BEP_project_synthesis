@@ -1,5 +1,7 @@
 import time
+import os
 from pathlib import Path
+from multiprocessing import Pool
 
 from typing import Type
 from common.prorgam import *
@@ -13,11 +15,11 @@ from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 
 import common.tokens.string_tokens as string_tokens
+from search.search_result import SearchResult
 
-
-# MAX_TOKEN_FUNCTION_DEPTH = 3
-# MAX_NUMBER_OF_ITERATIONS = 30
-# MAX_EXECUTION_TIME_IN_SECONDS = 30
+MAX_EXECUTION_TIME_IN_SECONDS = 10
+MULTI_PROCESS = False
+NO_PROCESSES = os.cpu_count() - 1
 
 def extract_domain_from_environment(environment):
     domain_name = "unknown"
@@ -50,11 +52,12 @@ def extract_trans_tokens_from_domain_name(domain_name):
 
 # a single case exists of several examples which should be solved by one single program
 def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens,
-                                                   searchAlgorithm: Type[SearchAlgorithm]):
+                                                   search_algorithm: Type[SearchAlgorithm]):
     start_time = time.time()
 
     # # find program that satisfies training_examples
-    program = searchAlgorithm.search(test_case, trans_tokens, bool_tokens)
+    search_result: SearchResult = search_algorithm(MAX_EXECUTION_TIME_IN_SECONDS).run(test_case.training_examples, trans_tokens, bool_tokens)
+    program: Program = search_result.dictionary["program"]
 
     finish_time = time.time()
 
@@ -117,11 +120,21 @@ def test_performance_single_experiment(experiment: Experiment, search: Type[Sear
     bool_tokens = extract_bool_tokens_from_domain_name(experiment.domain_name)
     trans_tokens = extract_trans_tokens_from_domain_name(experiment.domain_name)
 
-    for test_case in test_cases:
-        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case,
-                                                                                                       trans_tokens,
-                                                                                                       bool_tokens,
-                                                                                                       search)
+    results = []
+    if MULTI_PROCESS:
+        with Pool(processes=NO_PROCESSES) as pool:
+            for tc in test_cases:
+                result = pool.apply_async(test_performance_single_case_and_write_to_file, (tc, trans_tokens, bool_tokens, search))
+                results.append(result)
+
+            results = [r.get() for r in results]
+    else:
+        for tc in test_cases:
+            result = test_performance_single_case_and_write_to_file(tc, trans_tokens, bool_tokens, search)
+            results.append(result)
+
+    for result in results:
+        success_percentage, execution_time_in_seconds = result
         sum_of_success_percentages += success_percentage
         sum_of_execution_times_in_seconds += execution_time_in_seconds
         if success_percentage == 100.0:
@@ -129,10 +142,11 @@ def test_performance_single_experiment(experiment: Experiment, search: Type[Sear
 
     average_success_percentage = sum_of_success_percentages / len(test_cases)
     average_execution_time = sum_of_execution_times_in_seconds / len(test_cases)
-    percentage_of_completely_successful_programs = number_of_completely_successful_programs / len(test_cases)
+    percentage_of_completely_successful_programs = number_of_completely_successful_programs / len(test_cases) * 100
 
     return average_success_percentage, average_execution_time, percentage_of_completely_successful_programs
 
+    #
 
 def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str, search_algorithm: SearchAlgorithm):
     lines_to_write = []
