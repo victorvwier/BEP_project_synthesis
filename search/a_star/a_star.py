@@ -72,20 +72,36 @@ class UniquePriorityQueue:
 
 class AStar(SearchAlgorithm):
 
+    def __init__(self, time_limit_sec: float, weight: int = False):
+        super().__init__(time_limit_sec)
+        if weight is False:
+            weight = 0.5
+        assert 0 <= weight <= 1
+        self.loss_function = lambda g, h: weight * g + (1-weight) * h
+        self.weight = weight
+        self.heuristic = self._heuristic_mean
+
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
-        self.loss_function: Callable[[int, int], int] = lambda g, h: g + h
-        self.program_generator: Iterator[Union[Program, None]] = self.best_first_search_upq(
-            self.input_envs, self.output_envs, self.tokens, self.loss_function, self._heuristic_min)
         self._expanded_programs: list[Program] = list()
+        self._hcosts: list[float] = list()
+        self._gcosts: list[float] = list()
+        self._iteration_count: int = 0
+        self._solution_found = False
+        self._best_program_length = False
+        self._best_program_hcost = False
+        self.program_generator: Iterator[Union[Program, None]] = self.best_first_search_upq(
+            self.input_envs, self.output_envs, self.tokens, self.loss_function, self.heuristic)
 
     def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
+        self._iteration_count += 1
         try:
             if p := next(self.program_generator):
                 # a solution was found: record solution and stop iterating
                 self._best_program = p
+                self._solution_found = True
                 return False
             # no solution found yet: continue iterating
             return True
@@ -93,9 +109,18 @@ class AStar(SearchAlgorithm):
             # nothing left to explore: stop iterating (will never happen)
             return False
 
-
     def extend_result(self, search_result: SearchResult):
-        search_result.dictionary['expanded_programs'] = self._expanded_programs
+        search_result.dictionary['iteration_count'] = self._iteration_count
+        search_result.dictionary['solution_found'] = self._solution_found
+        # search_result.dictionary['expanded_programs'] = self._expanded_programs
+        # if self._solution_found:
+        #     G = PGraph()
+        #     for i, p in enumerate(self._expanded_programs):
+        #         G.add_program(p, gcost=self._gcosts[i], hcost=self._hcosts[i])
+        #     if self._solution_found:
+        #         G.add_program(self._best_program, solution=True,
+        #                       gcost=self._best_program.number_of_tokens(control_cost=1), hcost=self._best_program_hcost)
+        #     search_result.dictionary['graph'] = nx.node_link_data(G)
         return search_result
 
     @staticmethod
@@ -103,12 +128,18 @@ class AStar(SearchAlgorithm):
         return all(map(lambda tup: tup[0].correct(tup[1]), zip(from_states, to_states)))
 
     @staticmethod
-    def _heuristic(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
+    def _heuristic_mean(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
         return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states))) / len(from_states)
 
     @staticmethod
     def _heuristic_min(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
         return min(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+
+    @staticmethod
+    def _heuristic_sum(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
+        return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+
+
 
     @staticmethod
     def _find_program(node, reached):
@@ -121,26 +152,29 @@ class AStar(SearchAlgorithm):
 
     def best_first_search_upq(self, start_node: tuple[Environment], end_node: tuple[Environment],
                               tokens: list[Token], f, h) -> Iterator[Program]:
-        if self._correct(start_node, end_node):
-            yield Program([])
         reached = {start_node: (0, False, False)}  # for each reached node: (path_cost, previous_node, token_used)
         queue = UniquePriorityQueue()
         gcost = 0
         hcost = h(start_node, end_node)
         fcost = f(gcost, hcost)
         queue.insert(start_node, fcost)
-        node = None
         while queue:
             node, fcost = queue.pop()
             gcost, _, _ = reached[node]
-            # self._expanded_programs.append(self._find_program(node, reached))
-            solution = None
+            if self._correct(node, end_node):
+                program = self._find_program(node, reached)
+                self._best_program_hcost = h(node, end_node)
+                yield program
+            else:
+                yield None
+            hcost = h(node, end_node)
+            self._expanded_programs.append(self._find_program(node, reached))
+            self._gcosts.append(gcost)
+            self._hcosts.append(hcost)
             node_copies = [copy.deepcopy(node) for _ in tokens]
             for token, node_copy in zip(tokens, node_copies):
                 try:
                     child = tuple(map(token.apply, node_copy))
-                    if solution is None and self._correct(child, end_node):
-                        solution = child  # check early if we've found a solution
                     gcost_child = gcost + token.number_of_tokens()
                     # if child was not yet expanded or our new gcost is the smallest up until now
                     if child not in reached or gcost_child < reached[child][0]:
@@ -150,8 +184,4 @@ class AStar(SearchAlgorithm):
                         queue.insert(child, fcost_child)
                 except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached):
                     pass
-            if solution:
-                yield self._find_program(solution, reached)
-            else:
-                yield None
         return
