@@ -21,7 +21,7 @@ if __name__ == "__main__":
         files=([], [], []),
 
         # Search algorithm to be used
-        search_algorithm=RemoveNInsertN(),
+        search_algorithm=AStar(10),
 
         # Prints out result when a test case is finished
         print_results=True,
