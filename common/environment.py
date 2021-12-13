@@ -22,9 +22,9 @@ class Environment:
         """Returns whether this state is the desired one given a desired output Environment."""
         raise NotImplementedError()
 
-    @staticmethod
-    def parse(string_encoding: str) -> 'Environment':
-        raise NotImplementedError()
+    def loop_limit(self) -> int:
+        """Returns the max amount of loop iterations based on the environment."""
+        return 100
 
 
 @dataclass(eq=True)
@@ -128,15 +128,15 @@ class StringEnvironment(Environment):
     string_array: list[str]
     pos: int
 
-    def __init__(self, string: str, pos: int = 0):
+    def __init__(self, string_array: list[str], pos: int = 0):
         """Creates new StringEnvironment given an initial string and starting position of the pointer, 0 by default."""
         super().__init__()
 
         # Manipulating strings as a list of characters is more efficient.
-        self.string_array = list(string)
+        self.string_array = string_array
         self.pos = pos
         
-        assert 0 <= pos < len(string) or len(string) == 0
+        assert 0 <= pos < len(string_array) or len(string_array) == 0
 
     def to_string(self) -> str:
         """Returns the string of this Environment. For efficiency strings are internally stored as an array instead of
@@ -144,7 +144,7 @@ class StringEnvironment(Environment):
         return "".join(self.string_array)
 
     def __deepcopy__(self, memdict={}):
-        return StringEnvironment(self.to_string(), self.pos)
+        return StringEnvironment(string_array=copy.copy(self.string_array), pos=self.pos)
 
     def __hash__(self):
         return hash((self.to_string(), self.pos))
@@ -166,11 +166,49 @@ class StringEnvironment(Environment):
                                 d[i - 1][j - 1] + substitutionCost))
         return d[-1][-1]
 
+    distance_map = {}
+
+    @staticmethod
+    def _levenshtein_eff(s1, s2):
+        if (s1, s2) not in StringEnvironment.distance_map:
+            StringEnvironment.distance_map[(s1, s2)] = StringEnvironment._levenshtein_rec(s1, s2)
+
+        return StringEnvironment.distance_map[(s1, s2)]
+
+    @staticmethod
+    def _levenshtein_rec(s1, s2):
+        m = len(s1)
+        n = len(s2)
+
+        if m == 0:
+            return n
+
+        if n == 0:
+            return m
+
+        if s1[0] == s2[0]:
+            return StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+
+        return 1 + min(
+            StringEnvironment._levenshtein_eff(s1[1:], s2),
+            StringEnvironment._levenshtein_eff(s1, s2[1:]),
+            StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+        )
+
     def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
+        s1 = "".join(self.string_array)
+        s2 = "".join(other.string_array)
+
+        if (s1, s2) not in self.distance_map:
+            self.distance_map[(s1,s2)] = self._levenshtein_eff(s1, s2)
+
+        return self.distance_map[(s1,s2)]
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
+
+    def loop_limit(self) -> int:
+        return max(self.pos, len(self.string_array) - self.pos)
 
     def __str__(self):
         return "StringEnvironment(Pointer at {pos} in \"{string_array}\")".format(pos=self.pos, string_array=self.to_string())
