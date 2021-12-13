@@ -104,7 +104,7 @@ class MutationFactory():
     def add_random_token(self, trans_tokens) -> Mutation:
         def operation(pro: Program) -> Program:
             rand_token = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [rand_token()])
+            return Program(pro.sequence + [rand_token])
         return Mutation("Append random token to the end of the program", operation)
 
     
@@ -123,7 +123,7 @@ class MutationFactory():
 
             rand_bool = random.choice(list(bool_tokens))
             rand_token = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [LoopWhile(rand_bool(), [rand_token()])])
+            return Program(pro.sequence + [LoopWhile(rand_bool, [rand_token])])
         return Mutation("Add random loop to the end of the program", operation)
     
     
@@ -133,7 +133,7 @@ class MutationFactory():
             rand_bool = random.choice(list(bool_tokens))
             rand_token = random.choice(list(trans_tokens))
             rand_token2 = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [If(rand_bool(), [rand_token()], [rand_token2()])])
+            return Program(pro.sequence + [If(rand_bool, [rand_token], [rand_token2])])
         return Mutation("Add random if to the end of the program", operation)
 
     

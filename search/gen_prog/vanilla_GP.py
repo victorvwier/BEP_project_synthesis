@@ -179,7 +179,7 @@ class VanillaGP(SearchAlgorithm):
 		super().__init__(time_limit_sec)
 
 	def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
-		self.token_functions = invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH) + [token() for token in list(trans_tokens)]
+		self.token_functions = invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH) + [token for token in list(trans_tokens)]
 		self.examples = training_examples
 
 		# Set the overall best results to the performance of the initial (empty) best program Program([])

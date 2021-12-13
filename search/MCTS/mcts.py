@@ -141,22 +141,22 @@ class MCTS(SearchAlgorithm):
         """
         invented_tokens: List[InventedToken] = []
         for token_type in trans_tokens:
-            invented_tokens.append(InventedToken([token_type()]))
+            invented_tokens.append(InventedToken([token_type]))
 
         for bool_token in bool_tokens:
             for trans_token_1 in trans_tokens:
-                invented_tokens.append(InventedToken([If(bool_token(), [trans_token_1()], [])]))
-                invented_tokens.append(InventedToken([LoopWhile(bool_token(), [trans_token_1()])]))
+                invented_tokens.append(InventedToken([If(bool_token, [trans_token_1], [])]))
+                invented_tokens.append(InventedToken([LoopWhile(bool_token, [trans_token_1])]))
 
         for bool_token in bool_tokens:
             for trans_token_1 in trans_tokens:
                 for trans_token_2 in trans_tokens:
                     if trans_token_1 != trans_token_2:
                         invented_tokens.append(InventedToken([
-                            If(bool_token(), [trans_token_1(), trans_token_2()], [])
+                            If(bool_token, [trans_token_1, trans_token_2], [])
                         ]))
                         invented_tokens.append(InventedToken([
-                            LoopWhile(bool_token(), [trans_token_1(), trans_token_2()])
+                            LoopWhile(bool_token, [trans_token_1, trans_token_2])
                         ]))
 
         return invented_tokens
