@@ -80,7 +80,7 @@ class BatchRun:
         p = -1 if s == 0 else (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
-        keys = ["test_cost", "train_cost", "execution_time", "program_length", "visited_programs", "iterations"]
+        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs", "number_of_iterations"]
         ave_res = self._average(results, keys)
         ave_cor = self._average(correct_results, keys)
         ave_ncor = self._average(not_correct_results, keys)
@@ -116,7 +116,7 @@ class BatchRun:
             "train_cost": SearchAlgorithm.cost(test_case.training_examples, program),
             "execution_time": result["execution_time"],
             "program_length": result["program_length"],
-            "visited_programs": result["visited_programs"],
+            "number_of_explored_programs": result["number_of_explored_programs"],
         }
 
         d.update(result)

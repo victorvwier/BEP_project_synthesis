@@ -21,9 +21,11 @@ class Mutation():
 class MetropolisHasting(SearchAlgorithm):
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
-        self.explored_programs_count = 0
 
     def setup(self, examples: List[Example], trans_tokens, bool_tokens):
+        self.number_of_explored_programs = 0
+        self.number_of_iterations = 0
+        self.cost_per_iteration = []
         self._best_program: Program = Program([])
         self.cost = 100
         self.proposal_distribution = ProposalDistribution()
@@ -35,8 +37,13 @@ class MetropolisHasting(SearchAlgorithm):
         self.proposal_distribution.add_mutation(fac.start_over(), 2)
 
     def iteration(self, examples: List[Example], trans_tokens, bool_tokens) -> bool:
+        self.number_of_iterations += 1
+        self.number_of_explored_programs += 1
         mut: Mutation = self.proposal_distribution.sample()
-        self._best_program, self.cost, solved = MetropolisHasting.maybe_apply_mutation(examples, self._best_program, self.cost, mut)
+        self._best_program, newcost, solved = MetropolisHasting.maybe_apply_mutation(examples, self._best_program, self.cost, mut)
+        if(newcost != self.cost):
+            self.cost_per_iteration.append((self.number_of_iterations, newcost))
+        self.cost = newcost
         return not solved
 
 
@@ -61,8 +68,6 @@ class MetropolisHasting(SearchAlgorithm):
                     nenv = new_program.interp(case.input_environment)
                     solved = solved and nenv.correct(case.output_environment)
          
-                
-
             #TODO change formula a bit
 
             alpha = 1.2

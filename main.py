@@ -11,7 +11,19 @@ from search.batch_run import BatchRun
 from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
 
 if __name__ == "__main__":
-    result = BatchRun(
+    searchAlgos : List[Type[SearchAlgorithm]] = [
+        [MetropolisHasting, "metro"],
+        [Brute, "brute"],
+        [MCTS, "mcts"],
+        [VanillaGP, "gp"],
+        [RemoveNInsertN, "VLNS"],
+        [AStar, "Astar"]
+    ]
+
+
+    results = []
+    for alg in searchAlgos:
+        result = BatchRun(
         # Task domain
         domain="robot",
 
@@ -21,7 +33,7 @@ if __name__ == "__main__":
         files=([], [], []),
 
         # Search algorithm to be used
-        search_algorithm=RemoveNInsertN(10),
+        search_algorithm=alg[0](10),
 
         # Prints out result when a test case is finished
         print_results=True,
@@ -34,24 +46,5 @@ if __name__ == "__main__":
         #file_name="VLNS-20211213-162128.txt"
     ).run()
 
-    """
-    searchAlgos : List[Type[SearchAlgorithm]] = [
-        [MetropolisHasting, "metro"],
-        [Brute, "brute"],
-        [MCTS, "mcts"],
-        [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"],
-        [AStar, "Astar"]
-    ]
-
-    results = []
-    for alg in searchAlgos:
-        experiment: Experiment = RobotParser().parse_specific_range(
-            range(1, 3), range(0, 10), range(0, 10))
-        (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
-            experiment, alg[0])
-        results.append((alg[1], com_suc))
-
     for res in results:
         print(res[0], res[1])
-    """
