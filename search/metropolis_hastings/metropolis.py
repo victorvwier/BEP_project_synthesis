@@ -21,6 +21,7 @@ class Mutation():
 class MetropolisHasting(SearchAlgorithm):
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
+        self.explored_programs_count = 0
 
     def setup(self, examples: List[Example], trans_tokens, bool_tokens):
         self._best_program: Program = Program([])

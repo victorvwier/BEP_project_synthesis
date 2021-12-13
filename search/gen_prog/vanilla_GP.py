@@ -138,7 +138,7 @@ class VanillaGP(SearchAlgorithm):
 		mutated_seq = []
 		for function in program_seq:
 			if(draw_from([True, False])):
-				new_random_function = choice(self.token_functions)
+				new_random_function = random.choice(self.token_functions)
 				mutated_seq.append(new_random_function)
 			else:
 				mutated_seq.append(function)
@@ -210,7 +210,7 @@ class VanillaGP(SearchAlgorithm):
 			self._best_program = current_best_program
 
 		if (self.best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
-			print(self.current_gen_num)
+			#print(self.current_gen_num)
 			return False
 
 		self.breed_generation()
