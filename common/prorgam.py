@@ -19,7 +19,6 @@ class Program:
 
     def interp(self, env: Environment, top_level_program=True) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
-
         nenv = copy.deepcopy(env)
 
         # Setup for recursive calls
@@ -27,6 +26,8 @@ class Program:
             nenv.program = self
 
         for t in self.sequence:
+            if(not isinstance(t, Token)):
+                print("NOOOO")
             nenv = t.apply(nenv)
 
         return nenv

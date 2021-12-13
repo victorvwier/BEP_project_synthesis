@@ -90,5 +90,5 @@ class MoveDown(TransToken):
 		return env
 
 
-BoolTokens = {AtTop, AtBottom, AtLeft, AtRight, NotAtTop, NotAtBottom, NotAtLeft, NotAtRight}
-TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw, Erase}
+BoolTokens = {AtTop(), AtBottom(), AtLeft(), AtRight(), NotAtTop(), NotAtBottom(), NotAtLeft(), NotAtRight()}
+TransTokens = {MoveRight(), MoveDown(), MoveLeft(), MoveUp(), Draw()}
