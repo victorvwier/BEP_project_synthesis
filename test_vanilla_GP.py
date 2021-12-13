@@ -97,5 +97,5 @@ def test_on_actual_experiment():
 # test_one_point_crossover_odd()
 # test_n_point_crossover()
 
-# test_vanillaGP()
-test_on_actual_experiment()
+test_vanillaGP()
+# test_on_actual_experiment()

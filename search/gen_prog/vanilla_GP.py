@@ -186,21 +186,24 @@ class VanillaGP(SearchAlgorithm):
 		self.best_fitness, self.best_solved, self._best_program = self.program_fitness(self._best_program)
 
 		# Parameters for the initial random population
-		initial_population_size = 100
-		max_prog_length = 10
+		self.initial_population_size = 100
+		self.max_prog_length = 10
 
 		# Set the seed
 		# random.seed(self.seed)
 
 		# The current generation is the initial random generation at the beginning
-		self.current_gen = self.generate_rand_population(initial_population_size, max_prog_length)
+		self.current_gen = self.generate_rand_population(self.initial_population_size, self.max_prog_length)
 		self.current_gen_fitness = self.gen_fitness()
 		self.current_gen_num = 0
+
+		self.cost_per_iteration = []
 
 	def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
 		# print("----Gen ", self.current_gen_num, "----")
 		# [print(f, s, p) for f, s, p in self.current_gen_fitness]
 		current_best_fitness, current_best_solved, current_best_program = self.current_gen_fitness[0]
+		self.cost_per_iteration.append((self.current_gen_num, current_best_fitness))
 		# print(current_best_fitness, current_best_solved, current_best_program)
 
 		# fitness is actually the loss, hence the less-than sign. A bit unfortunate, but oh well
@@ -211,6 +214,8 @@ class VanillaGP(SearchAlgorithm):
 
 		if (self.best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
 			#print(self.current_gen_num)
+			self.number_of_iterations = self.current_gen_num
+			self.number_of_explored_programs = self.number_of_iterations * self.initial_population_size
 			return False
 
 		self.breed_generation()
