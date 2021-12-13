@@ -20,6 +20,10 @@ class Environment:
         """Returns whether this state is the desired one given a desired output Environment."""
         raise NotImplementedError()
 
+    def loop_limit(self) -> int:
+        """Returns the max amount of loop iterations based on the environment."""
+        return 100
+
 
 @dataclass(eq=True, unsafe_hash=True)
 class RobotEnvironment(Environment):
@@ -148,17 +152,48 @@ class StringEnvironment(Environment):
 
     distance_map = {}
 
+    @staticmethod
+    def _levenshtein_eff(s1, s2):
+        if (s1, s2) not in StringEnvironment.distance_map:
+            StringEnvironment.distance_map[(s1, s2)] = StringEnvironment._levenshtein_rec(s1, s2)
+
+        return StringEnvironment.distance_map[(s1, s2)]
+
+    @staticmethod
+    def _levenshtein_rec(s1, s2):
+        m = len(s1)
+        n = len(s2)
+
+        if m == 0:
+            return n
+
+        if n == 0:
+            return m
+
+        if s1[0] == s2[0]:
+            return StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+
+        return 1 + min(
+            StringEnvironment._levenshtein_eff(s1[1:], s2),
+            StringEnvironment._levenshtein_eff(s1, s2[1:]),
+            StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+        )
+
+
     def distance(self, other: "StringEnvironment") -> int:
         s1 = "".join(self.string_array)
         s2 = "".join(other.string_array)
 
         if (s1, s2) not in self.distance_map:
-            self.distance_map[(s1,s2)] = self._levenshtein(s1, s2)
+            self.distance_map[(s1,s2)] = self._levenshtein_eff(s1, s2)
 
-        return self.distance_map[(s1,s2)]
+        return self.distance_map[(s1,s2)] / max(len(s1), len(s2), 1)
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
+
+    def loop_limit(self) -> int:
+        return max(self.pos, len(self.string_array) - self.pos)
 
     def __str__(self):
         return "StringEnvironment(Pointer at {pos} in \"{string_array}\")".format(pos=self.pos, string_array=self.to_string())

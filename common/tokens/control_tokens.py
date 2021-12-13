@@ -102,14 +102,18 @@ class LoopWhile(ControlToken):
         self.cond = cond
         self.loop_body = loop_body
 
+        self.input_map = {}
+
     def apply(self, env: Environment) -> Environment:
         # Raise exception if recursive call limit is reached
         # if the condition is None or true, make recursive call
-        self.calls = 0
+        calls = 0
+        limit = env.loop_limit()
+
         while self.cond.apply(env):
-            if self.calls >= 100:
+            if calls > limit:
                 raise LoopIterationLimitReached()
-            self.calls += 1
+            calls += 1
 
             for token in self.loop_body:
                 token.apply(env)
