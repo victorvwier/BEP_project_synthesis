@@ -30,7 +30,7 @@ class Program:
 
         return nenv
 
-    def number_of_tokens(self, control_cost=2) -> int:
+    def number_of_tokens(self) -> int:
         return sum([t.number_of_tokens() for t in self.sequence])
 
     def __str__(self):
