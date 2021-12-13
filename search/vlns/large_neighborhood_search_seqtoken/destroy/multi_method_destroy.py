@@ -1,8 +1,8 @@
 import random
 
 from common.prorgam import Program
-from search.vlns.large_neighborhood_search.destroy.destroy import Destroy
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken, SequenceToken
+from search.vlns.large_neighborhood_search_seqtoken.destroy.destroy import Destroy
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SeqToken, SequenceToken
 
 
 class MultiMethodDestroy(Destroy):

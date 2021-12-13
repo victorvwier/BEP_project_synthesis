@@ -1,9 +1,9 @@
 import random
 
 from common.tokens.control_tokens import If, LoopWhile
-from search.vlns.large_neighborhood_search.destroy.destroy import Destroy
-from search.vlns.large_neighborhood_search.tokens.destroyed_token import DestroyedEnvToken
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken, EmptySequenceToken
+from search.vlns.large_neighborhood_search_seqtoken.destroy.destroy import Destroy
+from search.vlns.large_neighborhood_search_seqtoken.tokens.destroyed_token import DestroyedEnvToken
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SeqToken, EmptySequenceToken
 
 
 class SequenceDestroy(Destroy):

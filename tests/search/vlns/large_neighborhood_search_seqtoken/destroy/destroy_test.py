@@ -2,10 +2,10 @@ import unittest
 
 from common.tokens.control_tokens import *
 from common.tokens.string_tokens import *
-from search.vlns.large_neighborhood_search.destroy.block_destroy import BlockDestroy
-from search.vlns.large_neighborhood_search.destroy.multi_method_destroy import MultiMethodDestroy
-from search.vlns.large_neighborhood_search.destroy.sequence_destroy import SequenceDestroy
-from search.vlns.large_neighborhood_search.destroy.single_destroy import SingleDestroy
+from search.vlns.large_neighborhood_search_seqtoken.destroy.block_destroy import BlockDestroy
+from search.vlns.large_neighborhood_search_seqtoken.destroy.multi_method_destroy import MultiMethodDestroy
+from search.vlns.large_neighborhood_search_seqtoken.destroy.sequence_destroy import SequenceDestroy
+from search.vlns.large_neighborhood_search_seqtoken.destroy.single_destroy import SingleDestroy
 
 
 class MyTestCase(unittest.TestCase):

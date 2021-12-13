@@ -2,7 +2,7 @@ import unittest
 
 from common.tokens.control_tokens import *
 from common.tokens.string_tokens import *
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SequenceToken
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SequenceToken
 
 
 class MyTestCase(unittest.TestCase):

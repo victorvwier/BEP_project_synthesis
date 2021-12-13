@@ -7,11 +7,11 @@ from common.tokens.control_tokens import LoopWhile, If
 from common.tokens.string_tokens import *
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.string_parser import StringParser
-from search.vlns.large_neighborhood_search.destroy.single_destroy import SingleDestroy
-from search.vlns.large_neighborhood_search.repair.random_repair import RandomRepair
-from search.vlns.large_neighborhood_search.repair.stochastic_sequence_repair import StochasticSequenceRepair
-from search.vlns.large_neighborhood_search.repair.stochastic_single_repair import StochasticSingleRepair
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken
+from search.vlns.large_neighborhood_search_seqtoken.destroy.single_destroy import SingleDestroy
+from search.vlns.large_neighborhood_search_seqtoken.repair.random_repair import RandomRepair
+from search.vlns.large_neighborhood_search_seqtoken.repair.stochastic_sequence_repair import StochasticSequenceRepair
+from search.vlns.large_neighborhood_search_seqtoken.repair.stochastic_single_repair import StochasticSingleRepair
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SeqToken
 
 
 class MyTestCase(unittest.TestCase):

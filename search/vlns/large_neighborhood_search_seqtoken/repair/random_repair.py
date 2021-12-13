@@ -1,9 +1,9 @@
 from random import random
 
 from common.tokens.control_tokens import If, LoopWhile
-from search.vlns.large_neighborhood_search.repair.repair import Repair
-from search.vlns.large_neighborhood_search.tokens.destroyed_token import DestroyedToken
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken, SequenceToken, RemoveToken
+from search.vlns.large_neighborhood_search_seqtoken.repair.repair import Repair
+from search.vlns.large_neighborhood_search_seqtoken.tokens.destroyed_token import DestroyedToken
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SeqToken, SequenceToken, RemoveToken
 
 
 class RandomRepair(Repair):
@@ -23,11 +23,15 @@ class RandomRepair(Repair):
         super().__init__()
 
     def repair_sequence(self, destroyed: SeqToken) -> SeqToken:
+        return self._repair_sequence(destroyed, destroyed)
+
+    def _repair_sequence(self, destroyed: SeqToken, program_head: SeqToken) -> SeqToken:
         if len(destroyed) == 0:
             return destroyed
 
         # Repair head if needed
         if isinstance(destroyed.head, DestroyedToken):
+            old_head = destroyed.head.destroyed_token
             r = random()
 
             if r < self.c_if:
@@ -39,7 +43,7 @@ class RandomRepair(Repair):
                     destroyed.head = destroyed.tail.head
                     destroyed.tail = destroyed.tail.tail
 
-                    return self.repair_sequence(destroyed)
+                    return self._repair_sequence(destroyed, program_head)
                 else:
                     destroyed.head = RemoveToken()
 
@@ -50,21 +54,28 @@ class RandomRepair(Repair):
             else:
                 destroyed.head = self.env_token_sample(1)[0]
 
+            # Check if extending the program actually made the program better. If not, remove.
+            if old_head is None and False:
+                new_cost = self.seq_cost(program_head)
+
+                if self.current_cost <= new_cost:
+                    destroyed.head = RemoveToken()
+
         elif isinstance(destroyed.head, If):
             if isinstance(destroyed.head.cond, DestroyedToken):
                 destroyed.head.cond = self.bool_token_sample(1)[0]
 
-            destroyed.head.e1 = [self.repair_sequence(destroyed.head.e1[0])]
-            destroyed.head.e2 = [self.repair_sequence(destroyed.head.e2[0])]
+            destroyed.head.e1 = [self._repair_sequence(destroyed.head.e1[0], program_head)]
+            destroyed.head.e2 = [self._repair_sequence(destroyed.head.e2[0], program_head)]
 
         elif isinstance(destroyed.head, LoopWhile):
             if isinstance(destroyed.head.cond, DestroyedToken):
                 destroyed.head.cond = self.bool_token_sample(1)[0]
 
-            destroyed.head.loop_body = [self.repair_sequence(destroyed.head.loop_body[0])]
+            destroyed.head.loop_body = [self._repair_sequence(destroyed.head.loop_body[0], program_head)]
 
         # Repair tail if needed
         if isinstance(destroyed.tail, SequenceToken):
-            destroyed.tail = self.repair_sequence(destroyed.tail)
+            destroyed.tail = self._repair_sequence(destroyed.tail, program_head)
 
         return destroyed

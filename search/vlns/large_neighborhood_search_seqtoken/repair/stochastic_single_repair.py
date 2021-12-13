@@ -1,9 +1,9 @@
 from random import random
 
 from common.tokens.control_tokens import If, LoopWhile, EnvToken, BoolToken
-from search.vlns.large_neighborhood_search.repair.repair import Repair
-from search.vlns.large_neighborhood_search.tokens.destroyed_token import DestroyedToken
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SequenceToken, SeqToken, RemoveToken
+from search.vlns.large_neighborhood_search_seqtoken.repair.repair import Repair
+from search.vlns.large_neighborhood_search_seqtoken.tokens.destroyed_token import DestroyedToken
+from search.vlns.large_neighborhood_search_seqtoken.tokens.sequence_token import SequenceToken, SeqToken, RemoveToken
 
 
 class StochasticSingleRepair(Repair):
