@@ -9,3 +9,6 @@ class Accept():
         `cost_temporary`."""
 
         raise NotImplementedError()
+
+    def reset(self):
+        pass

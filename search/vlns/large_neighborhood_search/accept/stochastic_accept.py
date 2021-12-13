@@ -12,12 +12,17 @@ class StochasticAccept(Accept):
 
     def __init__(self, initial_temperature: float, cooling_factor: float):
         """Initializes the stochastic accept method. The initial temperature and cooling factor must be given."""
-        assert 0 < cooling_factor < 1
+        assert 0 < cooling_factor #< 1
 
+        self.initial_temperature = initial_temperature
         self.temperature = initial_temperature
         self.cooling_factor = cooling_factor
 
         # Set iteration to -1 to denote it has not run any iteration yet.
+        self.iteration = -1
+
+    def reset(self):
+        self.temperature = self.initial_temperature
         self.iteration = -1
 
     def accept(self, cost_current: float, cost_temporary: float, program_current: Program, program_temporary: Program, iteration: int) -> bool:
@@ -32,7 +37,7 @@ class StochasticAccept(Accept):
 
         # When equal, select with lowest number of tokens
         if cost_temporary == cost_current:
-            return program_temporary.number_of_tokens() <= program_current.number_of_tokens()
+            return program_temporary.number_of_tokens() < program_current.number_of_tokens()
 
         # When temporary is better or equal, accept.
         if cost_temporary <= cost_current:
