@@ -71,17 +71,16 @@ class UniquePriorityQueue:
 
 
 class AStar(SearchAlgorithm):
-
     def __init__(self, time_limit_sec: float, weight: int = False):
         super().__init__(time_limit_sec)
         if weight is False:
             weight = 0.5
         assert 0 <= weight <= 1
-        self.loss_function = lambda g, h: weight * g + (1-weight) * h
         self.weight = weight
-        self.heuristic = self._heuristic_mean
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
+        self.loss_function = lambda g, h: self.weight * g + (1-self.weight) * h
+        self.heuristic = self._heuristic_mean
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
