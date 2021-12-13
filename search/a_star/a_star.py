@@ -41,7 +41,8 @@ class AStar(SearchAlgorithm):
         self._solution_found = False
         self._best_program_node = None
         self._best_f_program_node = None
-        self.g_cost_per_iteration = [(0, 0)]   # (iteration_number, g_cost)
+        self.g_cost_per_iteration = []   # (iteration_number, g_cost)
+        self.cost_per_iteration = []  # (iteration_number, h_cost)
         self.program_generator: Iterator[Union[Program, None]] = self.best_first_search_upq(
             self.input_envs, self.output_envs, self.tokens, self.loss_function, self.heuristic)
 
@@ -59,6 +60,10 @@ class AStar(SearchAlgorithm):
 
     def extend_result(self, search_result: SearchResult):
         search_result.dictionary['solution_found'] = self._solution_found
+        search_result.dictionary['best_f_program'] = str(self.best_f_program)
+        search_result.dictionary['g_cost_per_iteration'] = self.g_cost_per_iteration
+        search_result.dictionary['heuristic'] = self.heuristic.__name__
+        search_result.dictionary['weight'] = self.weight
         return search_result
 
     @staticmethod
