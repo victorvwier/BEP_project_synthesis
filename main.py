@@ -30,16 +30,14 @@ if __name__ == "__main__":
     brute: Type[SearchAlgorithm] = Brute
     depth = 1
     for j in range(0, depth):
-
-        experiment: Experiment = StringParser().parse_specific_range(
+        experiment: Experiment = PixelParser().parse_specific_range(
             range(0, 10), range(0, 10), range(0, 10))
         (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
-            experiment, metro)
+            experiment, brute)
         print('000000')
         # (ave_suc2, ave_time2, com_suc2) = test_performance_single_experiment(experiment, brute)
         # com2 += com_suc2
         com += com_suc
 
     # """
-    print(com2 / 9 * depth)
-    print(com / 9 * depth)
+    print(com)
