@@ -7,7 +7,7 @@ from common.prorgam import Program
 class If(ControlToken):
     """If statement ControlToken."""
 
-    def __init__(self, cond: BoolToken, e1: List[EnvToken], e2: List[EnvToken]):
+    def __init__(self, cond: BoolToken, e1: list[EnvToken], e2: list[EnvToken]):
         """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute,
         otherwise 'e2'."""
         self.cond = cond
@@ -50,7 +50,7 @@ class If(ControlToken):
 class LoopWhile(ControlToken):
     """Loop ControlToken."""
 
-    def __init__(self, cond: BoolToken, loop_body: List[EnvToken]):
+    def __init__(self, cond: BoolToken, loop_body: list[EnvToken]):
         """Creates a new Loop ControlToken. 'loop_body' will run as long as 'cond' is true."""
         self.cond = cond
         self.loop_body = loop_body

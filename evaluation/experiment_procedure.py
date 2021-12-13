@@ -150,7 +150,7 @@ def test_performance_single_experiment(experiment: Experiment, search: Type[Sear
     return average_success_percentage, average_execution_time, percentage_of_completely_successful_programs
 
 
-def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str,
+def write_performances_of_experiments_to_file(experiments: list[Experiment], output_file: str,
                                               search_algorithm: Type[SearchAlgorithm]):
     lines_to_write = []
 
