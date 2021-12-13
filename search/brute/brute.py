@@ -16,9 +16,13 @@ class Brute(SearchAlgorithm):
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
         self.token_functions = []
-        self.sample_inputs: List[Environment] = []
-        self.sample_outputs: List[Environment] = []
-        
+        self.sample_inputs: list[Environment] = []
+        self.sample_outputs: list[Environment] = []
+        self.programs = []
+        self._best_program = Program([])
+        self.best_cost = float("inf")
+        self.current_program: Program = Program([])
+
 
     def setup(self, examples, trans_tokens, bool_tokens):
         self.programs = []
@@ -28,22 +32,43 @@ class Brute(SearchAlgorithm):
 
         self.sample_inputs = [e.input_environment for e in examples]
         self.sample_outputs = [e.output_environment for e in examples]
-        self.programs = [(float('inf'), 1, self._best_program)]
+        self.programs = [(float('inf'), 1, self.current_program)]
         heapq.heapify(self.programs)
+
+        self.number_of_explored_programs = 0
+        self.cost_per_iteration = [(0, float("inf"))]   # save (iteration_number, cost) when new best_program is found
+        self.number_of_iterations = 0
 
     def iteration(self, examples, trans_tokens, bool_tokens) -> bool:
 
-        (_, solved, self._best_program) = heapq.heappop(self.programs)
+        (cost, solved, self.current_program) = heapq.heappop(self.programs)
+
+        if cost < self.best_cost:
+            self._best_program = self.current_program
+            self.best_cost = cost
+            self.cost_per_iteration.append((self.number_of_iterations, cost))
 
         if solved == 0:
             # return False to indicate no more iterations are necessary
             return False
 
-        self.programs = extend_program(
-            self._best_program, self.programs, self.token_functions, self.sample_inputs, self.sample_outputs)
+        self.number_of_iterations += 1
+
+        self.programs = self.extend_program(
+            self.current_program, self.programs, self.token_functions, self.sample_inputs, self.sample_outputs)
 
         # return True to indicate that another iteration is required
         return True
+
+    def extend_program(self, best_program, programs, tokens: list[Token], sample_inputs, sample_outputs):
+        for token in tokens:
+            potentially_better_program = Program(best_program.sequence + [copy.copy(token)])
+            program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
+            self.number_of_explored_programs += 1
+            if program_new[0] != float('inf'):
+                heapq.heappush(programs, program_new)
+        # updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
+        return programs
 
 def print_p(p):
     print(p.sequence)
@@ -81,12 +106,4 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         return (float("inf"), 1, program)
 
 
-def extend_program(best_program, programs, tokens: list[Token], sample_inputs, sample_outputs):
-    for token in tokens:
-        potentially_better_program = Program(best_program.sequence + [copy.copy(token)])
-        program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
-        if program_new[0] != float('inf'):
-            heapq.heappush(programs, program_new)
-    # updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
-    return programs
 
