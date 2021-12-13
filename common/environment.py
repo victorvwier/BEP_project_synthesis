@@ -27,7 +27,7 @@ class Environment:
         raise NotImplementedError()
 
 
-@dataclass(eq=True, unsafe_hash=True)
+@dataclass(eq=True)
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
     in that same matrix."""
@@ -71,6 +71,9 @@ class RobotEnvironment(Environment):
         holding = eval(args['holding'])
         size = int(args['size'])
         return RobotEnvironment(size, rx, ry, bx, by, holding)
+
+    def __hash__(self):
+        return hash((self.rx, self.ry, self.bx, self.by, self.holding, self.size))
 
     def distance(self, other: "RobotEnvironment") -> int:
         assert self.size == other.size
@@ -163,8 +166,16 @@ class StringEnvironment(Environment):
                                 d[i - 1][j - 1] + substitutionCost))
         return d[-1][-1]
 
+    distance_map = {}
+
     def distance(self, other: "StringEnvironment") -> int:
-        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
+        s1 = "".join(self.string_array)
+        s2 = "".join(other.string_array)
+
+        if (s1, s2) not in self.distance_map:
+            self.distance_map[(s1, s2)] = self._levenshtein(s1, s2)
+
+        return self.distance_map[(s1, s2)]
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
