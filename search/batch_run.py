@@ -1,7 +1,9 @@
+import json
+import os
+import time
 from collections import Iterable
+from itertools import chain
 
-from common.tokens.control_tokens import LoopWhile, If
-from common.tokens.string_tokens import MakeUppercase, MakeLowercase
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.parser import Parser, TestCase
 from example_parser.pixel_parser import PixelParser
@@ -16,19 +18,21 @@ class BatchRun:
                  domain: str,
                  files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
-                 debug: bool = False):
-
+                 algorithm_name: str,
+                 print_results: bool = False):
+        self.domain = domain
         self.search_algorithm = search_algorithm
-        self.files = files
-        self.debug = debug
+        self.algorithm_name = algorithm_name
+        self.files = self._complement_iters(domain, files)
+        self.print_results = print_results
 
         self.parser = self._get_parser(domain)
-        self.test_cases = self._get_test_cases(files)
+        self.test_cases = self._get_test_cases(self.files)
 
         self.token_library = [c() for c in extract_trans_tokens_from_domain_name(domain)]
         self.bools = [c() for c in extract_bool_tokens_from_domain_name(domain)]
 
-    def run(self) -> (list[dict], dict, dict, dict):
+    def run(self) -> dict:
         results = []
         correct_results = []
         not_correct_results = []
@@ -50,16 +54,25 @@ class BatchRun:
         p = (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
-        keys = ["test_cost", "execution_time", "program_length", "visited_programs", "percentage_single_explored",
-                "iterations", "search_depth", "time_destroy", "time_repair", "time_cost"]
+        keys = ["test_cost", "train_cost", "execution_time", "program_length", "visited_programs", "iterations"]
         ave_res = self._average(results, keys)
         ave_cor = self._average(correct_results, keys)
         ave_ncor = self._average(not_correct_results, keys)
+
         self.debug_print("Average overall: {}".format(ave_res))
         self.debug_print("Average correct: {}".format(ave_cor))
         self.debug_print("Average not correct: {}".format(ave_ncor))
 
-        return results, ave_res, ave_cor, ave_ncor
+        final = {
+            "results": results,
+            "average": ave_res,
+            "average_correct": ave_cor,
+            "average_failed": ave_ncor,
+        }
+
+        self._store_results(final)
+
+        return final
 
     def _test_case(self, test_case: TestCase) -> dict:
         result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
@@ -75,12 +88,11 @@ class BatchRun:
             "execution_time": result["execution_time"],
             "program_length": result["program_length"],
             "visited_programs": result["visited_programs"],
-            "percentage_single_explored": result["visited_programs"] / result["iterations"],
         }
 
         d.update(result)
-        d["failed_train_outputs"] = []
-        d["failed_test_outputs"] = []
+        #d["failed_train_outputs"] = []
+        #d["failed_test_outputs"] = []
 
         for ex in test_case.training_examples:
             env = program.interp(ex.input_environment)
@@ -108,6 +120,23 @@ class BatchRun:
 
         return res
 
+    def _store_results(self, res: list[dict]):
+        path = "{}/results/{}".format(os.getcwd(), self.domain)
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        file_name = "{}-{}.json".format(self.algorithm_name, timestr)
+
+        with open("{}/{}".format(path, file_name), "w") as file:
+            file.write(json.dumps(res))
+
+
+    def debug_print(self, msg: str):
+        if self.print_results:
+            print(msg)
+
     @staticmethod
     def _average(dicts: list[dict], keys: list[str]):
         res = {k: 0 for k in keys}
@@ -119,10 +148,6 @@ class BatchRun:
 
         return res
 
-    def debug_print(self, msg: str):
-        if self.debug:
-            print(msg)
-
     @staticmethod
     def _get_parser(domain: str) -> Parser:
         if domain == "string":
@@ -133,3 +158,22 @@ class BatchRun:
             return PixelParser()
         else:
             raise Exception()
+
+    @staticmethod
+    def _complement_iters(domain: str, iters: (Iterable[int], Iterable[int], Iterable[int])):
+        def_iter = None
+
+        if domain == "string":
+            def_iter = range(1, 10), chain(range(51, 278), range(279, 328)), range(1,10)
+        elif domain == "robot":
+            def_iter = [2,4,6,8,10], range(0, 10), range(0, 11)
+        elif domain == "pixel":
+            def_iter = [1,2,3,4,5], range(0, 10), range(1, 11)
+        else:
+            raise Exception()
+
+        return (
+            def_iter[0] if len(iters[0]) == 0 else iters[0],
+            def_iter[1] if len(iters[1]) == 0 else iters[1],
+            def_iter[2] if len(iters[2]) == 0 else iters[2]
+        )
