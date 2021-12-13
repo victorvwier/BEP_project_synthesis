@@ -1,6 +1,8 @@
+from typing import List
 from evaluation.experiment_procedure import *
 from example_parser.string_parser import StringParser
 from search.MCTS.mcts import MCTS
+from search.a_star.a_star import AStar
 from search.abstract_search import SearchAlgorithm
 from search.gen_prog.vanilla_GP import VanillaGP
 from search.metropolis_hastings.metropolis import MetropolisHasting
@@ -32,7 +34,8 @@ if __name__ == "__main__":
         [Brute, "brute"],
         [MCTS, "mcts"],
         [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"]
+        [RemoveNInsertN, "VLNS"],
+        [AStar, "Astar"]
     ]
 
     results = []

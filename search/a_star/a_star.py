@@ -2,12 +2,12 @@ import itertools
 import json
 from dataclasses import field
 from heapq import *
-from typing import Callable, Generator, Iterator, Union
+from typing import Callable, Generator, Iterator, List, Union
 
 from common.environment import Environment
 from common.experiment import Example
 from common.prorgam import Program
-from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached
+from common.tokens.control_tokens import LoopIterationLimitReached
 from common.tokens.pixel_tokens import *
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
@@ -182,6 +182,6 @@ class AStar(SearchAlgorithm):
                         hcost_child = h(child, end_node)
                         fcost_child = f(gcost_child, hcost_child)
                         queue.insert(child, fcost_child)
-                except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached):
+                except(InvalidTransition, LoopIterationLimitReached):
                     pass
         return
