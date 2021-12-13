@@ -14,6 +14,9 @@ class SearchAlgorithm:
     def __init__(self, time_limit_sec: float):
         self.time_limit_sec = time_limit_sec
         self._best_program = Program([])
+        self.number_of_explored_programs = 0
+        self.cost_per_iteration = [(0, float("inf"))]   # save (iteration_number, cost) when new best_program is found
+        self.number_of_iterations = 0
 
     @property
     def best_program(self) -> Program:
@@ -58,7 +61,13 @@ class SearchAlgorithm:
         run_time = time.process_time() - start_time
 
         # Extend results and return.
-        return self.extend_result(SearchResult(self.best_program, run_time))
+        return self.extend_result(SearchResult(
+            program=self.best_program,
+            process_time_sec=run_time,
+            number_of_explored_programs=self.number_of_explored_programs,
+            cost_per_iteration=self.cost_per_iteration,
+            number_of_iterations=self.number_of_iterations
+        ))
 
     @staticmethod
     def cost_train(training_examples: List[Example], p: Program):
