@@ -44,23 +44,19 @@ class StringParser(Parser):
         pos = entry.split(",")[0]
 
         # gets data between ',[' and '])' and picks every fourth character starting at index 1, which is the string.
-        string = entry.split(",[")[1].split("])")[0][1::4]
+        string = entry.split(",['")[1].split("'])")[0].split("','")
 
         # for output data the position is not defined, however Environment needs one.
         if not pos.isnumeric():
             pos = 1
 
-        return StringEnvironment(string, int(pos) - 1)
+        return StringEnvironment(string_array=string, pos=int(pos) - 1)
 
 if __name__ == "__main__":
-    p = StringParser(path="../examples/e2-strings/data/train/")
-    p.test_path = "../examples/e2-strings/data/test/"
+    res = StringParser().parse_file("1-97-1.pl")
 
-    res1 = StringParser().parse()
+    print(res.training_examples[0].input_environment)
+    print(res.training_examples[0].output_environment)
 
-    for res in res1.test_cases:
-        print(res.training_examples[0].input_environment.to_string())
-        print(res.training_examples[0].output_environment.to_string())
-
-        print(res.test_examples[0].input_environment.to_string())
-        print(res.test_examples[0].output_environment.to_string())
+    print(res.test_examples[0].input_environment)
+    print(res.test_examples[0].output_environment)

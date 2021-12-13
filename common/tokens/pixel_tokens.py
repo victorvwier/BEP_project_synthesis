@@ -3,18 +3,18 @@ from common.environment import *
 
 
 class AtTop(BoolToken):
-    def apply(self, env: PixelEnvironment) -> bool:
-        return env.y == 0
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.y == 0
 
 
 class AtBottom(BoolToken):
-    def apply(self, env: PixelEnvironment) -> bool:
-        return env.y == env.height - 1
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.y == env.height - 1
 
 
 class AtLeft(BoolToken):
-    def apply(self, env: PixelEnvironment) -> bool:
-        return env.x == 0
+	def apply(self, env: PixelEnvironment) -> bool:
+		return env.x == 0
 
 
 class AtRight(BoolToken):
@@ -44,7 +44,17 @@ class NotAtRight(BoolToken):
 
 class Draw(TransToken):
 	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
-		env.pixels[env.x][env.y] = True
+		temp = list(env.pixels)
+		temp[env.width * env.y + env.x] = True
+		env.pixels = tuple(temp)
+		return env
+
+
+class Erase(TransToken):
+	def apply(self, env: PixelEnvironment) -> PixelEnvironment:
+		temp = list(env.pixels)
+		temp[env.width * env.y + env.x] = False
+		env.pixels = tuple(temp)
 		return env
 
 
@@ -80,5 +90,5 @@ class MoveDown(TransToken):
 		return env
 
 
-BoolTokens = {AtTop, AtBottom, AtLeft, AtRight, NotAtTop, NotAtBottom, NotAtLeft, NotAtRight}
-TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Draw}
+BoolTokens = {AtTop(), AtBottom(), AtLeft(), AtRight(), NotAtTop(), NotAtBottom(), NotAtLeft(), NotAtRight()}
+TransTokens = {MoveRight(), MoveDown(), MoveLeft(), MoveUp(), Draw()}

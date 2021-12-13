@@ -3,7 +3,7 @@ from common.tokens.abstract_tokens import InvalidTransition, Token
 from common.prorgam import Program
 from common.experiment import Example, TestCase
 from search.abstract_search import SearchAlgorithm
-from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
+from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile
 import random
 import math
 
@@ -21,6 +21,7 @@ class Mutation():
 class MetropolisHasting(SearchAlgorithm):
     def __init__(self, time_limit_sec: float):
         super().__init__(time_limit_sec)
+        self.explored_programs_count = 0
 
     def setup(self, examples: List[Example], trans_tokens, bool_tokens):
         self._best_program: Program = Program([])
@@ -72,7 +73,7 @@ class MetropolisHasting(SearchAlgorithm):
                 return new_program, cost, solved
             return old_program, ocost, False
             
-        except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached):
+        except(InvalidTransition, LoopIterationLimitReached):
             return old_program, ocost, False
 
 class ProposalDistribution():
@@ -103,7 +104,7 @@ class MutationFactory():
     def add_random_token(self, trans_tokens) -> Mutation:
         def operation(pro: Program) -> Program:
             rand_token = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [rand_token()])
+            return Program(pro.sequence + [rand_token])
         return Mutation("Append random token to the end of the program", operation)
 
     
@@ -122,7 +123,7 @@ class MutationFactory():
 
             rand_bool = random.choice(list(bool_tokens))
             rand_token = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [LoopWhile(rand_bool(), [rand_token()])])
+            return Program(pro.sequence + [LoopWhile(rand_bool, [rand_token])])
         return Mutation("Add random loop to the end of the program", operation)
     
     
@@ -132,7 +133,7 @@ class MutationFactory():
             rand_bool = random.choice(list(bool_tokens))
             rand_token = random.choice(list(trans_tokens))
             rand_token2 = random.choice(list(trans_tokens))
-            return Program(pro.sequence + [If(rand_bool(), [rand_token()], [rand_token2()])])
+            return Program(pro.sequence + [If(rand_bool, [rand_token], [rand_token2])])
         return Mutation("Add random if to the end of the program", operation)
 
     
