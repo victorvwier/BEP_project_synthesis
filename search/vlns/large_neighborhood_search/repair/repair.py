@@ -1,49 +1,26 @@
 import random
-from collections import Set, Callable
+from collections import Sequence
 
-from common.prorgam import Program, EnvToken, BoolToken, Token
-from common.tokens.control_tokens import If, LoopWhile
-from search.vlns.large_neighborhood_search.tokens.sequence_token import SeqToken, SequenceToken, EmptySequenceToken
+from common.prorgam import Program
+from common.tokens.abstract_tokens import EnvToken
 
 
 class Repair:
+    """Interface for repair methods."""
 
     def __init__(self):
-        self.env_tokens = set()
-        self.env_tokens: Set[EnvToken]
-        self.bool_tokens = set()
-        self.bool_tokens: Set[BoolToken]
+        self.invent = None
 
-        self.cost: Callable[[SeqToken], float]
-        self.cost = lambda p: -1
+    def repair(self, seqs: list[list[EnvToken]]) -> Program:
+        """Repairs a given list of subsequences. Returns repaired Program."""
 
-    def repair(self, destroyed: SeqToken) -> Program:
-        """Repairs a given `destroyed_solution'. Returns the repaired solution."""
-        if isinstance(destroyed, EmptySequenceToken):
-            destroyed = SequenceToken(self.env_token_sample(1)[0], destroyed)
-
-        return Program(self.repair_sequence(destroyed).to_list())
-
-    def repair_sequence(self, destroyed: SequenceToken) -> SeqToken:
         raise NotImplementedError()
 
-    def set_token_libraries(self, env_tokens: set[EnvToken], bool_tokens: set[BoolToken]):
-        self.env_tokens = env_tokens
-        self.bool_tokens = bool_tokens
+    def random_token(self, w_trans: float, w_if: float, w_loop: float) -> EnvToken:
+        return self.invent.random_token(w_trans=w_trans, w_if=w_if, w_loop=w_loop)
 
-    def env_token_sample(self, k: int) -> list[EnvToken]:
-        return random.sample(self.env_tokens, min(k, len(self.env_tokens)))
+    def set_search_depth(self, n: int):
+        pass
 
-    def bool_token_sample(self, k: int) -> list[BoolToken]:
-        return random.sample(self.bool_tokens, min(k, len(self.bool_tokens)))
-
-    def random_if_token(self) -> If:
-        return If(
-            self.bool_token_sample(1)[0],
-            [SequenceToken(self.env_token_sample(1)[0], EmptySequenceToken())],
-            [SequenceToken(self.env_token_sample(1)[0], EmptySequenceToken())])
-
-    def random_loop_token(self) -> LoopWhile:
-        return LoopWhile(
-            self.bool_token_sample(1)[0],
-            [SequenceToken(self.env_token_sample(1)[0], EmptySequenceToken())])
+    def increment_search_depth(self):
+        pass
