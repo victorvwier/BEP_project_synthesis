@@ -9,7 +9,13 @@ from example_parser.parser import Parser, TestCase
 from example_parser.pixel_parser import PixelParser
 from example_parser.robot_parser import RobotParser
 from example_parser.string_parser import StringParser
+from search.MCTS.mcts import MCTS
+from search.a_star.a_star import AStar
 from search.abstract_search import SearchAlgorithm
+from search.brute.brute import Brute
+from search.gen_prog.vanilla_GP import VanillaGP
+from search.metropolis_hastings.metropolis import MetropolisHasting
+from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
 
 
 class BatchRun:
@@ -18,19 +24,18 @@ class BatchRun:
                  domain: str,
                  files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
-                 algorithm_name: str,
                  print_results: bool = False):
         self.domain = domain
         self.search_algorithm = search_algorithm
-        self.algorithm_name = algorithm_name
+        self.algorithm_name = self._get_algorithm_name(search_algorithm)
         self.files = self._complement_iters(domain, files)
         self.print_results = print_results
 
         self.parser = self._get_parser(domain)
         self.test_cases = self._get_test_cases(self.files)
 
-        self.token_library = [c() for c in extract_trans_tokens_from_domain_name(domain)]
-        self.bools = [c() for c in extract_bool_tokens_from_domain_name(domain)]
+        self.token_library = extract_trans_tokens_from_domain_name(domain)
+        self.bools = extract_bool_tokens_from_domain_name(domain)
 
     def run(self) -> dict:
         results = []
@@ -177,3 +182,16 @@ class BatchRun:
             def_iter[1] if len(iters[1]) == 0 else iters[1],
             def_iter[2] if len(iters[2]) == 0 else iters[2]
         )
+
+    @staticmethod
+    def _get_algorithm_name(algo: SearchAlgorithm):
+        map = {
+            MetropolisHasting: "metro",
+            Brute: "brute",
+            MCTS: "mcts",
+            VanillaGP: "gp",
+            RemoveNInsertN: "VLNS",
+            AStar: "Astar",
+        }
+
+        return map[algo.__class__]

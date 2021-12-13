@@ -2,7 +2,6 @@ from itertools import chain
 
 from search.vlns.large_neighborhood_search.accept.deterministic_accept import DeterministicAccept
 from search.vlns.large_neighborhood_search.accept.stochastic_accept import StochasticAccept
-from search.vlns.large_neighborhood_search.batch_run import BatchRun
 from search.vlns.large_neighborhood_search.destroy.remove_n_destroy import ExtractNDestroy
 from search.vlns.large_neighborhood_search.destroy.remove_n_destroy_2 import ExtractNDestroy2
 from search.vlns.large_neighborhood_search.invent.variable_depth_invent import VariableDepthInvent
