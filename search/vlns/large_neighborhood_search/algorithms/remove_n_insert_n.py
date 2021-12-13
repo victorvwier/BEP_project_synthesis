@@ -16,29 +16,10 @@ class RemoveNInsertN(LNS):
         super().__init__(
             time_limit=time_limit,
             accept=StochasticAccept(initial_temperature=0.1, cooling_factor=0.9997),
-            #accept=DeterministicAccept(),
-            #destroy=ExtractNDestroy(p_extract=0.2, n_options=[0, 1, 2], n_weights=[1, 1, 1]),
             destroy=ExtractNDestroy2(initial_max_n=3, max_max_n=3),
-            #repair=InsertNRepair(n_options=[0, 1],n_weights=[1, 1],w_trans=1, w_loop=1, w_if=0),
             repair=InsertNRepair2(initial_max_n=3, max_max_n=3, w_trans=1, w_loop=1, w_if=0),
-            invent=lambda t, b: VariableDepthInvent(t, b, max_depth=2, max_control_tokens=2),
-            increase_depth_after=lambda depth: 15000,
+            max_invent_depth=2,
+            max_invent_control_tokens=2,
+            increase_depth_after=15000,
             debug=False,
         )
-
-if __name__ == "__main__":
-    br = BatchRun(
-        # Solves all
-        #domain="robot",
-        #files=([2,4,6,8,10], range(0, 10), range(0, 11)),
-        #domain="pixel",
-        #files=([1,2,3,4,5], range(0, 10), range(1, 11)),
-        domain="string",
-        files=([9], chain(range(51, 278), range(279, 328)), range(3,4)),
-        #files=([9], range(51, 151), range(3,4)),
-        #files=([9], range(1, 51), range(3,4)),
-        #files=([9], [58], [3]),
-        search_algorithm=RemoveNInsertN(),
-        debug=True
-    ).run()
-

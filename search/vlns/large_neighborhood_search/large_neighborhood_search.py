@@ -16,12 +16,13 @@ class LNS(SearchAlgorithm):
     time limit can be set."""
 
     def __init__(self, time_limit: float, accept: Accept, destroy: Destroy, repair: Repair,
-                 invent: Callable[[list[TransToken], list[BoolToken]], VariableDepthInvent], increase_depth_after: Callable[[int], int], debug: bool = False):
+                 max_invent_depth: int, max_invent_control_tokens, increase_depth_after: int, debug: bool = False):
         super().__init__(time_limit)
         self.accept = accept
         self.destroy = destroy
         self.repair = repair
-        self.invent = invent
+        self.max_invent_depth = max_invent_depth
+        self.max_invent_control_tokens = max_invent_control_tokens
         self.increase_depth_after = increase_depth_after
         self.debug = debug
 
@@ -34,7 +35,7 @@ class LNS(SearchAlgorithm):
         self.stats = {}
 
     def setup(self, test_case: list[Example], trans_tokens: list[TransToken], bool_tokens: list[BoolToken]):
-        self.repair.invent = self.invent(trans_tokens, bool_tokens)
+        self.repair.invent = VariableDepthInvent(trans_tokens, bool_tokens, self.max_invent_depth, self.max_invent_control_tokens)
         self.accept.reset()
 
         self._best_program = Program([])
@@ -89,7 +90,7 @@ class LNS(SearchAlgorithm):
         else:
             self.iterations_since_last_best += 1
 
-            if self.iterations_since_last_best >= self.increase_depth_after(self.stats["search_depth"]):
+            if self.iterations_since_last_best >= self.increase_depth_after:
                 d = self.stats["search_depth"] + 1
 
                 self.stats["search_depth"] = d

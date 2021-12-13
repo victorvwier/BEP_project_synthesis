@@ -18,13 +18,16 @@ if __name__ == "__main__":
         # Iterables for files name. Use [] to use all values.
         # This runs all files adhering to format "2-*-[0 -> 10]"
         # Thus, ([], [], []) runs all files for a domain.
-        files=([2], [1], range(0, 11)),
+        files=([], [], []),
 
         # Search algorithm to be used
         search_algorithm=RemoveNInsertN(),
 
         # Prints out result when a test case is finished
         print_results=True,
+
+        # Use multi core processing
+        multi_core=True,
     ).run()
 
     """
