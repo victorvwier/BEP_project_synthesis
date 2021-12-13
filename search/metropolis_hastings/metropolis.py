@@ -1,11 +1,13 @@
 from typing import Callable, List, Tuple
 from common.tokens.abstract_tokens import InvalidTransition, Token
 from common.prorgam import Program
-from common.experiment import TestCase
+from common.experiment import Example, TestCase
 from search.abstract_search import SearchAlgorithm
 from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
 import random
 import math
+
+from search.search_result import SearchResult
 
 class Mutation():
     def __init__(self, name: str, fun: Callable[[Program], Program]):
@@ -17,39 +19,44 @@ class Mutation():
         return self.fun(program)
 
 class MetropolisHasting(SearchAlgorithm):
-    @staticmethod
-    def search(test_case: TestCase, trans_tokens: 'set[Token]', bool_tokens: 'set[Token]') -> Program:
-        program: Program = Program([])
-        cost = 100
-        proposal_distribution = ProposalDistribution()
+    def __init__(self, time_limit_sec: float):
+        super().__init__(time_limit_sec)
+
+    def setup(self, examples: List[Example], trans_tokens, bool_tokens):
+        self._best_program: Program = Program([])
+        self.cost = 100
+        self.proposal_distribution = ProposalDistribution()
         fac = MutationFactory()
-        proposal_distribution.add_mutation(fac.add_random_token(trans_tokens), 10)
-        proposal_distribution.add_mutation(fac.remove_random_token(), 20)
-        proposal_distribution.add_mutation(fac.add_loop(bool_tokens, trans_tokens), 10)
-        proposal_distribution.add_mutation(fac.add_if_statement(bool_tokens, trans_tokens), 10)
-        proposal_distribution.add_mutation(fac.start_over(), 2)
-        for i in range(0, 1000):
-            mut: Mutation = proposal_distribution.sample()
-            program, cost, solved = MetropolisHasting.maybe_apply_mutation(test_case, program, cost, mut)
-            #print(cost, end=", ")
-            if solved:
-                return program
-        return program
+        self.proposal_distribution.add_mutation(fac.add_random_token(trans_tokens), 10)
+        self.proposal_distribution.add_mutation(fac.remove_random_token(), 20)
+        self.proposal_distribution.add_mutation(fac.add_loop(bool_tokens, trans_tokens), 10)
+        self.proposal_distribution.add_mutation(fac.add_if_statement(bool_tokens, trans_tokens), 10)
+        self.proposal_distribution.add_mutation(fac.start_over(), 2)
+
+    def iteration(self, examples: List[Example], trans_tokens, bool_tokens) -> bool:
+        mut: Mutation = self.proposal_distribution.sample()
+        self._best_program, self.cost, solved = MetropolisHasting.maybe_apply_mutation(examples, self._best_program, self.cost, mut)
+        return not solved
+
+
+    def extend_result(self, search_result: SearchResult):
+        return super().extend_result(search_result)
+
 
     @staticmethod
-    def maybe_apply_mutation(test_case: TestCase, old_program: Program, ocost: int, mut: Mutation) -> Tuple[Program, int, int] :
+    def maybe_apply_mutation(examples: List[Example], old_program: Program, ocost: int, mut: Mutation) -> Tuple[Program, int, int] :
         new_program = mut.apply(old_program)
         try:
             cost = 0
             
-            for case in test_case.training_examples:
+            for case in examples:
                 nenv = new_program.interp(case.input_environment)
                 cost += abs(nenv.distance(case.output_environment))
             solved = False
             
             if cost < 0.1:
                 solved = True
-                for case in test_case.training_examples:
+                for case in examples:
                     nenv = new_program.interp(case.input_environment)
                     solved = solved and nenv.correct(case.output_environment)
          
