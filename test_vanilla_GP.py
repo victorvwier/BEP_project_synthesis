@@ -1,8 +1,9 @@
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.control_tokens import If
-from evaluation.experiment_procedure import extract_bool_tokens_from_domain_name, extract_trans_tokens_from_domain_name
+from evaluation.experiment_procedure import extract_bool_tokens_from_domain_name, extract_trans_tokens_from_domain_name, test_performance_single_experiment
 from common.tokens.pixel_tokens import *
+from example_parser.string_parser import StringParser
 from search.gen_prog.vanilla_GP import VanillaGP
 
 def test_gen_fitness():
@@ -83,9 +84,18 @@ def test_vanillaGP():
     print(search_result.dictionary)
     print(search_result.dictionary["program"])
 
+
+def test_on_actual_experiment():
+    vanillaGP = VanillaGP
+    experiment = StringParser().parse_specific_range(
+        range(0, 10), range(0, 10), range(0, 10))
+    (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
+        experiment, vanillaGP)
+
 # test_gen_fitness()
 # test_one_point_crossover_even()
 # test_one_point_crossover_odd()
 # test_n_point_crossover()
 
-test_vanillaGP()
+# test_vanillaGP()
+test_on_actual_experiment()

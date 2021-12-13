@@ -19,9 +19,9 @@ def draw_from(options, number_of_elems=1):
 class VanillaGP(SearchAlgorithm):
 	# Static fields
 	examples = [] # training examples
-	MAX_TOKEN_FUNCTION_DEPTH = 3 # used in the invention of tokens
+	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
 	token_functions = []
-	MAX_NUMBER_OF_GENERATIONS = 300
+	MAX_NUMBER_OF_GENERATIONS = 50
 	mutation_chance = 35 # Chance of an individual gene(function) being mutated (may be changed to be random for each mutation(?))
 
 	# Dynamic fields
@@ -138,7 +138,7 @@ class VanillaGP(SearchAlgorithm):
 		mutated_seq = []
 		for function in program_seq:
 			if(draw_from([True, False])):
-				new_random_function = choice(self.token_functions)
+				new_random_function = draw_from(self.token_functions)
 				mutated_seq.append(new_random_function)
 			else:
 				mutated_seq.append(function)
@@ -186,8 +186,8 @@ class VanillaGP(SearchAlgorithm):
 		self.best_fitness, self.best_solved, self._best_program = self.program_fitness(self._best_program)
 
 		# Parameters for the initial random population
-		initial_population_size = 5
-		max_prog_length = 5
+		initial_population_size = 100
+		max_prog_length = 10
 
 		# Set the seed
 		# random.seed(self.seed)
@@ -210,7 +210,7 @@ class VanillaGP(SearchAlgorithm):
 			self._best_program = current_best_program
 
 		if (self.best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
-			print(self.current_gen_num)
+			# print(self.current_gen_num)
 			return False
 
 		self.breed_generation()
