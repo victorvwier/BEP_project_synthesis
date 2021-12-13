@@ -14,16 +14,12 @@ class StringParser(Parser):
             result_folder_path=result_folder_path or "results/e2-strings/"
         )
 
-    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
+    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> (list[Example], list[Example]):
         path = Path(__file__).parent.parent.joinpath(self.test_path)
         with open(path.joinpath(file_name), 'r') as file:
             test_lines = file.readlines()
 
-        return TestCase(
-            path_to_result_file=self.result_folder_path + file_name,
-            training_examples=list(map(StringParser._parse_single_line, lines)),
-            test_examples=list(map(StringParser._parse_single_line, test_lines))
-        )
+        return list(map(StringParser._parse_single_line, lines)), list(map(StringParser._parse_single_line, test_lines))
 
     @staticmethod
     def _parse_single_line(line: str) -> Example:
@@ -43,14 +39,17 @@ class StringParser(Parser):
         # first entry before ',' is pointer position.
         pos = entry.split(",")[0]
 
-        # gets data between ',[' and '])' and picks every fourth character starting at index 1, which is the string.
-        string = entry.split(",['")[1].split("'])")[0].split("','")
+        if entry.split(",")[2] == "[])).":
+            ar = []
+        else:
+            # gets data between ',[' and '])' and picks every fourth character starting at index 1, which is the string.
+            ar = entry.split(",['")[1].split("'])")[0].split("','")
 
         # for output data the position is not defined, however Environment needs one.
         if not pos.isnumeric():
             pos = 1
 
-        return StringEnvironment(string_array=string, pos=int(pos) - 1)
+        return StringEnvironment(string_array=ar, pos=int(pos) - 1)
 
 if __name__ == "__main__":
     res = StringParser().parse_file("1-97-1.pl")

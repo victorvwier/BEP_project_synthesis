@@ -11,7 +11,7 @@ class PixelParser(Parser):
             result_folder_path=result_folder_path or "results/e3-pixels/"
         )
 
-    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
+    def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> (list[Example], list[Example]):
         # get first line and remove unneeded characters.
         line = lines[0][4:-2]
 
@@ -23,11 +23,7 @@ class PixelParser(Parser):
             PixelParser._parse_entry(entries[1]),
         )
 
-        return TestCase(
-            path_to_result_file=self.result_folder_path + file_name,
-            training_examples=[example],
-            test_examples=[example]
-        )
+        return [example], [example]
 
     @staticmethod
     def _parse_entry(entry: str) -> PixelEnvironment:
