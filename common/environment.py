@@ -209,11 +209,8 @@ class StringEnvironment(Environment):
                 mem[i][j] = min(cases)
         return mem[m][n]
 
-    def distance(self, other: "StringEnvironment") -> float:
-        str1 = "".join(self.string_array)
-        str2 = "".join(other.string_array)
-        dist = self._levenshtein(str1, str2)
-        return dist
+    def distance(self, other: "StringEnvironment") -> int:
+        return self._levenshtein("".join(self.string_array), "".join(other.string_array))
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
