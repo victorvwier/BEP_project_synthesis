@@ -43,10 +43,10 @@ class Brute(SearchAlgorithm):
 
         (cost, solved, self.current_program) = heapq.heappop(self.programs)
 
+        self.cost_per_iteration.append((self.number_of_iterations, cost))
         if cost < self.best_cost:
             self._best_program = self.current_program
             self.best_cost = cost
-            self.cost_per_iteration.append((self.number_of_iterations, cost))
 
         if solved == 0:
             # return False to indicate no more iterations are necessary
