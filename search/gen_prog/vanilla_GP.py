@@ -4,7 +4,7 @@ import random, itertools, heapq
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import InvalidTransition, Token
-from common.tokens.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
+from common.tokens.control_tokens import LoopIterationLimitReached
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
@@ -63,7 +63,7 @@ class VanillaGP(SearchAlgorithm):
 			if (solved):
 				return (cum_loss, 0, program)
 			return (cum_loss, 1, program)
-		except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
+		except (InvalidTransition, LoopIterationLimitReached) as e:
 			return (float("inf"), 1, program)
 
 	def gen_fitness(self):
