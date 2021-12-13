@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import List, get_type_hints
-import copy
 import re
+
 
 @dataclass(eq=True, unsafe_hash=True)
 class Environment:
@@ -21,8 +20,12 @@ class Environment:
         """Returns whether this state is the desired one given a desired output Environment."""
         raise NotImplementedError()
 
+    @staticmethod
+    def parse(string_encoding: str) -> 'Environment':
+        raise NotImplementedError()
 
-@dataclass(eq=True, unsafe_hash=True)
+
+@dataclass(eq=True)
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
     in that same matrix."""
@@ -51,8 +54,24 @@ class RobotEnvironment(Environment):
         return RobotEnvironment(self.size, self.rx, self.ry, self.bx, self.by, self.holding)
 
     def __str__(self):
-        return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s)" % \
-               (self.rx, self.ry, self.bx, self.by, self.holding)
+        return "RobotEnvironment(Robot: (%s, %s), Bal: (%s, %s), Holding: %s, Size: %s)" % \
+               (self.rx, self.ry, self.bx, self.by, self.holding, self.size)
+
+    @staticmethod
+    def parse(string_encoding: str) -> 'RobotEnvironment':
+        # regex = r'RobotEnvironment\(\((?P<x>.*), (?P<y>.*)\), (?P<pixels>.*)\)'
+        regex = r'RobotEnvironment\(Robot: \((?P<rx>.*), (?P<ry>.*)\), Bal: \((?P<bx>.*), (?P<by>.*)\), Holding: (?P<holding>.*), Size: (?P<size>.*)\)'
+        args = re.search(regex, string_encoding).groupdict()
+        rx = int(args['rx'])
+        ry = int(args['ry'])
+        bx = int(args['bx'])
+        by = int(args['by'])
+        holding = eval(args['holding'])
+        size = int(args['size'])
+        return RobotEnvironment(size, rx, ry, bx, by, holding)
+
+    def __hash__(self):
+        return hash((self.rx, self.ry, self.bx, self.by, self.holding, self.size))
 
     def original_distance(self, other: "RobotEnvironment") -> int:
         """
@@ -109,8 +128,6 @@ class RobotEnvironment(Environment):
             rows.append(" ".join(row))
         result = "\n".join(rows[::-1])
         return result
-
-
 
 
 @dataclass(eq=True)
@@ -213,6 +230,11 @@ class StringEnvironment(Environment):
             result = "(empty string)"
         return result
 
+    @staticmethod
+    def parse(string_encoding: str) -> 'StringEnvironment':
+        regex = r'StringEnvironment\(Pointer at (?P<pos>.*) in "(?P<string>.*)"\)'
+        args = re.search(regex, string_encoding).groupdict()
+        return StringEnvironment(args['string'], int(args['pos']))
 
 
 @dataclass(eq=True, unsafe_hash=True)
@@ -231,13 +253,22 @@ class PixelEnvironment(Environment):
         self.x = x
         self.y = y
         self.pixels = pixels or tuple(False for _ in range(width * height))
-        # if not pixels:
-        #     self.pixels = [[False for _ in range(height)] for _ in range(width)]
         assert 0 <= x < width
         assert 0 <= y < height
 
     def __str__(self):
         return "PixelEnvironment((%s, %s), %s)" % (self.x, self.y, self.pixels)
+
+    @staticmethod
+    def parse(string_encoding: str) -> 'PixelEnvironment':
+        regex = r'PixelEnvironment\(\((?P<x>.*), (?P<y>.*)\), (?P<pixels>.*)\)'
+        args = re.search(regex, string_encoding).groupdict()
+        x = int(args['x'])
+        y = int(args['y'])
+        pixels = eval(args['pixels'])
+        width = len(pixels)
+        height = len(pixels[0]) if pixels else 0
+        return PixelEnvironment(width, height, x, y, pixels)
 
     def __deepcopy__(self, memdict={}):
         return PixelEnvironment(self.width, self.height, self.x, self.y, self.pixels)

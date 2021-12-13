@@ -7,8 +7,9 @@ from common.prorgam import Program
 class If(ControlToken):
     """If statement ControlToken."""
 
-    def __init__(self, cond: BoolToken, e1: List[EnvToken], e2: List[EnvToken]):
-        """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute, otherwise 'e2'."""
+    def __init__(self, cond: BoolToken, e1: list[EnvToken], e2: list[EnvToken]):
+        """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute,
+        otherwise 'e2'."""
         self.cond = cond
         self.e1 = e1
         self.e2 = e2
@@ -21,12 +22,12 @@ class If(ControlToken):
         for token in self.e2:
             env = token.apply(env)
         return env
-        #Program(self.e2).interp(env, False)
+        # Program(self.e2).interp(env, False)
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + \
-               sum([t.number_of_tokens(control_cost) for t in self.e1]) + \
-               sum([t.number_of_tokens(control_cost) for t in self.e2])
+    def number_of_tokens(self) -> int:
+        return 1 + \
+               sum([t.number_of_tokens() for t in self.e1]) + \
+               sum([t.number_of_tokens() for t in self.e2])
 
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
@@ -45,11 +46,14 @@ class If(ControlToken):
             )
         return result
 
+
 class Recurse(ControlToken):
     """Recursive calling ControlToken."""
 
-    def __init__(self, cond: Union[None, BoolToken], base_case: List[EnvToken], recursive_case: List[EnvToken]):
-        """Creates a new Recurse ControlToken. When applied, 'cond' is executed. If that yields true, 'recursive_case' is executed and the whole program is called recursively, otherwise 'base_case' is executed. Note that this Token needs a pointer to its parent program to be able to call it recursively."""
+    def __init__(self, cond: Union[None, BoolToken], base_case: list[EnvToken], recursive_case: list[EnvToken]):
+        """Creates a new Recurse ControlToken. When applied, 'cond' is executed. If that yields true, 'recursive_case'
+        is executed and the whole program is called recursively, otherwise 'base_case' is executed. Note that this Token
+        needs a pointer to its parent program to be able to call it recursively."""
         self.cond = cond
         self.base_case = base_case
         self.recursive_case = recursive_case
@@ -70,10 +74,10 @@ class Recurse(ControlToken):
         # else, base case
         return Program(self.base_case).interp(env, False)
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + \
-               sum([t.number_of_tokens(control_cost) for t in self.base_case]) + \
-               sum([t.number_of_tokens(control_cost) for t in self.recursive_case])
+    def number_of_tokens(self) -> int:
+        return 1 + \
+               sum([t.number_of_tokens() for t in self.base_case]) + \
+               sum([t.number_of_tokens() for t in self.recursive_case])
 
     def __str__(self):
         return "Recurse(%s [%s] [%s])" % \
@@ -94,10 +98,11 @@ class Recurse(ControlToken):
             )
         return result
 
+
 class LoopWhile(ControlToken):
     """Loop ControlToken."""
 
-    def __init__(self, cond: BoolToken, loop_body: List[EnvToken]):
+    def __init__(self, cond: BoolToken, loop_body: list[EnvToken]):
         """Creates a new Loop ControlToken. 'loop_body' will run as long as 'cond' is true."""
         self.cond = cond
         self.loop_body = loop_body
@@ -105,19 +110,19 @@ class LoopWhile(ControlToken):
     def apply(self, env: Environment) -> Environment:
         # Raise exception if recursive call limit is reached
         # if the condition is None or true, make recursive call
-        self.calls = 0
+        calls = 0
         while self.cond.apply(env):
-            if self.calls >= 100:
+            if calls >= 100:
                 raise LoopIterationLimitReached()
-            self.calls += 1
+            calls += 1
 
             for token in self.loop_body:
                 token.apply(env)
 
         return env
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + sum([t.number_of_tokens(control_cost) for t in self.loop_body])
+    def number_of_tokens(self) -> int:
+        return 1 + sum([t.number_of_tokens() for t in self.loop_body])
 
     def __str__(self):
         return "LoopWhile(%s [%s])" % \

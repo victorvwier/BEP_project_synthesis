@@ -13,7 +13,7 @@ class SearchAlgorithm:
 
     def __init__(self, time_limit_sec: float):
         self.time_limit_sec = time_limit_sec
-        self._best_program = Program([])
+        self._best_program = Program([])        
 
     @property
     def best_program(self) -> Program:

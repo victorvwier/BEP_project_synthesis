@@ -1,7 +1,7 @@
 from common.tokens.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
 from common.prorgam import *
-from common.experiment import Example, TestCase
 from common.tokens.pixel_tokens import *
+import copy
 import heapq
 
 from search.abstract_search import SearchAlgorithm
@@ -80,7 +80,7 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         return (float("inf"), 1, program)
 
 
-def extend_program(best_program, programs, tokens: List[Token], sample_inputs, sample_outputs):
+def extend_program(best_program, programs, tokens: list[Token], sample_inputs, sample_outputs):
     for token in tokens:
         potentially_better_program = Program(best_program.sequence + [copy.copy(token)])
         program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
