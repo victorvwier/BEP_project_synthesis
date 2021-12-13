@@ -3,7 +3,7 @@ from common.tokens.abstract_tokens import InvalidTransition, Token
 from common.prorgam import Program
 from common.experiment import Example, TestCase
 from search.abstract_search import SearchAlgorithm
-from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile, RecursiveCallLimitReached
+from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhile
 import random
 import math
 
@@ -73,7 +73,7 @@ class MetropolisHasting(SearchAlgorithm):
                 return new_program, cost, solved
             return old_program, ocost, False
             
-        except(InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached):
+        except(InvalidTransition, LoopIterationLimitReached):
             return old_program, ocost, False
 
 class ProposalDistribution():

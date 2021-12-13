@@ -10,7 +10,7 @@ from common.environment import StringEnvironment, RobotEnvironment, PixelEnviron
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import TransToken, BoolToken, InvalidTransition, InventedToken
-from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached, If, LoopWhile
+from common.tokens.control_tokens import LoopIterationLimitReached, If, LoopWhile
 
 from search.MCTS.datastructures import SearchTreeNode, TokenScore
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
@@ -408,8 +408,7 @@ class MCTS(SearchAlgorithm):
             return reward
 
         # catch exceptions that are thrown upon interpreting the program
-        except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
-                LoopIterationLimitReached):
+        except (InvalidTransition, MaxNumberOfIterationsExceededException, LoopIterationLimitReached):
 
             # before raising exception, update token_score
             token_score = self.token_scores_dict[node.chosen_token]

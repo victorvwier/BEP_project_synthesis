@@ -4,6 +4,7 @@ from search.MCTS.mcts import MCTS
 from search.abstract_search import SearchAlgorithm
 from search.gen_prog.vanilla_GP import VanillaGP
 from search.metropolis_hastings.metropolis import MetropolisHasting
+from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
 
 if __name__ == "__main__":
     """
@@ -30,7 +31,8 @@ if __name__ == "__main__":
         [MetropolisHasting, "metro"],
         [Brute, "brute"],
         [MCTS, "mcts"],
-        [VanillaGP, "gp"]
+        [VanillaGP, "gp"],
+        [RemoveNInsertN, "VLNS"]
     ]
 
     results = []
