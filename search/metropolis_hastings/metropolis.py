@@ -7,6 +7,8 @@ from common.tokens.control_tokens import If, LoopIterationLimitReached, LoopWhil
 import random
 import math
 
+from search.search_result import SearchResult
+
 class Mutation():
     def __init__(self, name: str, fun: Callable[[Program], Program]):
         self.name = name
@@ -35,6 +37,10 @@ class MetropolisHasting(SearchAlgorithm):
         mut: Mutation = self.proposal_distribution.sample()
         self._best_program, self.cost, solved = MetropolisHasting.maybe_apply_mutation(examples, self._best_program, self.cost, mut)
         return not solved
+
+
+    def extend_result(self, search_result: SearchResult):
+        return super().extend_result(search_result)
 
 
     @staticmethod

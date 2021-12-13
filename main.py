@@ -28,9 +28,10 @@ if __name__ == "__main__":
     com2, av2 = 0, 0
     metro: Type[SearchAlgorithm] = MetropolisHasting
     brute: Type[SearchAlgorithm] = Brute
-
-    for i in range(1, 10):
-        experiment: Experiment = StringParser().parse_all(file_prefix="4-{}-".format(i))
+    depth = 1
+    for j in range(0, depth):
+        experiment: Experiment = StringParser().parse_specific_range(
+            range(0, 10), range(0, 10), range(0, 10))
         (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
             experiment, metro)
         print('000000')
@@ -39,5 +40,4 @@ if __name__ == "__main__":
         com += com_suc
 
     # """
-    print(com2 / 9 * depth)
-    print(com / 9 * depth)
+    print(com)
