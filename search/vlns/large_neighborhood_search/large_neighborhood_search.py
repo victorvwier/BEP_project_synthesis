@@ -127,7 +127,7 @@ class LNS(SearchAlgorithm):
     def extend_result(self, res: SearchResult) -> SearchResult:
         # Round times for readability
         self.stats["average_visited_length"] /= self.stats["iterations"]
-        self.stats["visited_programs"] = len(self.cost_dict)
+        self.stats["number_of_explored_programs"] = len(self.cost_dict)
         self.stats["time_destroy"] = self.stats["time_destroy"].__round__(3)
         self.stats["time_repair"] = self.stats["time_repair"].__round__(3)
         self.stats["time_cost"] = self.stats["time_cost"].__round__(3)
