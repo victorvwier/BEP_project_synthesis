@@ -6,8 +6,8 @@ from common.tokens.pixel_tokens import *
 from search.gen_prog.vanilla_GP import VanillaGP
 
 def test_gen_fitness():
-    start_state = PixelEnvironment(2, 2, 0, 0, [[False, False], [False, False]])
-    end_state = PixelEnvironment(2, 2, 1, 1, [[False, False], [False, True]])
+    start_state = PixelEnvironment(2, 2, 0, 0, (False, False, False, False))
+    end_state = PixelEnvironment(2, 2, 1, 1, (False, False, False, True))
 
     p1 = Program([If(AtRight(), [MoveDown()], [MoveLeft()]), If(AtRight(), [MoveRight()], [MoveRight()]), If(NotAtRight(), [Draw()], [MoveRight()])])
     p2 = Program([If(AtLeft(), [MoveRight()], [MoveDown()])])
@@ -69,8 +69,8 @@ def test_n_point_crossover():
 def test_vanillaGP():
     trans_tokens = extract_trans_tokens_from_domain_name("pixel")
     bool_tokens = extract_bool_tokens_from_domain_name("pixel")
-    start_state = PixelEnvironment(2, 2, 0, 0, [[False, False], [False, False]])
-    end_state = PixelEnvironment(2, 2, 1, 1, [[False, False], [False, True]])
+    start_state = PixelEnvironment(2, 2, 0, 0, (False, False, False, False))
+    end_state = PixelEnvironment(2, 2, 1, 1, (False, False, False, True))
     # for i in range(0, 51):
     #     search_method = VanillaGP(10.0)
     #     search_method.seed = i
