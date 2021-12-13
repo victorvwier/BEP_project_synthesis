@@ -44,7 +44,10 @@ class MCTS(SearchAlgorithm):
         self.token_scores_dict: Dict[InventedToken, TokenScore] = {}
         self.EXPLORATION_CONSTANT: float = 1.0 / math.sqrt(2)
         self.MAX_TOKEN_TRY: int = float("inf")
-        self.number_of_evaluated_programs: int = 0
+        self.number_of_explored_programs: int = 0
+        self.cost_per_iteration = [(0, float("inf"))]  # save (iteration_number, cost) when new best_program is found
+        self.best_found_programs: List[Program] = []
+        self.number_of_iterations = 0
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
     def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
@@ -60,7 +63,10 @@ class MCTS(SearchAlgorithm):
         self._best_program = Program([])
         resulting_envs = MCTS.get_resulting_envs(program=self._best_program, input_envs=self.input_envs)
         self.smallest_loss = MCTS.compute_loss(resulting_envs, self.output_envs)
-        self.number_of_evaluated_programs += 1
+        self.number_of_explored_programs += 1
+        self.number_of_iterations = 1
+        self.cost_per_iteration = [(self.number_of_iterations, self.smallest_loss)]
+        self.best_found_programs = [self._best_program]
 
         # set the max_expected_loss, which will be used to normalize the exploitation factor in the UCT
         self.max_expected_loss = self.smallest_loss
@@ -85,6 +91,8 @@ class MCTS(SearchAlgorithm):
         # return False to indicate no other iterations are necessary
         if self.smallest_loss <= 0.0001:
             return False
+
+        self.number_of_iterations += 1
 
         try:
             (selected_node, program) = self.select(self.search_tree, Program([]))
@@ -123,7 +131,9 @@ class MCTS(SearchAlgorithm):
 
     def extend_result(self, search_result: SearchResult):
 
-        search_result.dictionary["number_of_evaluated_programs"] = self.number_of_evaluated_programs
+        search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
+        search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
+        search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
         search_result.dictionary["invented_tokens"] = self.invented_tokens
 
         tree_string = str(RenderTree(self.search_tree))
@@ -363,7 +373,7 @@ class MCTS(SearchAlgorithm):
         """Computes the loss and reward for the given program. Also updates the token_score of node.chosen_token based
         on this computed reward. Returns the reward."""
         try:
-            self.number_of_evaluated_programs += 1
+            self.number_of_explored_programs += 1
 
             # try interpreting the found program on the provided examples
             resulting_envs = MCTS.get_resulting_envs(
@@ -401,6 +411,8 @@ class MCTS(SearchAlgorithm):
                 # self._best_program = program
                 self._best_program = program
                 self.smallest_loss = loss
+                self.cost_per_iteration.append((self.number_of_iterations, loss))
+                self.best_found_programs.append(program)
 
             # compute reward, which is expected to be between 0 and 1
             reward = 1.0 * (self.max_expected_loss - loss) / self.max_expected_loss
