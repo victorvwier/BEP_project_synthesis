@@ -1,7 +1,10 @@
 from evaluation.experiment_procedure import *
 from example_parser.string_parser import StringParser
+from search.MCTS.mcts import MCTS
 from search.abstract_search import SearchAlgorithm
+from search.gen_prog.vanilla_GP import VanillaGP
 from search.metropolis_hastings.metropolis import MetropolisHasting
+from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
 
 if __name__ == "__main__":
     """
@@ -24,20 +27,21 @@ if __name__ == "__main__":
     """
       Use this to run groups of experiments defined by file prefix
     """
-    com, av = 0, 0
-    com2, av2 = 0, 0
-    metro: Type[SearchAlgorithm] = MetropolisHasting
-    brute: Type[SearchAlgorithm] = Brute
-    depth = 1
-    for j in range(0, depth):
-        experiment: Experiment = StringParser().parse_specific_range(
-            range(0, 10), range(0, 10), range(0, 10))
-        (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
-            experiment, metro)
-        print('000000')
-        # (ave_suc2, ave_time2, com_suc2) = test_performance_single_experiment(experiment, brute)
-        # com2 += com_suc2
-        com += com_suc
+    searchAlgos : List[Type[SearchAlgorithm]] = [
+        [MetropolisHasting, "metro"],
+        [Brute, "brute"],
+        [MCTS, "mcts"],
+        [VanillaGP, "gp"],
+        [RemoveNInsertN, "VLNS"]
+    ]
 
-    # """
-    print(com)
+    results = []
+    for alg in searchAlgos:
+        experiment: Experiment = RobotParser().parse_specific_range(
+            range(1, 3), range(0, 10), range(0, 10))
+        (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
+            experiment, alg[0])
+        results.append((alg[1], com_suc))
+
+    for res in results:
+        print(res[0], res[1])

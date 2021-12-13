@@ -10,7 +10,7 @@ from common.environment import StringEnvironment, RobotEnvironment, PixelEnviron
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import TransToken, BoolToken, InvalidTransition, InventedToken
-from common.tokens.control_tokens import RecursiveCallLimitReached, LoopIterationLimitReached, If, LoopWhile
+from common.tokens.control_tokens import LoopIterationLimitReached, If, LoopWhile
 
 from search.MCTS.datastructures import SearchTreeNode, TokenScore
 from search.MCTS.exceptions import MaxNumberOfIterationsExceededException, InvalidProgramException, \
@@ -151,22 +151,22 @@ class MCTS(SearchAlgorithm):
         """
         invented_tokens: List[InventedToken] = []
         for token_type in trans_tokens:
-            invented_tokens.append(InventedToken([token_type()]))
+            invented_tokens.append(InventedToken([token_type]))
 
         for bool_token in bool_tokens:
             for trans_token_1 in trans_tokens:
-                invented_tokens.append(InventedToken([If(bool_token(), [trans_token_1()], [])]))
-                invented_tokens.append(InventedToken([LoopWhile(bool_token(), [trans_token_1()])]))
+                invented_tokens.append(InventedToken([If(bool_token, [trans_token_1], [])]))
+                invented_tokens.append(InventedToken([LoopWhile(bool_token, [trans_token_1])]))
 
         for bool_token in bool_tokens:
             for trans_token_1 in trans_tokens:
                 for trans_token_2 in trans_tokens:
                     if trans_token_1 != trans_token_2:
                         invented_tokens.append(InventedToken([
-                            If(bool_token(), [trans_token_1(), trans_token_2()], [])
+                            If(bool_token, [trans_token_1, trans_token_2], [])
                         ]))
                         invented_tokens.append(InventedToken([
-                            LoopWhile(bool_token(), [trans_token_1(), trans_token_2()])
+                            LoopWhile(bool_token, [trans_token_1, trans_token_2])
                         ]))
 
         return invented_tokens
@@ -420,8 +420,7 @@ class MCTS(SearchAlgorithm):
             return reward
 
         # catch exceptions that are thrown upon interpreting the program
-        except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
-                LoopIterationLimitReached):
+        except (InvalidTransition, MaxNumberOfIterationsExceededException, LoopIterationLimitReached):
 
             # before raising exception, update token_score
             token_score = self.token_scores_dict[node.chosen_token]

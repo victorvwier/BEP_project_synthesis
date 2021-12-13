@@ -123,5 +123,5 @@ class Grab(TransToken):
         return env
 
 
-BoolTokens = {AtTop, AtBottom, AtLeft, AtRight, NotAtTop, NotAtBottom, NotAtLeft, NotAtRight}
-TransTokens = {MoveRight, MoveDown, MoveLeft, MoveUp, Drop, Grab}
+BoolTokens = {AtTop(), AtBottom(), AtLeft(), AtRight(), NotAtTop(), NotAtBottom(), NotAtLeft(), NotAtRight()}
+TransTokens = {MoveRight(), MoveDown(), MoveLeft(), MoveUp(), Drop(), Grab()}
