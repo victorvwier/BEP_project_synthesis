@@ -179,7 +179,6 @@ class StringEnvironment(Environment):
             StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
         )
 
-
     def distance(self, other: "StringEnvironment") -> int:
         s1 = "".join(self.string_array)
         s2 = "".join(other.string_array)
@@ -187,7 +186,7 @@ class StringEnvironment(Environment):
         if (s1, s2) not in self.distance_map:
             self.distance_map[(s1,s2)] = self._levenshtein_eff(s1, s2)
 
-        return self.distance_map[(s1,s2)] / max(len(s1), len(s2), 1)
+        return self.distance_map[(s1,s2)]
 
     def correct(self, other: "StringEnvironment") -> bool:
         return self.to_string() == other.to_string()
