@@ -1,7 +1,8 @@
+import heapq
 import json
 import os
 import time
-from collections import Iterable
+from collections import Iterable, Set
 from itertools import chain
 from multiprocessing import Pool
 
@@ -25,20 +26,28 @@ class BatchRun:
                  domain: str,
                  files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
+                 file_name: str = "",
                  multi_core: bool = True,
                  print_results: bool = False):
+
         self.domain = domain
         self.search_algorithm = search_algorithm
         self.algorithm_name = self._get_algorithm_name(search_algorithm)
+        self.file_name = file_name
         self.files = self._complement_iters(domain, files)
         self.multi_core = multi_core
         self.print_results = print_results
 
         self.parser = self._get_parser(domain)
-        self.test_cases = self._get_test_cases(self.files)
 
         self.token_library = extract_trans_tokens_from_domain_name(domain)
         self.bools = extract_bool_tokens_from_domain_name(domain)
+
+        self.path = ""
+        self.append_to_file = self.file_name != ""
+        self._init_store_system()
+
+        self.test_cases = self._get_test_cases()
 
     def run(self) -> dict:
         results = []
@@ -58,6 +67,8 @@ class BatchRun:
                 res = self._test_case(tc)
                 results.append(res)
 
+                self.debug_print(str(res))
+
         for res in results:
             if res['test_cost'] == 0 and res['train_cost'] == 0:
                 correct += 1
@@ -65,10 +76,8 @@ class BatchRun:
             else:
                 not_correct_results.append(res)
 
-            #self.debug_print(str(res))
-
         s = len(self.test_cases)
-        p = (100 * correct / s).__round__(1)
+        p = -1 if s == 0 else (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
         keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs", "number_of_iterations"]
@@ -89,7 +98,8 @@ class BatchRun:
             "results": results,
         }
 
-        self._store_results(final)
+        # Sort file
+        self._sort_file()
 
         return final
 
@@ -110,52 +120,77 @@ class BatchRun:
         }
 
         d.update(result)
-        #d["failed_train_outputs"] = []
-        #d["failed_test_outputs"] = []
 
-        # for ex in test_case.training_examples:
-        #     env = program.interp(ex.input_environment)
-        #     if ex.output_environment.distance(env) > 0:
-        #         d["failed_train_outputs"].append(env)
+        self._store_result(d)
 
-        # for ex in test_case.test_examples:
-        #     try:
-        #         env = program.interp(ex.input_environment)
-
-        #         if ex.output_environment.distance(env) > 0:
-        #             d["failed_test_outputs"].append(env)
-        #     except:
-        #         d["failed_test_outputs"].append("Failed for: {}".format(ex.input_environment))
-
-        self.debug_print(str(d))
+        if self.multi_core:
+            self.debug_print(str(d))
 
         return d
 
-    def _get_test_cases(self, files: (Iterable[int], Iterable[int], Iterable[int])) -> list[TestCase]:
+    def _init_store_system(self):
+        folder = "{}/results/{}".format(os.getcwd(), self.domain)
+
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        if self.file_name == "":
+            self.file_name = "{}-{}.txt".format(self.algorithm_name, timestr)
+            self.last_stored = None
+
+        self.path = "{}/{}".format(folder, self.file_name)
+
+    def _store_result(self, res: dict):
+        with open(self.path, "a") as file:
+            file.write(json.dumps(res))
+            file.write("\n")
+
+    def _get_test_cases(self) -> list[TestCase]:
+        all = self.parser.parse_specific_range(self.files[0], self.files[1], self.files[2])
+
+        if not self.append_to_file:
+            return all
+
+        seen = set()
+        
+        with open(self.path, "r") as file:
+            for line in file.readlines():
+                obj = json.loads(line[:-1])
+                seen.add(self._get_file_index(obj))
+
         res = []
 
-        for i1 in files[0]:
-            for i2 in files[1]:
-                for i3 in files[2]:
-                    res.append(self.parser.parse_file("{}-{}-{}.pl".format(i1, i2, i3)))
+        for tc in all:
+            if tc.index not in seen:
+                res.append(tc)
 
         return res
 
-    def _store_results(self, res: dict):
-        path = "{}/results/{}".format(os.getcwd(), self.domain)
+    def _sort_file(self):
+        res = []
 
-        if not os.path.exists(path):
-            os.makedirs(path)
+        with open(self.path, "r") as file:
+            for line in file.readlines():
+                obj = json.loads(line[:-1])
+                res.append(obj)
 
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        file_name = "{}-{}.json".format(self.algorithm_name, timestr)
+        res = sorted(res, key=self._get_file_index)
 
-        with open("{}/{}".format(path, file_name), "w") as file:
-            file.write(json.dumps(res))
+        with open(self.path, "w") as file:
+            for r in res:
+                file.write(json.dumps(r))
+                file.write("\n")
 
     def debug_print(self, msg: str):
         if self.print_results:
             print(msg)
+
+    @staticmethod
+    def _get_file_index(res: dict) -> (int, int, int):
+        name = res["file"].split("/")[1][:-3]
+        i = name.split("-")
+        return int(i[0]), int(i[1]), int(i[2])
 
     @staticmethod
     def _average(dicts: list[dict], keys: list[str]):

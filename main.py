@@ -40,6 +40,10 @@ if __name__ == "__main__":
 
         # Use multi core processing
         multi_core=True,
+
+        # Use file_name= to append to a file whenever a run got terminated
+        # Comment out argument to create new file.
+        #file_name="VLNS-20211213-162128.txt"
     ).run()
 
     for res in results:
