@@ -31,7 +31,7 @@ class Program:
         return nenv
 
     def number_of_tokens(self, control_cost=2) -> int:
-        return sum([t.number_of_tokens(control_cost) for t in self.sequence])
+        return sum([t.number_of_tokens() for t in self.sequence])
 
     def __str__(self):
         return "Program([%s])" % ", ".join([str(t) for t in self.sequence])

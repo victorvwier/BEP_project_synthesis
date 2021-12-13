@@ -23,10 +23,10 @@ class If(ControlToken):
         return env
         #Program(self.e2).interp(env, False)
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + \
-               sum([t.number_of_tokens(control_cost) for t in self.e1]) + \
-               sum([t.number_of_tokens(control_cost) for t in self.e2])
+    def number_of_tokens(self) -> int:
+        return 1 + \
+               sum([t.number_of_tokens() for t in self.e1]) + \
+               sum([t.number_of_tokens() for t in self.e2])
 
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
@@ -70,10 +70,10 @@ class Recurse(ControlToken):
         # else, base case
         return Program(self.base_case).interp(env, False)
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + \
-               sum([t.number_of_tokens(control_cost) for t in self.base_case]) + \
-               sum([t.number_of_tokens(control_cost) for t in self.recursive_case])
+    def number_of_tokens(self) -> int:
+        return 1 + \
+               sum([t.number_of_tokens() for t in self.base_case]) + \
+               sum([t.number_of_tokens() for t in self.recursive_case])
 
     def __str__(self):
         return "Recurse(%s [%s] [%s])" % \
@@ -116,8 +116,8 @@ class LoopWhile(ControlToken):
 
         return env
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + sum([t.number_of_tokens(control_cost) for t in self.loop_body])
+    def number_of_tokens(self) -> int:
+        return 1 + sum([t.number_of_tokens() for t in self.loop_body])
 
     def __str__(self):
         return "LoopWhile(%s [%s])" % \
