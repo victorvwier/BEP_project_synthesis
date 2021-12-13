@@ -50,6 +50,9 @@ class SearchAlgorithm:
         reached"""
         start_time = time.process_time()
 
+        # Reset String distance dictionary
+        StringEnvironment.distance_map = {}
+
         # Call setup.
         self.setup(training_examples, trans_tokens, bool_tokens)
 
