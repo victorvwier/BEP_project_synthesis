@@ -71,7 +71,7 @@ class BatchRun:
         p = (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
-        keys = ["test_cost", "train_cost", "execution_time", "program_length", "visited_programs", "iterations"]
+        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs", "number_of_iterations"]
         ave_res = self._average(results, keys)
         ave_cor = self._average(correct_results, keys)
         ave_ncor = self._average(not_correct_results, keys)
@@ -106,26 +106,26 @@ class BatchRun:
             "train_cost": SearchAlgorithm.cost(test_case.training_examples, program),
             "execution_time": result["execution_time"],
             "program_length": result["program_length"],
-            "visited_programs": result["visited_programs"],
+            "number_of_explored_programs": result["number_of_explored_programs"],
         }
 
         d.update(result)
         #d["failed_train_outputs"] = []
         #d["failed_test_outputs"] = []
 
-        for ex in test_case.training_examples:
-            env = program.interp(ex.input_environment)
-            if ex.output_environment.distance(env) > 0:
-                d["failed_train_outputs"].append(env)
+        # for ex in test_case.training_examples:
+        #     env = program.interp(ex.input_environment)
+        #     if ex.output_environment.distance(env) > 0:
+        #         d["failed_train_outputs"].append(env)
 
-        for ex in test_case.test_examples:
-            try:
-                env = program.interp(ex.input_environment)
+        # for ex in test_case.test_examples:
+        #     try:
+        #         env = program.interp(ex.input_environment)
 
-                if ex.output_environment.distance(env) > 0:
-                    d["failed_test_outputs"].append(env)
-            except:
-                d["failed_test_outputs"].append("Failed for: {}".format(ex.input_environment))
+        #         if ex.output_environment.distance(env) > 0:
+        #             d["failed_test_outputs"].append(env)
+        #     except:
+        #         d["failed_test_outputs"].append("Failed for: {}".format(ex.input_environment))
 
         self.debug_print(str(d))
 

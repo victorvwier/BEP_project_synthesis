@@ -18,10 +18,11 @@ class Brute(SearchAlgorithm):
         self.token_functions = []
         self.sample_inputs: List[Environment] = []
         self.sample_outputs: List[Environment] = []
-        self.programs = []
+        
 
     def setup(self, examples, trans_tokens, bool_tokens):
-
+        self.programs = []
+        self._best_program = Program([])
         # generate different token combinations
         self.token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
 
