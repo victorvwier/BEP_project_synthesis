@@ -1,6 +1,5 @@
-from common.tokens.control_tokens import LoopIterationLimitReached, RecursiveCallLimitReached
+from common.tokens.control_tokens import LoopIterationLimitReached
 from common.prorgam import *
-from common.experiment import Example, TestCase
 from common.tokens.pixel_tokens import *
 import heapq
 
@@ -76,7 +75,7 @@ def evaluate_program(program, sample_inputs, sample_outputs):
         if (solved):
             return (cum_loss, 0, program)
         return (cum_loss, 1, program)
-    except (InvalidTransition, RecursiveCallLimitReached, LoopIterationLimitReached) as e:
+    except (InvalidTransition, LoopIterationLimitReached) as e:
         return (float("inf"), 1, program)
 
 

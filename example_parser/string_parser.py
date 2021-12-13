@@ -16,7 +16,7 @@ class StringParser(Parser):
 
     def _parse_file_lines(self, file_name: str, lines: 'list[str]') -> TestCase:
         path = Path(__file__).parent.parent.joinpath(self.test_path)
-        with open(path.joinpath(file_name, 'r')) as file:
+        with open(path.joinpath(file_name), 'r') as file:
             test_lines = file.readlines()
 
         return TestCase(

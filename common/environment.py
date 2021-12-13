@@ -27,7 +27,7 @@ class Environment:
         return 100
 
 
-@dataclass(eq=True, unsafe_hash=True)
+@dataclass(eq=True)
 class RobotEnvironment(Environment):
     """Environment for the robot. A robot lives on a square matrix in which it needs to pick up a ball lying somewhere
     in that same matrix."""
