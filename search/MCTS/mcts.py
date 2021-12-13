@@ -48,8 +48,8 @@ class MCTS(SearchAlgorithm):
         self.number_of_iterations = 0
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
-    def setup(self, training_examples: List[Example], trans_tokens: set[Type[TransToken]],
-              bool_tokens: set[Type[BoolToken]]):
+    def setup(self, training_examples: List[Example], trans_tokens: set[TransToken],
+              bool_tokens: set[BoolToken]):
 
         # retrieve input and output environments
         self.input_envs: Tuple[Environment] = tuple(example.input_environment for example in training_examples)
@@ -132,7 +132,9 @@ class MCTS(SearchAlgorithm):
         search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
         search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
         search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
-        search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
+
+        if not isinstance(self.input_envs[0], RobotEnvironment):
+            search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
 
         tree_string = str(RenderTree(self.search_tree))
         search_result.dictionary["rendered_tree"] = tree_string
@@ -140,7 +142,7 @@ class MCTS(SearchAlgorithm):
         return search_result
 
     @staticmethod
-    def MCTS_invent(trans_tokens: set[Type[TransToken]], bool_tokens: set[Type[BoolToken]]) -> List[InventedToken]:
+    def MCTS_invent(trans_tokens: set[TransToken], bool_tokens: set[BoolToken]) -> List[InventedToken]:
         """Returns a list of tokens invented using the given tokens.
         The invented tokens will be:
             - just a single token for each given trans_token
