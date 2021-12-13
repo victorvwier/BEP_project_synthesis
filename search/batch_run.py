@@ -4,6 +4,7 @@ import time
 from collections import Iterable
 from itertools import chain
 from multiprocessing import Pool
+from typing import Tuple
 
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.parser import Parser, TestCase
@@ -23,7 +24,7 @@ class BatchRun:
 
     def __init__(self,
                  domain: str,
-                 files: (Iterable[int], Iterable[int], Iterable[int]),
+                 files: Tuple[Iterable[int], Iterable[int], Iterable[int]],
                  search_algorithm: SearchAlgorithm,
                  multi_core: bool = True,
                  print_results: bool = False):
@@ -131,7 +132,7 @@ class BatchRun:
 
         return d
 
-    def _get_test_cases(self, files: (Iterable[int], Iterable[int], Iterable[int])) -> list[TestCase]:
+    def _get_test_cases(self, files: Tuple[Iterable[int], Iterable[int], Iterable[int]]) -> list[TestCase]:
         res = []
 
         for i1 in files[0]:
@@ -180,7 +181,7 @@ class BatchRun:
             raise Exception()
 
     @staticmethod
-    def _complement_iters(domain: str, iters: (Iterable[int], Iterable[int], Iterable[int])):
+    def _complement_iters(domain: str, iters: Tuple[Iterable[int], Iterable[int], Iterable[int]]):
         def_iter = None
 
         if domain == "string":
