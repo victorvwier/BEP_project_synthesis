@@ -189,14 +189,11 @@ class Drop(TransToken):
     to the left. If the string is empty an InvalidTransition exception will be raised."""
 
     def apply(self, env: StringEnvironment) -> StringEnvironment:
-        nstr = env.string_array
-
-        if len(nstr) == 0:
+        if len(env.string_array) == 0:
             raise InvalidTransition
 
-        i = env.pos
-
-        env.string_array = nstr[0:i] + nstr[i + 1:]
+        #env.string_array = nstr[0:i] + nstr[i + 1:]
+        del env.string_array[env.pos]
 
         env.pos = max(min(len(env.string_array) - 1, env.pos), 0)
 
