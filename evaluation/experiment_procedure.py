@@ -94,7 +94,7 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
         success_percentage = 100.0 * successes / len(test_case.test_examples)
 
-        print(test_case.path_to_result_file, end=" \t")
+        print("evaluation/" + test_case.path_to_result_file, end=" \t")
         print(success_percentage)
         # print(program)
 
