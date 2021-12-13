@@ -112,15 +112,15 @@ class StringEnvironment(Environment):
     string_array: list[str]
     pos: int
 
-    def __init__(self, string: str, pos: int = 0):
+    def __init__(self, string_array: list[str], pos: int = 0):
         """Creates new StringEnvironment given an initial string and starting position of the pointer, 0 by default."""
         super().__init__()
 
         # Manipulating strings as a list of characters is more efficient.
-        self.string_array = list(string)
+        self.string_array = string_array
         self.pos = pos
         
-        assert 0 <= pos < len(string) or len(string) == 0
+        assert 0 <= pos < len(string_array) or len(string_array) == 0
 
     def to_string(self) -> str:
         """Returns the string of this Environment. For efficiency strings are internally stored as an array instead of
@@ -128,7 +128,7 @@ class StringEnvironment(Environment):
         return "".join(self.string_array)
 
     def __deepcopy__(self, memdict={}):
-        return StringEnvironment(self.to_string(), self.pos)
+        return StringEnvironment(string_array=copy.copy(self.string_array), pos=self.pos)
 
     def __hash__(self):
         return hash((self.to_string(), self.pos))
