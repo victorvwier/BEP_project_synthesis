@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Iterable
 
 from common.experiment import *
 
@@ -41,3 +42,21 @@ class Parser:
             list(map(self.parse_file, files)),
         )
 
+    def parse_specific_range(self, task_size: Iterable, task_id: Iterable, trial_number: Iterable = range(1,10), experiment_name: str = "unnamed_experiment") -> Experiment:
+        files = []
+
+        for a in task_size:
+            for b in task_id:
+                for c in trial_number:
+                    file_name = "{}-{}-{}.pl".format(a, b, c)
+                    if(file_name in self.file_names):
+                        files.append(file_name)
+
+        if len(files) == 0:
+            raise Exception("No files were found for the given ranges")
+        
+        return Experiment(
+            experiment_name,
+            self.domain_name,
+            list(map(self.parse_file, files))
+        )

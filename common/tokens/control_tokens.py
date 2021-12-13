@@ -8,7 +8,8 @@ class If(ControlToken):
     """If statement ControlToken."""
 
     def __init__(self, cond: BoolToken, e1: List[EnvToken], e2: List[EnvToken]):
-        """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute, otherwise 'e2'."""
+        """Creates a new If ControlToken. When applied, 'cond' is executed. If that yields true, 'e1' is execute,
+        otherwise 'e2'."""
         self.cond = cond
         self.e1 = e1
         self.e2 = e2
@@ -21,12 +22,12 @@ class If(ControlToken):
         for token in self.e2:
             env = token.apply(env)
         return env
-        #Program(self.e2).interp(env, False)
+        # Program(self.e2).interp(env, False)
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + \
-               sum([t.number_of_tokens(control_cost) for t in self.e1]) + \
-               sum([t.number_of_tokens(control_cost) for t in self.e2])
+    def number_of_tokens(self) -> int:
+        return 1 + \
+               sum([t.number_of_tokens() for t in self.e1]) + \
+               sum([t.number_of_tokens() for t in self.e2])
 
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
@@ -72,8 +73,8 @@ class LoopWhile(ControlToken):
 
         return env
 
-    def number_of_tokens(self, control_cost=2) -> int:
-        return control_cost + sum([t.number_of_tokens(control_cost) for t in self.loop_body])
+    def number_of_tokens(self) -> int:
+        return 1 + sum([t.number_of_tokens() for t in self.loop_body])
 
     def __str__(self):
         return "LoopWhile(%s [%s])" % \

@@ -31,6 +31,7 @@ class MetropolisHasting(SearchAlgorithm):
         for i in range(0, 1000):
             mut: Mutation = proposal_distribution.sample()
             program, cost, solved = MetropolisHasting.maybe_apply_mutation(test_case, program, cost, mut)
+            #print(cost, end=", ")
             if solved:
                 return program
         return program

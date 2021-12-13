@@ -1,5 +1,7 @@
 import time
+import os
 from pathlib import Path
+from multiprocessing import Pool
 
 from typing import Type
 from common.prorgam import *
@@ -13,12 +15,11 @@ from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 
 import common.tokens.string_tokens as string_tokens
-
-
-MAX_EXECUTION_TIME_IN_SECONDS = 10
-
 from search.search_result import SearchResult
 
+MAX_EXECUTION_TIME_IN_SECONDS = 10
+MULTI_PROCESS = False
+NO_PROCESSES = os.cpu_count() - 1
 
 def extract_domain_from_environment(environment):
     domain_name = "unknown"
@@ -62,9 +63,9 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
     path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w+") as file:
+    with open(path, "w+", encoding="utf-8") as file:
 
-        file.writelines(["Program: "  + str(program.sequence) + "\n \n"])
+        file.writelines(["Program: " + str(program.sequence) + "\n \n"])
 
         execution_time_in_seconds = finish_time - start_time
         successes = 0
@@ -93,16 +94,19 @@ def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_to
 
         success_percentage = 100.0 * successes / len(test_case.test_examples)
 
-        print(test_case.path_to_result_file, end=" \t")
+        print("evaluation/" + test_case.path_to_result_file, end=" \t")
         print(success_percentage)
         # print(program)
 
 
         # file = open(test_case.path_to_result_file, "a+")
         file.writelines([
-            "succes_percentage: " + str(success_percentage) + "\n",
-            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n"
+            "success_percentage: " + str(success_percentage) + "\n",
+            "execution_time_in_seconds" + str(execution_time_in_seconds) + "\n\n"
         ])
+
+        for key in search_result.dictionary:
+            file.writelines(["%s:%s \n" % (key, search_result.dictionary[key])])
 
     return success_percentage, execution_time_in_seconds
 
@@ -119,11 +123,21 @@ def test_performance_single_experiment(experiment: Experiment, search: Type[Sear
     bool_tokens = extract_bool_tokens_from_domain_name(experiment.domain_name)
     trans_tokens = extract_trans_tokens_from_domain_name(experiment.domain_name)
 
-    for test_case in test_cases:
-        success_percentage, execution_time_in_seconds = test_performance_single_case_and_write_to_file(test_case,
-                                                                                                       trans_tokens,
-                                                                                                       bool_tokens,
-                                                                                                       search)
+    results = []
+    if MULTI_PROCESS:
+        with Pool(processes=NO_PROCESSES) as pool:
+            for tc in test_cases:
+                result = pool.apply_async(test_performance_single_case_and_write_to_file, (tc, trans_tokens, bool_tokens, search))
+                results.append(result)
+
+            results = [r.get() for r in results]
+    else:
+        for tc in test_cases:
+            result = test_performance_single_case_and_write_to_file(tc, trans_tokens, bool_tokens, search)
+            results.append(result)
+
+    for result in results:
+        success_percentage, execution_time_in_seconds = result
         sum_of_success_percentages += success_percentage
         sum_of_execution_times_in_seconds += execution_time_in_seconds
         if success_percentage == 100.0:
@@ -136,7 +150,8 @@ def test_performance_single_experiment(experiment: Experiment, search: Type[Sear
     return average_success_percentage, average_execution_time, percentage_of_completely_successful_programs
 
 
-def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str, search_algorithm: SearchAlgorithm):
+def write_performances_of_experiments_to_file(experiments: List[Experiment], output_file: str,
+                                              search_algorithm: Type[SearchAlgorithm]):
     lines_to_write = []
 
     for experiment in experiments:
