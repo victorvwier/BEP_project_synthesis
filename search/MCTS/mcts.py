@@ -1,6 +1,4 @@
-# import copy
 import math
-# import random
 from collections import deque
 from typing import List, Union, Type, Tuple, Dict
 
@@ -187,7 +185,7 @@ class MCTS(SearchAlgorithm):
                 program_output = program.interp(example.input_environment)
                 loss = example.output_environment.distance(program_output)
                 total_loss += loss
-        except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
+        except (InvalidTransition, MaxNumberOfIterationsExceededException,
                 LoopIterationLimitReached):
             raise InvalidProgramException
 
@@ -205,8 +203,7 @@ class MCTS(SearchAlgorithm):
                     not_correct_punishment = 1
                 loss = result_env.distance(wanted_env) + not_correct_punishment
                 total_loss += loss
-        except (InvalidTransition, MaxNumberOfIterationsExceededException, RecursiveCallLimitReached,
-                LoopIterationLimitReached):
+        except (InvalidTransition, MaxNumberOfIterationsExceededException, LoopIterationLimitReached):
             raise InvalidProgramException
 
         return total_loss / len(resulting_envs)
