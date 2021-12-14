@@ -6,6 +6,7 @@ import heapq
 
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
+from search.search_result import SearchResult
 
 MAX_NUMBER_OF_ITERATIONS = 10
 MAX_TOKEN_FUNCTION_DEPTH = 3
@@ -37,6 +38,7 @@ class Brute(SearchAlgorithm):
 
         self.number_of_explored_programs = 0
         self.cost_per_iteration = []   # save (iteration_number, cost) when new best_program is found
+        self.program_length_per_iteration = []  # (iteration_number, program_length)
         self.number_of_iterations = 0
 
     def iteration(self, examples, trans_tokens, bool_tokens) -> bool:
@@ -44,6 +46,7 @@ class Brute(SearchAlgorithm):
         (cost, solved, self.current_program) = heapq.heappop(self.programs)
 
         self.cost_per_iteration.append((self.number_of_iterations, cost))
+        self.program_length_per_iteration.append((self.number_of_iterations, self.current_program.number_of_tokens()))
         if cost < self.best_cost:
             self._best_program = self.current_program
             self.best_cost = cost
@@ -69,6 +72,11 @@ class Brute(SearchAlgorithm):
                 heapq.heappush(programs, program_new)
         # updated_programs = sorted(updated_programs, key=lambda x: (x[2], x[1]))
         return programs
+
+    def extend_result(self, search_result: SearchResult):
+        search_result.dictionary['program_length_per_iteration'] = self.program_length_per_iteration
+        return search_result
+
 
 def print_p(p):
     print(p.sequence)

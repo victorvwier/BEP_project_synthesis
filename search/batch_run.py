@@ -67,7 +67,7 @@ class BatchRun:
                 res = self._test_case(tc)
                 results.append(res)
 
-                self.debug_print(str(res))
+                self.debug_print(f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
 
         for res in results:
             if res['test_cost'] == 0 and res['train_cost'] == 0:
@@ -124,7 +124,8 @@ class BatchRun:
         self._store_result(d)
 
         if self.multi_core:
-            self.debug_print(str(d))
+            self.debug_print(
+                f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
 
         return d
 
