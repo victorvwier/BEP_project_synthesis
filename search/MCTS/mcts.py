@@ -145,13 +145,13 @@ class MCTS(SearchAlgorithm):
 
     def extend_result(self, search_result: SearchResult):
 
-        # search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
-        # search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
-        # search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
-        # search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
-        #
-        # tree_string = str(RenderTree(self.search_tree))
-        # search_result.dictionary["rendered_tree"] = tree_string
+        search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
+        search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
+        search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
+        search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
+
+        tree_string = str(RenderTree(self.search_tree))
+        search_result.dictionary["rendered_tree"] = tree_string
 
         return search_result
 
