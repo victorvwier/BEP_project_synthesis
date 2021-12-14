@@ -2,9 +2,9 @@ import heapq
 import json
 import os
 import time
-from collections import Iterable, Set
+from collections.abc import Iterable
 from itertools import chain
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.parser import Parser, TestCase
@@ -49,22 +49,42 @@ class BatchRun:
 
         self.test_cases = self._get_test_cases()
 
+    def listener(self, queue_for_writing_to_file):
+        while True:
+            d = queue_for_writing_to_file.get()
+            if d == "kill":
+                break
+
+            self._store_result(d)
+
     def run(self) -> dict:
         results = []
         correct_results = []
         not_correct_results = []
         correct = 0
 
-        if self.multi_core:
-            with Pool(processes=os.cpu_count() - 1) as pool:
-                for tc in self.test_cases:
-                    res = pool.apply_async(self._test_case, (tc,))
-                    results.append(res)
+        manager = Manager()
+        queue_for_writing_to_file = manager.Queue()
 
-                results = [r.get() for r in results]
+        pool = Pool(os.cpu_count() - 2)
+        watcher = pool.apply_async(self.listener, (queue_for_writing_to_file,))
+
+        if self.multi_core:
+            # with Pool(processes=os.cpu_count() - 1) as pool:
+            #     for tc in self.test_cases:
+            #         res = pool.apply_async(self._test_case, (tc,))
+            #         results.append(res)
+            #
+            #     results = [r.get() for r in results]
+            for tc in self.test_cases:
+                res = pool.apply_async(self._test_case, (tc, queue_for_writing_to_file))
+                results.append(res)
+
+            results = [r.get() for r in results]
+
         else:
             for tc in self.test_cases:
-                res = self._test_case(tc)
+                res = self._test_case(tc, queue_for_writing_to_file)
                 results.append(res)
 
                 self.debug_print(f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
@@ -98,12 +118,14 @@ class BatchRun:
             "results": results,
         }
 
+        queue_for_writing_to_file.put("kill")
+
         # Sort file
         self._sort_file()
 
         return final
 
-    def _test_case(self, test_case: TestCase) -> dict:
+    def _test_case(self, test_case: TestCase, queue_for_writing_to_file) -> dict:
         result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
         program = result["program"]
         result["program"] = str(program)
@@ -121,7 +143,8 @@ class BatchRun:
 
         d.update(result)
 
-        self._store_result(d)
+        # self._store_result(d)
+        queue_for_writing_to_file.put(d)
 
         if self.multi_core:
             self.debug_print(

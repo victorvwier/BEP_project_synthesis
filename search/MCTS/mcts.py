@@ -1,6 +1,6 @@
 import math
 from collections import deque
-from typing import List, Union, Type, Tuple, Dict
+from typing import List, Union, Type, Tuple
 
 from anytree import RenderTree
 
@@ -35,21 +35,37 @@ class MCTS(SearchAlgorithm):
         self.smallest_loss: float = float("inf")
         self.max_expected_loss: float = float("inf")  # is used for normalizing exploitation factor
         self.search_tree: Union[SearchTreeNode, None] = None
-        self.invented_tokens: List[InventedToken] = []
-        self.input_envs: Tuple[Environment]
-        self.output_envs: Tuple[Environment]
-        self.dict_with_obtained_output_environments: Dict[Tuple[Environment], SearchTreeNode] = {}
-        self.token_scores_dict: Dict[InventedToken, TokenScore] = {}
+        self.invented_tokens: list[InventedToken] = []
+        self.input_envs: tuple[Environment]
+        self.output_envs: tuple[Environment]
+        self.dict_with_obtained_output_environments: dict[Tuple[Environment], SearchTreeNode] = {}
+        self.token_scores_dict: dict[InventedToken, TokenScore] = {}
         self.EXPLORATION_CONSTANT: float = 1.0 / math.sqrt(2)
-        self.MAX_TOKEN_TRY: int = float("inf")
+        self.MAX_TOKEN_TRY = float("inf")
         self.number_of_explored_programs: int = 0
         self.cost_per_iteration = [(0, float("inf"))]  # save (iteration_number, cost) when new best_program is found
-        self.best_found_programs: List[Program] = []
+        self.best_found_programs: list[Program] = []
         self.number_of_iterations = 0
 
     # TODO make sure that the type of trans_ and bool_token is set[Type[Token]] and not set[Token]
-    def setup(self, training_examples: List[Example], trans_tokens: set[TransToken],
+    def setup(self, training_examples: list[Example], trans_tokens: set[TransToken],
               bool_tokens: set[BoolToken]):
+
+        self._best_program: Program
+        self.smallest_loss: float = float("inf")
+        self.max_expected_loss: float = float("inf")  # is used for normalizing exploitation factor
+        self.search_tree: Union[SearchTreeNode, None] = None
+        self.invented_tokens: list[InventedToken] = []
+        self.input_envs: tuple[Environment]
+        self.output_envs: tuple[Environment]
+        self.dict_with_obtained_output_environments: dict[Tuple[Environment], SearchTreeNode] = {}
+        self.token_scores_dict: dict[InventedToken, TokenScore] = {}
+        self.EXPLORATION_CONSTANT: float = 1.0 / math.sqrt(2)
+        self.MAX_TOKEN_TRY = float("inf")
+        self.number_of_explored_programs: int = 0
+        self.cost_per_iteration = [(0, float("inf"))]  # save (iteration_number, cost) when new best_program is found
+        self.best_found_programs: list[Program] = []
+        self.number_of_iterations = 0
 
         # retrieve input and output environments
         self.input_envs: Tuple[Environment] = tuple(example.input_environment for example in training_examples)
@@ -132,9 +148,7 @@ class MCTS(SearchAlgorithm):
         search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
         search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
         search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
-
-        if not isinstance(self.input_envs[0], RobotEnvironment):
-            search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
+        search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
 
         tree_string = str(RenderTree(self.search_tree))
         search_result.dictionary["rendered_tree"] = tree_string
@@ -187,8 +201,7 @@ class MCTS(SearchAlgorithm):
                 program_output = program.interp(example.input_environment)
                 loss = example.output_environment.distance(program_output)
                 total_loss += loss
-        except (InvalidTransition, MaxNumberOfIterationsExceededException,
-                LoopIterationLimitReached):
+        except (InvalidTransition, MaxNumberOfIterationsExceededException, LoopIterationLimitReached):
             raise InvalidProgramException
 
         return total_loss / len(examples)
@@ -198,7 +211,6 @@ class MCTS(SearchAlgorithm):
         total_loss = 0.0
         try:
             for result_env, wanted_env in zip(resulting_envs, wanted_envs):
-                not_correct_punishment: int = 0
                 if result_env.correct(wanted_env):
                     not_correct_punishment = 0
                 else:
@@ -407,7 +419,6 @@ class MCTS(SearchAlgorithm):
 
             # check if the current program is beats self._best_program
             if loss < self.smallest_loss:
-                # self._best_program = program
                 self._best_program = program
                 self.smallest_loss = loss
                 self.cost_per_iteration.append((self.number_of_iterations, loss))
