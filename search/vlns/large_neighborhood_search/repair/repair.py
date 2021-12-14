@@ -1,6 +1,3 @@
-import random
-from collections import Sequence
-
 from common.prorgam import Program
 from common.tokens.abstract_tokens import EnvToken
 

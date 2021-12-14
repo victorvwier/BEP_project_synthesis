@@ -1,5 +1,4 @@
 import time
-from collections import Callable
 
 from common.experiment import Example
 from common.prorgam import Program

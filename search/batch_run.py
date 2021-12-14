@@ -2,7 +2,7 @@ import heapq
 import json
 import os
 import time
-from collections import Iterable, Set
+from collections.abc import Iterable
 from itertools import chain
 from multiprocessing import Pool
 
