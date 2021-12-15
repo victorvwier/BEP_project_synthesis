@@ -143,6 +143,19 @@ class MCTS(SearchAlgorithm):
             self.EXPLORATION_CONSTANT = 0.25 / math.sqrt(2)
             self.MAX_TOKEN_TRY = 11
 
+    @staticmethod
+    def find_program_from_leave(node: SearchTreeNode):
+        if (node is None) or (node.chosen_token is None):
+            return Program([])
+
+        current_node = node
+        program = Program([])
+        while (current_node is not None) and (current_node.chosen_token is not None):
+            program.sequence.insert(0, current_node.chosen_token)
+            current_node = current_node.parent
+
+        return program
+
     def extend_result(self, search_result: SearchResult):
 
         search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
@@ -150,6 +163,13 @@ class MCTS(SearchAlgorithm):
         search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
         search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
 
+        programs_in_search_tree = []
+        for leave in self.search_tree.leaves:
+            pass
+            program = MCTS.find_program_from_leave(leave)
+            programs_in_search_tree.append(str(program))
+
+        search_result.dictionary["programs_in_search_tree"] = programs_in_search_tree
         tree_string = str(RenderTree(self.search_tree))
         search_result.dictionary["rendered_tree"] = tree_string
 
