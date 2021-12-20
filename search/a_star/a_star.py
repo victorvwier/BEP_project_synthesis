@@ -116,9 +116,9 @@ class AStar(SearchAlgorithm):
         gcost = 0
         hcost = h(start_node, end_node)
         fcost = f(gcost, hcost)
-        queue.insert(start_node, fcost)
+        queue.insert(start_node, fcost, 0)  # ignore tie break for now
         while queue:
-            node, fcost = queue.pop()
+            node, fcost, _ = queue.pop()
             gcost, _, _ = self.reached[node]
             hcost = h(node, end_node)
             self.save_node_stats(node, fcost, gcost, hcost)
@@ -137,7 +137,7 @@ class AStar(SearchAlgorithm):
                         self.reached[child] = gcost_child, node, token
                         hcost_child = h(child, end_node)
                         fcost_child = f(gcost_child, hcost_child)
-                        queue.insert(child, fcost_child)
+                        queue.insert(child, fcost_child, 0)  # ignore tie break for now
                 except(InvalidTransition, LoopIterationLimitReached):
                     pass
         return

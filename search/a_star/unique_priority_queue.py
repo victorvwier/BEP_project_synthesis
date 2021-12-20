@@ -7,6 +7,7 @@ from typing import Union
 @dataclass(init=True, order=True)
 class Node:
     priority: float
+    secondary: float
     count: int
     item: any = field(compare=False)
 
@@ -18,7 +19,7 @@ class UniquePriorityQueue:
         self.item_set: dict[any, Union[Node, None]] = dict()
         self.count = itertools.count()
 
-    def insert(self, item: any, priority: float) -> bool:
+    def insert(self, item: any, priority: float, secondary: float) -> bool:
         """
         Inserts item with given priority in queue or update the priority if the item is already present.
         @param item: Object to insert in the queue
@@ -29,7 +30,7 @@ class UniquePriorityQueue:
         if item in self.item_set:
             self.item_set[item].item = None
             updated = True
-        new_node = Node(priority, next(self.count), item)
+        new_node = Node(priority, secondary, next(self.count), item)
         heappush(self.heap, new_node)
         self.item_set[item] = new_node
         return updated
@@ -44,7 +45,7 @@ class UniquePriorityQueue:
             node = heappop(self.heap)
             if node.item is not None:
                 self.item_set.pop(node.item)
-                return node.item, node.priority
+                return node.item, node.priority, node.secondary
         raise IndexError("Queue is empty.")
 
     def __bool__(self):
