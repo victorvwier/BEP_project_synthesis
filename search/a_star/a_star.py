@@ -79,11 +79,17 @@ class AStar(SearchAlgorithm):
         return min(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
 
     @staticmethod
+    def _heuristic_max(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
+        return max(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+
+    @staticmethod
     def _heuristic_sum(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
         return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
 
     @staticmethod
     def _find_program(node, reached):
+        if node is None:
+            return Program([])
         sequence = []
         while reached[node][1]:
             sequence.append(reached[node][2])
