@@ -163,15 +163,15 @@ class MCTS(SearchAlgorithm):
         search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
         search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
 
-        programs_in_search_tree = []
-        for leave in self.search_tree.leaves:
-            pass
-            program = MCTS.find_program_from_leave(leave)
-            programs_in_search_tree.append(str(program))
+        # programs_in_search_tree = []
+        # for leave in self.search_tree.leaves:
+        #     pass
+        #     program = MCTS.find_program_from_leave(leave)
+        #     programs_in_search_tree.append(str(program))
 
-        search_result.dictionary["programs_in_search_tree"] = programs_in_search_tree
-        tree_string = str(RenderTree(self.search_tree))
-        search_result.dictionary["rendered_tree"] = tree_string
+        # search_result.dictionary["programs_in_search_tree"] = programs_in_search_tree
+        # tree_string = str(RenderTree(self.search_tree))
+        # search_result.dictionary["rendered_tree"] = tree_string
 
         return search_result
 
