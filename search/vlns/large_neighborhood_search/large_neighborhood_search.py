@@ -60,6 +60,8 @@ class LNS(SearchAlgorithm):
         self.stats["time_destroy"] = 0
         self.stats["time_repair"] = 0
         self.stats["time_cost"] = 0
+        self.stats["explored_per_size_tokens"] = []
+        self.stats["explored_per_size_sequence"] = []
         self.cost_per_iteration = []
 
     def iteration(self, test_case: list[Example], tokens: list[EnvToken], bt) -> bool:
@@ -140,6 +142,19 @@ class LNS(SearchAlgorithm):
 
         if key not in self.cost_dict:
             self.cost_dict[key] = self.cost(test_case, program)
+
             self.number_of_explored_programs += 1
+
+            st = program.number_of_tokens()
+            ss = len(program.sequence)
+
+            while len(self.stats["explored_per_size_tokens"]) <= st:
+                self.stats["explored_per_size_tokens"].append(0)
+
+            while len(self.stats["explored_per_size_sequence"]) <= ss:
+                self.stats["explored_per_size_sequence"].append(0)
+
+            self.stats["explored_per_size_tokens"][st] += 1
+            self.stats["explored_per_size_sequence"][ss] += 1
 
         return self.cost_dict[key]
