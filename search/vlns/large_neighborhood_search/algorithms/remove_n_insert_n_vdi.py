@@ -8,7 +8,7 @@ from search.vlns.large_neighborhood_search.large_neighborhood_search import LNS
 from search.vlns.large_neighborhood_search.repair.insert_n_repair import InsertNRepair
 
 
-class RemoveNInsertN(LNS):
+class RemoveNInsertNVDI(LNS):
 
     def __init__(self, time_limit=10):
         super().__init__(
@@ -21,8 +21,8 @@ class RemoveNInsertN(LNS):
 
             repair=InsertNRepair(initial_max_n=3, max_max_n=3, w_trans=1, w_loop=1, w_if=0),
 
-            invent=StaticInvent(),
-            #invent=VariableDepthInvent(depths=[(1, 1), (2, 1), (2, 2)]),
+            #invent=StaticInvent(),
+            invent=VariableDepthInvent(depths=[(1, 1), (2, 1), (2, 2)]),
 
             increase_depth_after=3000,
             debug=False,
