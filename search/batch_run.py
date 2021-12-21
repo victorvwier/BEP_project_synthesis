@@ -18,6 +18,7 @@ from search.brute.brute import Brute
 from search.gen_prog.vanilla_GP import VanillaGP
 from search.metropolis_hastings.metropolis import MetropolisHasting
 from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
+from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n_vdi import RemoveNInsertNVDI
 
 
 class BatchRun:
@@ -63,28 +64,23 @@ class BatchRun:
         not_correct_results = []
         correct = 0
 
-        manager = Manager()
-        queue_for_writing_to_file = manager.Queue()
+        #manager = Manager()
+        #queue_for_writing_to_file = manager.Queue()
 
-        pool = Pool(os.cpu_count() - 2)
-        watcher = pool.apply_async(self.listener, (queue_for_writing_to_file,))
+        #pool = Pool(os.cpu_count() - 2)
+        #watcher = pool.apply_async(self.listener, (queue_for_writing_to_file,))
 
         if self.multi_core:
-            # with Pool(processes=os.cpu_count() - 1) as pool:
-            #     for tc in self.test_cases:
-            #         res = pool.apply_async(self._test_case, (tc,))
-            #         results.append(res)
-            #
-            #     results = [r.get() for r in results]
-            for tc in self.test_cases:
-                res = pool.apply_async(self._test_case, (tc, queue_for_writing_to_file))
-                results.append(res)
+            with Pool(processes=os.cpu_count() - 1) as pool:
+                for tc in self.test_cases:
+                    res = pool.apply_async(self._test_case, (tc,))
+                    results.append(res)
 
-            results = [r.get() for r in results]
+                results = [r.get() for r in results]
 
         else:
             for tc in self.test_cases:
-                res = self._test_case(tc, queue_for_writing_to_file)
+                res = self._test_case(tc)
                 results.append(res)
 
                 self.debug_print(f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
@@ -118,14 +114,14 @@ class BatchRun:
             "results": results,
         }
 
-        queue_for_writing_to_file.put("kill")
+        # queue_for_writing_to_file.put("kill")
 
         # Sort file
         self._sort_file()
 
         return final
 
-    def _test_case(self, test_case: TestCase, queue_for_writing_to_file) -> dict:
+    def _test_case(self, test_case: TestCase) -> dict:
         result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
         program = result["program"]
         result["program"] = str(program)
@@ -143,8 +139,8 @@ class BatchRun:
 
         d.update(result)
 
-        # self._store_result(d)
-        queue_for_writing_to_file.put(d)
+        self._store_result(d)
+        # queue_for_writing_to_file.put(d)
 
         if self.multi_core:
             self.debug_print(
@@ -265,6 +261,7 @@ class BatchRun:
             MCTS: "mcts",
             VanillaGP: "gp",
             RemoveNInsertN: "VLNS",
+            RemoveNInsertNVDI: "VLNS_vdi",
             AStar: "Astar",
         }
 
