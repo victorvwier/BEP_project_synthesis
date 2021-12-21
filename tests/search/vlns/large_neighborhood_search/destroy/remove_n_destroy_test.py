@@ -2,7 +2,7 @@ import unittest
 
 from common.prorgam import Program
 from common.tokens.string_tokens import *
-from search.vlns.large_neighborhood_search.destroy.remove_n_destroy import ExtractNDestroy
+from search.vlns.large_neighborhood_search.destroy.remove_n_destroy_old import ExtractNDestroy
 
 
 class MyTestCase(unittest.TestCase):
