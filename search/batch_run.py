@@ -25,7 +25,7 @@ class BatchRun:
 
     def __init__(self,
                  domain: str,
-                 files: (Iterable[int], Iterable[int], Iterable[int]),
+                 files: Tuple[Iterable[int], Iterable[int], Iterable[int]],
                  search_algorithm: SearchAlgorithm,
                  file_name: str = "",
                  multi_core: bool = True,
@@ -235,7 +235,7 @@ class BatchRun:
             raise Exception()
 
     @staticmethod
-    def _complement_iters(domain: str, iters: (Iterable[int], Iterable[int], Iterable[int])):
+    def _complement_iters(domain: str, iters: Tuple[Iterable[int], Iterable[int], Iterable[int]]):
         def_iter = None
 
         if domain == "string":
