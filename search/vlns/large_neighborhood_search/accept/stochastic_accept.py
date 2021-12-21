@@ -18,23 +18,10 @@ class StochasticAccept(Accept):
         self.temperature = initial_temperature
         self.cooling_factor = cooling_factor
 
-        # Set iteration to -1 to denote it has not run any iteration yet.
-        self.iteration = -1
-
     def reset(self):
         self.temperature = self.initial_temperature
-        self.iteration = -1
 
-    def accept(self, cost_current: float, cost_temporary: float, program_current: Program, program_temporary: Program, iteration: int) -> bool:
-        # Set iteration to first seen iteration value.
-        if self.iteration == -1:
-            self.iteration = iteration
-
-        # Whenever a new iteration begins, set new temperature.
-        if iteration > self.iteration:
-            self.iteration = iteration
-            self.temperature *= self.cooling_factor
-
+    def accept(self, cost_current: float, cost_temporary: float, program_current: Program, program_temporary: Program) -> bool:
         # When equal, select with lowest number of tokens
         if cost_temporary == cost_current:
             return program_temporary.number_of_tokens() < program_current.number_of_tokens()
@@ -45,6 +32,8 @@ class StochasticAccept(Accept):
 
         # Probability of accepting otherwise.
         prob = exp(-(cost_temporary - cost_current) / self.temperature)
+
+        self.temperature *= self.cooling_factor
 
         # Return true with that probability.
         return random.random() < prob
