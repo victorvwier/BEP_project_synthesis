@@ -9,7 +9,7 @@ class Destroy:
 
         raise NotImplementedError()
 
-    def set_search_depth(self, n: int):
+    def reset(self):
         pass
 
     def increment_search_depth(self):

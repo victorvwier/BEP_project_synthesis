@@ -1,4 +1,4 @@
-from random import random, choices
+import random
 
 from common.prorgam import Program
 from common.tokens.abstract_tokens import EnvToken
@@ -10,52 +10,36 @@ class ExtractNDestroy(Destroy):
     random N is selected from n_options according to weight distribution n_weight. N tokens, including the current
     token, will be removed from the sequence splitting the sequence.
 
-    This destroy method runs in O(n), where n is the sequence size.
+    This destroy method runs in O(1).
     """
 
-    def __init__(self, p_extract: float, n_options: list[int], n_weights):
+    def __init__(self, initial_max_n: int, max_max_n: int):
         """See class documentation."""
-        assert 0 <= p_extract <= 1
+        assert initial_max_n >= 0
 
         super().__init__()
 
-        self.p_extract = p_extract
-        self.n_options = n_options
-        self.n_weights = n_weights
+        self.initial_max_n = initial_max_n
+        self.max_n = initial_max_n
+        self.max_max_n = max_max_n
+
+    def reset(self):
+        self.max_n = self.initial_max_n
 
     def destroy(self, program: Program) -> list[list[EnvToken]]:
-        seq = program.sequence
-        res = [[]]
+        # Pick N
+        mn = min(self.max_n, len(program.sequence))
+        n = random.randint(0, mn + 1)
 
-        index = 0
+        # Pick index of first to be destroyed token
+        i = random.randint(0, len(program.sequence) - n + 1)
 
-        while index < len(seq):
-            # Start extracting if this yields True.
-            if random() < self.p_extract:
-                # Pick N according to weights
-                n = choices(self.n_options, weights=self.n_weights)[0]
+        # Return slice of part before destroyed and after
+        return [
+            program.sequence[:i],
+            program.sequence[i+n:]
+        ]
 
-                # Lower N if it is larger than amount of remaining tokens
-                n = min(n, len(seq) - index)
-
-                # Skip n tokens
-                index += n
-
-                # Create new empty sub sequence
-                res.append([])
-
-            # Else add the token to the last sub sequence
-            else:
-                res[len(res) - 1].append(seq[index])
-                index += 1
-
-        # Append empty sequence.
-        # - This will make sure the repair method can always stitch at least two subsequences together.
-        if len(res) == 1:
-            res.append([])
-
-        return res
-
-    def set_search_depth(self, n: int):
-        self.n_weights = [1] * (n+1)
-        self.n_options = range(0, n+1)
+    def increment_search_depth(self):
+        if self.max_n != self.max_max_n:
+            self.max_n += 1
