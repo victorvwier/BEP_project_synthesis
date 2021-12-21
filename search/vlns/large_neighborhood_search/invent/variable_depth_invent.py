@@ -32,9 +32,6 @@ class VariableDepthInvent(Invent):
         self._ifs.extend(self._all_ifs(d[0], d[1]))
         self._loops.extend(self._all_loops(d[0], d[1]))
 
-        print("Loops", len(self._loops))
-        print("Ifs", len(self._ifs))
-
     def _all_ifs(self, n: int, control_tokens: int, full: bool = False) -> list[If]:
         if n == 0 or (n == 1 and full) or control_tokens == 0:
             return []
