@@ -4,43 +4,36 @@ import random
 from common.tokens.abstract_tokens import TransToken, BoolToken, EnvToken, ControlToken
 from common.tokens.control_tokens import If, LoopWhile
 from common.tokens.string_tokens import MoveRight, AtEnd, NotAtEnd
+from search.vlns.large_neighborhood_search.invent.invent import Invent
 
 
-class VariableDepthInvent:
-    def __init__(self, trans_tokens: list[TransToken], bool_tokens: list[BoolToken], max_depth: int, max_control_tokens: int):
-        self._trans_tokens = trans_tokens
-        self._bool_tokens = bool_tokens
-        self._max_depth = max_depth
-        self._max_control_tokens = max_control_tokens
+class VariableDepthInvent(Invent):
 
-        self._depth = 2
+    def __init__(self, depths: list[(int, int)]):
+        super().__init__()
 
-        self._ifs = self._all_ifs(1, 1)
-        self._loops = self._all_loops(1, 1)
+        self._depths = depths
+        self._depth = -1
+
+    def setup(self, trans_tokens: list[TransToken], bool_tokens: list[BoolToken]):
+        super().setup(trans_tokens, bool_tokens)
+
+        self._depth = -1
+        self.increment_depth()
 
     def increment_depth(self):
-        if self._depth == self._max_depth:
+        if self._depth == len(self._depths) - 1:
             return
 
         self._depth += 1
-        self._ifs.extend(self._all_ifs(self._depth, self._max_control_tokens))
-        self._loops.extend(self._all_loops(self._depth, self._max_control_tokens))
 
-    def random_token(self, w_trans: float, w_if: float, w_loop: float) -> EnvToken:
-        return random.choices([
-            self.random_trans_token,
-            self.random_if_token,
-            self.random_loop_token,
-        ], [w_trans, w_if, w_loop], k=1)[0]()
+        d = self._depths[self._depth]
 
-    def random_trans_token(self) -> TransToken:
-        return random.sample(self._trans_tokens, 1)[0]
+        self._ifs.extend(self._all_ifs(d[0], d[1]))
+        self._loops.extend(self._all_loops(d[0], d[1]))
 
-    def random_if_token(self) -> If:
-        return random.sample(self._ifs, 1)[0]
-
-    def random_loop_token(self) -> LoopWhile:
-        return random.sample(self._loops, 1)[0]
+        print("Loops", len(self._loops))
+        print("Ifs", len(self._ifs))
 
     def _all_ifs(self, n: int, control_tokens: int, full: bool = False) -> list[If]:
         if n == 0 or (n == 1 and full) or control_tokens == 0:
@@ -52,7 +45,7 @@ class VariableDepthInvent:
             if str(cond.__class__).__contains__("Not"):
                 continue
 
-            r = range(1, n-1) if full else range(0, n)
+            r = range(1, n) if full else range(0, n+1)
 
             for l_e1 in r:
                 for e1 in self._seqs(l_e1, control_tokens - 1):
@@ -88,7 +81,7 @@ class VariableDepthInvent:
         tails = self._seqs(n - 1, control_tokens, require_full_ifs)
         res.extend([copy.copy(tail) + [t] for t in self._trans_tokens for tail in tails])
 
-        if control_tokens == self._max_control_tokens:
+        if control_tokens == self._depths[self._depth][1]:
             return res
 
         # Head if
@@ -108,8 +101,16 @@ class VariableDepthInvent:
         return res
 
 if __name__ == "__main__":
-    vdi = VariableDepthInvent([MoveRight()]*5,[AtEnd()]*14, 5, 2)
-    l = vdi._all_loops(n=3, control_tokens=2)
+    vdi = VariableDepthInvent([(1, 1), (2, 1), (2, 2), (2, 3)])
+    vdi.setup([MoveRight()], [AtEnd()])
 
-    #print(l)
-    print(len(l))
+    for i in range(4):
+        if i > 0:
+            vdi.increment_depth()
+
+        ls = vdi._loops
+        ifs = vdi._ifs
+
+        print("Depth: {}".format(vdi._depths[vdi._depth]))
+        print(len(ls), ls)
+        print(len(ifs), ifs)
