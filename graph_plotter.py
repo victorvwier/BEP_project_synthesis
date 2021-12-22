@@ -104,6 +104,13 @@ def filter_results_with_complexity(complexity, results):
 
     return list(filter(has_wanted_complexity, results))
 
+def filter_selected_robot_or_pixel_tasks(results):
+    def has_wanted_complexity(result):
+        filename = result["file"]
+        return bool(re.match(r".+/.+-[0-4]-.+pl", filename))
+
+    return list(filter(has_wanted_complexity, results))
+
 
 def plot_success_per_complexity_string():
     for algorithm in algorithms:
@@ -120,12 +127,143 @@ def plot_success_per_complexity_string():
     plt.legend()
     plt.show()
 
-    pass
 
+def plot_success_per_complexity_robot():
+    for algorithm in algorithms:
+        all_results = robot_results_per_algorithm[algorithm].get_result()
+
+        # only use tasks that were selected for testing, so none of the data that was used for training is used.
+        filtered_results = filter_selected_robot_or_pixel_tasks(all_results)
+        percentages = []
+
+        for complexity in range(2, 11, 2):
+            results_per_complexity = filter_results_with_complexity(complexity, filtered_results)
+            total_successes = len(filter_solved_results(results_per_complexity))
+            percentage = 100.0 * total_successes / len(results_per_complexity)
+            percentages.append(percentage)
+        plt.plot(range(2, 11, 2), percentages, label=algorithm)
+
+    plt.ylim(0, 103)
+    plt.legend()
+    plt.show()
+
+
+def plot_success_per_complexity_pixel():
+    for algorithm in algorithms:
+        all_results = pixel_results_per_algorithm[algorithm].get_result()
+
+        # only use tasks that were selected for testing, so none of the data that was used for training is used.
+        filtered_results = filter_selected_robot_or_pixel_tasks(all_results)
+        percentages = []
+
+        for complexity in range(1, 6):
+            results_per_complexity = filter_results_with_complexity(complexity, filtered_results)
+            total_successes = len(filter_solved_results(results_per_complexity))
+            percentage = 100.0 * total_successes / len(results_per_complexity)
+            percentages.append(percentage)
+        plt.plot(range(1, 6), percentages, label=algorithm)
+
+    plt.ylim(0, 103)
+    plt.legend()
+    plt.show()
+
+
+def plot_time_vs_success_string():
+
+    fig, ax = plt.subplots()
+
+    for algorithm in algorithms:
+        all_results = string_results_per_algorithm[algorithm].get_result()
+        percentages = []
+        average_execution_times = []
+
+        for complexity in range(1, 10):
+            results_per_complexity = filter_results_with_complexity(complexity, all_results)
+            solved_results = filter_solved_results(results_per_complexity)
+            total_successes = len(solved_results)
+            percentage = 100.0 * total_successes / len(results_per_complexity)
+            percentages.append(percentage)
+            execution_times = list(map(lambda res: res["execution_time"], solved_results))
+            average_execution_time = sum(execution_times) / len(execution_times)
+            average_execution_times.append(average_execution_time)
+
+        ax.scatter(average_execution_times, percentages, label=algorithm)
+
+    plt.ylim(0, 100)
+    plt.legend()
+    plt.show()
+
+
+def plot_time_vs_success_robot():
+
+    fig, ax = plt.subplots()
+
+    for algorithm in algorithms:
+        all_results = robot_results_per_algorithm[algorithm].get_result()# only use tasks that were selected for testing, so none of the data that was used for training is used.
+        filtered_results = filter_selected_robot_or_pixel_tasks(all_results)
+
+        percentages = []
+        average_execution_times = []
+
+        for complexity in range(2, 11, 2):
+            results_per_complexity = filter_results_with_complexity(complexity, filtered_results)
+            solved_results = filter_solved_results(results_per_complexity)
+            total_successes = len(solved_results)
+            percentage = 100.0 * total_successes / len(results_per_complexity)
+            percentages.append(percentage)
+            execution_times = list(map(lambda res: res["execution_time"], solved_results))
+            if len(execution_times) > 0:
+                average_execution_time = sum(execution_times) / len(execution_times)
+            else:
+                average_execution_time = 0
+            average_execution_times.append(average_execution_time)
+
+        ax.scatter(average_execution_times, percentages, label=algorithm)
+
+    plt.ylim(0, 103)
+    plt.legend()
+    plt.show()
+
+def plot_time_vs_success_pixel():
+
+    fig, ax = plt.subplots()
+
+    for algorithm in algorithms:
+        all_results = pixel_results_per_algorithm[algorithm].get_result()# only use tasks that were selected for testing, so none of the data that was used for training is used.
+        filtered_results = filter_selected_robot_or_pixel_tasks(all_results)
+
+        percentages = []
+        average_execution_times = []
+
+        for complexity in range(1, 6):
+            results_per_complexity = filter_results_with_complexity(complexity, filtered_results)
+            solved_results = filter_solved_results(results_per_complexity)
+            total_successes = len(solved_results)
+            percentage = 100.0 * total_successes / len(results_per_complexity)
+            percentages.append(percentage)
+            execution_times = list(map(lambda res: res["execution_time"], solved_results))
+            if len(execution_times) > 0:
+                average_execution_time = sum(execution_times) / len(execution_times)
+            else:
+                average_execution_time = 0
+            average_execution_times.append(average_execution_time)
+
+        ax.scatter(average_execution_times, percentages, label=algorithm)
+
+    plt.ylim(0, 103)
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
 
-    plot_success_per_complexity_string()
+    # plot_success_per_complexity_string()
+    # plot_success_per_complexity_robot()
+    # plot_success_per_complexity_pixel()
+
+    # plot_time_vs_success_string()
+    # plot_time_vs_success_robot()
+    plot_time_vs_success_pixel()
+
 
     # # results_name = "results/experiment1/robot/mcts-20211215-165729.txt"
     # # results = ResultParser(results_name)
