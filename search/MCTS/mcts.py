@@ -160,6 +160,7 @@ class MCTS(SearchAlgorithm):
 
         search_result.dictionary["best_found_programs"] = list(map(lambda p: str(p), self.best_found_programs))
         search_result.dictionary["number_of_evaluated_programs"] = self.number_of_explored_programs
+        search_result.dictionary["search_tree_height"] = self.search_tree.height
         search_result.dictionary["length_invented_tokens"] = len(self.invented_tokens)
         search_result.dictionary["invented_tokens"] = list(map(lambda token: str(token), self.invented_tokens))
 

@@ -5,7 +5,9 @@ import time
 from collections.abc import Iterable
 from itertools import chain
 from multiprocessing import Pool, Manager
+from pathlib import Path
 
+from common.prorgam import Program
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.parser import Parser, TestCase
 from example_parser.pixel_parser import PixelParser
@@ -87,7 +89,8 @@ class BatchRun:
                 res = self._test_case(tc, queue_for_writing_to_file)
                 results.append(res)
 
-                self.debug_print(f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
+                self.debug_print(
+                    f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
 
         for res in results:
             if res['test_cost'] == 0 and res['train_cost'] == 0:
@@ -100,7 +103,8 @@ class BatchRun:
         p = -1 if s == 0 else (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
-        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs", "number_of_iterations"]
+        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs",
+                "number_of_iterations"]
         ave_res = self._average(results, keys)
         ave_cor = self._average(correct_results, keys)
         ave_ncor = self._average(not_correct_results, keys)
@@ -144,13 +148,72 @@ class BatchRun:
         d.update(result)
 
         # self._store_result(d)
+
         queue_for_writing_to_file.put(d)
+
+        BatchRun._write_results_to_separate_file_per_test_case(
+            test_case=test_case,
+            program=program,
+            execution_time=result["execution_time"],
+            resulting_dictionary=result,
+        )
 
         if self.multi_core:
             self.debug_print(
                 f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
 
         return d
+
+    @staticmethod
+    def _write_results_to_separate_file_per_test_case(
+            test_case: TestCase,
+            program: Program,
+            execution_time,
+            resulting_dictionary,
+    ):
+
+        # path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
+
+        path = "evaluation/" + test_case.path_to_result_file
+
+        with open(path, "w+", encoding="utf-8") as file:
+
+            file.writelines(["Program: " + str(program.sequence) + "\n \n"])
+
+            execution_time_in_seconds = execution_time
+
+            successes = 0
+            for e in test_case.test_examples:
+                in_state = e.input_environment
+                out_state = e.output_environment
+
+                file.writelines([
+                    "input: " + str(in_state) + "\n",
+                    "wanted output: " + str(out_state) + "\n"
+                ])
+
+                try:
+                    result = program.interp(in_state)
+                except:
+                    # print("interpreting the program threw an error")
+                    result = in_state
+
+                file.writelines([
+                    "output: " + str(result) + "\n \n"
+                ])
+
+                if out_state.correct(result):
+                    successes += 1
+
+            success_percentage = 100.0 * successes / len(test_case.test_examples)
+
+            file.writelines([
+                "success_percentage: " + str(success_percentage) + "\n",
+                "execution_time_in_seconds: " + str(execution_time_in_seconds) + "\n\n"
+            ])
+
+            for key in resulting_dictionary:
+                file.writelines(["%s:%s \n" % (key, resulting_dictionary[key])])
 
     def _init_store_system(self):
         folder = "{}/results/{}".format(os.getcwd(), self.domain)
@@ -177,7 +240,7 @@ class BatchRun:
             return all
 
         seen = set()
-        
+
         with open(self.path, "r") as file:
             for line in file.readlines():
                 obj = json.loads(line[:-1])
@@ -243,11 +306,11 @@ class BatchRun:
         def_iter = None
 
         if domain == "string":
-            def_iter = range(1, 10), chain(range(1, 278), range(279, 328)), range(1,10)
+            def_iter = range(1, 10), chain(range(1, 278), range(279, 328)), range(1, 10)
         elif domain == "robot":
-            def_iter = [2,4,6,8,10], range(0, 10), range(0, 11)
+            def_iter = [2, 4, 6, 8, 10], range(0, 10), range(0, 11)
         elif domain == "pixel":
-            def_iter = [1,2,3,4,5], range(0, 10), range(1, 11)
+            def_iter = [1, 2, 3, 4, 5], range(0, 10), range(1, 11)
         else:
             raise Exception()
 

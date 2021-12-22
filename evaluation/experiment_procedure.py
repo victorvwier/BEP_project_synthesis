@@ -50,6 +50,7 @@ def extract_trans_tokens_from_domain_name(domain_name):
         return pixel_tokens.TransTokens
 
 
+
 # a single case exists of several examples which should be solved by one single program
 def test_performance_single_case_and_write_to_file(test_case: TestCase, trans_tokens, bool_tokens,
                                                    search_algorithm: Type[SearchAlgorithm]):
