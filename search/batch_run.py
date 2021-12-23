@@ -2,9 +2,9 @@ import heapq
 import json
 import os
 import time
-from collections.abc import Iterable
+from collections import Iterable, Set
 from itertools import chain
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool
 
 from evaluation.experiment_procedure import extract_trans_tokens_from_domain_name, extract_bool_tokens_from_domain_name
 from example_parser.parser import Parser, TestCase
@@ -49,45 +49,26 @@ class BatchRun:
 
         self.test_cases = self._get_test_cases()
 
-    def listener(self, queue_for_writing_to_file):
-        while True:
-            d = queue_for_writing_to_file.get()
-            if d == "kill":
-                break
-
-            self._store_result(d)
-
     def run(self) -> dict:
         results = []
         correct_results = []
         not_correct_results = []
         correct = 0
 
-        manager = Manager()
-        queue_for_writing_to_file = manager.Queue()
-
-        pool = Pool(os.cpu_count() - 2)
-        watcher = pool.apply_async(self.listener, (queue_for_writing_to_file,))
-
         if self.multi_core:
-            # with Pool(processes=os.cpu_count() - 1) as pool:
-            #     for tc in self.test_cases:
-            #         res = pool.apply_async(self._test_case, (tc,))
-            #         results.append(res)
-            #
-            #     results = [r.get() for r in results]
-            for tc in self.test_cases:
-                res = pool.apply_async(self._test_case, (tc, queue_for_writing_to_file))
-                results.append(res)
-
-            results = [r.get() for r in results]
-
+            with Pool(processes=os.cpu_count() - 1) as pool:
+                # collect results sorted and in chunks to minimize communication overhead on HPC
+                for i, d in enumerate(pool.imap(self._test_case, self.test_cases, chunksize=10)):
+                    self.debug_print(f"{self.search_algorithm.__class__.__name__} {i}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
+                    self._store_result(d)
+                    results.append(d)
         else:
             for tc in self.test_cases:
-                res = self._test_case(tc, queue_for_writing_to_file)
+                res = self._test_case(tc)
                 results.append(res)
 
-                self.debug_print(f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
+                self.debug_print(
+                    f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
 
         for res in results:
             if res['test_cost'] == 0 and res['train_cost'] == 0:
@@ -100,7 +81,8 @@ class BatchRun:
         p = -1 if s == 0 else (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
 
-        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs", "number_of_iterations"]
+        keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs",
+                "number_of_iterations"]
         ave_res = self._average(results, keys)
         ave_cor = self._average(correct_results, keys)
         ave_ncor = self._average(not_correct_results, keys)
@@ -118,14 +100,9 @@ class BatchRun:
             "results": results,
         }
 
-        queue_for_writing_to_file.put("kill")
-
-        # Sort file
-        self._sort_file()
-
         return final
 
-    def _test_case(self, test_case: TestCase, queue_for_writing_to_file) -> dict:
+    def _test_case(self, test_case: TestCase) -> dict:
         result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
         program = result["program"]
         result["program"] = str(program)
@@ -142,14 +119,6 @@ class BatchRun:
         }
 
         d.update(result)
-
-        # self._store_result(d)
-        queue_for_writing_to_file.put(d)
-
-        if self.multi_core:
-            self.debug_print(
-                f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
-
         return d
 
     def _init_store_system(self):
@@ -177,7 +146,7 @@ class BatchRun:
             return all
 
         seen = set()
-        
+
         with open(self.path, "r") as file:
             for line in file.readlines():
                 obj = json.loads(line[:-1])
@@ -243,11 +212,11 @@ class BatchRun:
         def_iter = None
 
         if domain == "string":
-            def_iter = range(1, 10), chain(range(1, 278), range(279, 328)), range(1,10)
+            def_iter = range(1, 10), chain(range(1, 278), range(279, 328)), range(1, 10)
         elif domain == "robot":
-            def_iter = [2,4,6,8,10], range(0, 10), range(0, 11)
+            def_iter = [2, 4, 6, 8, 10], range(0, 10), range(0, 11)
         elif domain == "pixel":
-            def_iter = [1,2,3,4,5], range(0, 10), range(1, 11)
+            def_iter = [1, 2, 3, 4, 5], range(0, 10), range(1, 11)
         else:
             raise Exception()
 
