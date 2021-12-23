@@ -156,6 +156,7 @@ class BatchRun:
             program=program,
             execution_time=result["execution_time"],
             resulting_dictionary=result,
+            algorithm_name=self.algorithm_name,
         )
 
         if self.multi_core:
@@ -170,11 +171,12 @@ class BatchRun:
             program: Program,
             execution_time,
             resulting_dictionary,
+            algorithm_name,
     ):
 
         # path = Path(__file__).parent.joinpath(test_case.path_to_result_file)
 
-        path = "evaluation/" + test_case.path_to_result_file
+        path = "evaluation/" + algorithm_name + "/" + test_case.path_to_result_file
 
         with open(path, "w+", encoding="utf-8") as file:
 

@@ -104,6 +104,7 @@ def filter_results_with_complexity(complexity, results):
 
     return list(filter(has_wanted_complexity, results))
 
+
 def filter_selected_robot_or_pixel_tasks(results):
     def has_wanted_complexity(result):
         filename = result["file"]
@@ -224,6 +225,7 @@ def plot_time_vs_success_robot():
     plt.legend()
     plt.show()
 
+
 def plot_time_vs_success_pixel():
 
     fig, ax = plt.subplots()
@@ -253,6 +255,7 @@ def plot_time_vs_success_pixel():
     plt.ylim(0, 103)
     plt.legend()
     plt.show()
+
 
 if __name__ == "__main__":
 
