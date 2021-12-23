@@ -57,11 +57,16 @@ class BatchRun:
 
         if self.multi_core:
             with Pool(processes=os.cpu_count() - 1) as pool:
-                for tc in self.test_cases:
-                    res = pool.apply_async(self._test_case, (tc,))
-                    results.append(res)
-
-                results = [r.get() for r in results]
+                # for tc in self.test_cases:
+                #     res = pool.apply_async(self._test_case, (tc,))
+                #     results.append(res)
+                # results = [r.get() for r in results]
+                # results = pool.map(self._test_case, self.test_cases)
+                for i, d in enumerate(pool.imap(self._test_case, self.test_cases)):
+                    # print(f"{i}: {result}")
+                    self.debug_print(f"{self.search_algorithm.__class__.__name__} {i}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
+                    self._store_result(d)
+                    results.append(d)
         else:
             for tc in self.test_cases:
                 res = self._test_case(tc)
@@ -101,7 +106,7 @@ class BatchRun:
         }
 
         # Sort file
-        self._sort_file()
+        # self._sort_file()
 
         return final
 
@@ -126,13 +131,10 @@ class BatchRun:
         }
 
         d.update(result)
-
-        self._store_result(d)
-
-        if self.multi_core:
-            self.debug_print(
-                f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
-
+        # self._store_result(d)
+        # if self.multi_core:
+        #     self.debug_print(
+        #         f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
         return d
 
     def _init_store_system(self):
