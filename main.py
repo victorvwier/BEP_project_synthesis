@@ -12,28 +12,31 @@ from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import R
 
 if __name__ == "__main__":
     searchAlgos : List[Type[SearchAlgorithm]] = [
-        [MetropolisHasting, "metro"],
-        [Brute, "brute"],
-        [MCTS, "mcts"],
-        [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"],
+        # [MetropolisHasting, "metro"],
+        # [Brute, "brute"],
+        # [MCTS, "mcts"],
+        # [VanillaGP, "gp"],
+        # [RemoveNInsertN, "VLNS"],
         [AStar, "Astar"]
     ]
 
+    # 1. astar with levenshtein: 44% solved
+    # 2. brute with levenshtein: 30.8% solved
+    # 3. astar with levenshtein + tie breaking: 43.3% solved
 
     results = []
     for alg in searchAlgos:
         result = BatchRun(
         # Task domain
-        domain="robot",
+        domain="string",
 
         # Iterables for files name. Use [] to use all values.
         # This runs all files adhering to format "2-*-[0 -> 10]"
         # Thus, ([], [], []) runs all files for a domain.
-        files=([], [], []),
+        files=([], range(40), [1]),
 
         # Search algorithm to be used
-        search_algorithm=alg[0](10),
+        search_algorithm=alg[0](30),
 
         # Prints out result when a test case is finished
         print_results=True,
