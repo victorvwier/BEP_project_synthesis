@@ -25,9 +25,10 @@ class BatchRun:
 
     def __init__(self,
                  domain: str,
-                 files: Tuple[Iterable[int], Iterable[int], Iterable[int]],
+                 files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
                  file_name: str = "",
+                 available_cores: int = 2,
                  multi_core: bool = True,
                  print_results: bool = False):
 
@@ -35,6 +36,7 @@ class BatchRun:
         self.search_algorithm = search_algorithm
         self.algorithm_name = self._get_algorithm_name(search_algorithm)
         self.file_name = file_name
+        self.available_cores = available_cores
         self.files = self._complement_iters(domain, files)
         self.multi_core = multi_core
         self.print_results = print_results
@@ -71,7 +73,7 @@ class BatchRun:
         #watcher = pool.apply_async(self.listener, (queue_for_writing_to_file,))
 
         if self.multi_core:
-            with Pool(processes=os.cpu_count() - 1) as pool:
+            with Pool(processes=self.available_cores - 1) as pool:
                 for tc in self.test_cases:
                     res = pool.apply_async(self._test_case, (tc,))
                     results.append(res)
@@ -117,6 +119,9 @@ class BatchRun:
         # queue_for_writing_to_file.put("kill")
 
         # Sort file
+        for res in results:
+            self._store_result(res)
+
         self._sort_file()
 
         return final
@@ -139,7 +144,7 @@ class BatchRun:
 
         d.update(result)
 
-        self._store_result(d)
+        #self._store_result(d)
         # queue_for_writing_to_file.put(d)
 
         if self.multi_core:
@@ -235,7 +240,7 @@ class BatchRun:
             raise Exception()
 
     @staticmethod
-    def _complement_iters(domain: str, iters: Tuple[Iterable[int], Iterable[int], Iterable[int]]):
+    def _complement_iters(domain: str, iters: (Iterable[int], Iterable[int], Iterable[int])):
         def_iter = None
 
         if domain == "string":

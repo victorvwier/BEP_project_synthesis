@@ -22,19 +22,35 @@ if __name__ == "__main__":
         #[AStar, "Astar"]
     ]
 
-    domains : list[str] = ["robot"]
+    file_names : list[str] = [
+        "brute-20211222-204643.txt",
+        "VLNS-20211222-205850.txt",
+        "VLNS_vdi-20211223-111324.txt",
+    ]
+
+    ranges = [
+        range(1, 51),
+        range(51, 101),
+        range(101, 151),
+        range(151, 201),
+        range(201, 251),
+        range(251, 301),
+        range(301, 328),
+    ]
+    
+    print(os.cpu_count())
 
     results = []
-    for alg in searchAlgos:
-        for domain in domains:
+    for range in ranges:
+        for alg, file_name in zip(searchAlgos, file_names):
             result = BatchRun(
             # Task domain
-            domain=domain,
+            domain="string",
 
             # Iterables for files name. Use [] to use all values.
             # This runs all files adhering to format "2-*-[0 -> 10]"
             # Thus, ([], [], []) runs all files for a domain.
-            files=([], [], []),
+            files=([], range, []),
 
             # Search algorithm to be used
             search_algorithm=alg[0](10),
@@ -44,10 +60,12 @@ if __name__ == "__main__":
 
             # Use multi core processing
             multi_core=True,
+            available_cores=128,
 
             # Use file_name= to append to a file whenever a run got terminated
             # Comment out argument to create new file.
-            #file_name="VLNS-20211213-162128.txt"
+            file_name=file_name,
+            #file_name="",
         ).run()
 
     # for res in results:
