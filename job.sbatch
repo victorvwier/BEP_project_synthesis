@@ -1,10 +1,10 @@
 #!/bin/sh
 #SBATCH --partition=general
 #SBATCH --qos=short
-#SBATCH --time=1:30:00
+#SBATCH --time=2:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=128
-#SBATCH --mem=128000
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=20000
 #SBATCH --mail-type=END
 
 module use /opt/insy/modulefiles

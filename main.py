@@ -14,11 +14,15 @@ from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n_vdi impo
 if __name__ == "__main__":
     searchAlgos : List[Type[SearchAlgorithm]] = [
         #[MetropolisHasting, "metro"],
-        [Brute, "brute"],
+        #[Brute, "brute"],
         #[MCTS, "mcts"],
         #[VanillaGP, "gp"],
         [RemoveNInsertN, "VLNS"],
-        [RemoveNInsertNVDI, "VLNS_vdi"],
+        [lambda t: RemoveNInsertNVDI(1000, t), "VLNS_vdi1000"],
+        [lambda t: RemoveNInsertNVDI(3000, t), "VLNS_vdi3000"],
+        [lambda t: RemoveNInsertNVDI(5000, t), "VLNS_vdi5000"],
+        [lambda t: RemoveNInsertNVDI(10000, t), "VLNS_vdi10000"],
+        [lambda t: RemoveNInsertNVDI(15000, t), "VLNS_vdi15000"],
         #[AStar, "Astar"]
     ]
 
@@ -27,12 +31,15 @@ if __name__ == "__main__":
         "VLNS-20211222-205850.txt",
         "VLNS_vdi-20211223-111324.txt",
     ]
+    file_names = ["","","","","",""]
 
     ranges = [
-        range(1, 51),
-        range(51, 101),
-        range(101, 151),
-        range(151, 201),
+        #range(1, 51),
+        #range(51, 101),
+        range(1, 101),
+        #range(101, 151),
+        #range(151, 201),
+        range(101, 201),
         range(201, 251),
         range(251, 301),
         range(301, 328),
@@ -64,8 +71,8 @@ if __name__ == "__main__":
 
             # Use file_name= to append to a file whenever a run got terminated
             # Comment out argument to create new file.
-            file_name=file_name,
-            #file_name="",
+            #file_name=file_name,
+            file_name="",
         ).run()
 
     # for res in results:

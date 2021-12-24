@@ -149,7 +149,7 @@ class BatchRun:
 
         if self.multi_core:
             self.debug_print(
-                f"{self.search_algorithm.__class__.__name__}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
+                f"{self.algorithm_name}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
 
         return d
 
@@ -269,5 +269,8 @@ class BatchRun:
             RemoveNInsertNVDI: "VLNS_vdi",
             AStar: "Astar",
         }
+
+        if isinstance(algo, RemoveNInsertNVDI):
+            return "VLNS_vdi{}".format(algo.increase_depth_after)
 
         return map[algo.__class__]

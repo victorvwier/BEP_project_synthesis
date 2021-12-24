@@ -13,14 +13,18 @@ class ResultParser:
             for line in a_file:
                 stripped_line = line.strip()
                 obj = json.JSONDecoder().decode(stripped_line)
-                for res in obj['results']:
-                    result = []
-                    for f in fields:
-                        if f in res:
-                            result.append(res[f])
-                    results.append(result)
+                print(obj)
+
+                result = []
+
+                for f in fields:
+                    if f in obj:
+                        result.append(self._field_parser(obj, f))
 
         return results
-                            
 
+    def _field_parser(self, obj, field):
+        if field == "complexity":
+            return obj["file"].split("/")[1].split("-")[0]
 
+        return obj[field]
