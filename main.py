@@ -21,7 +21,7 @@ if __name__ == "__main__":
     ]
 
     settings: List[tuple[str,tuple[range, range, range]]] = [
-        ("string", (range(1,10,2), range(1,51), range(1,5))),
+        ("string", (range(1,10,2), range(1,11), range(1,5))),
         ("robot", (range(2,11,2), range(0,5), range(0,10))),
         ("pixel", (range(1,6), range(0,5), range(1,11)))        
     ]
