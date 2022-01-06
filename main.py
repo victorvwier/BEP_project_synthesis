@@ -20,31 +20,37 @@ if __name__ == "__main__":
         [AStar, "Astar"]
     ]
 
+    settings: List[tuple[str,tuple[range, range, range]]] = [
+        ("string", (range(1,10,2), range(1,51), range(1,5))),
+        ("robot", (range(2,11,2), range(0,5), range(0,10))),
+        ("pixel", (range(1,6), range(0,5), range(1,11)))        
+    ]
 
     results = []
-    for alg in searchAlgos:
-        result = BatchRun(
-        # Task domain
-        domain="robot",
+    for set in settings:
+        for alg in searchAlgos:
+            result = BatchRun(
+            # Task domain
+            domain = set[0],
 
-        # Iterables for files name. Use [] to use all values.
-        # This runs all files adhering to format "2-*-[0 -> 10]"
-        # Thus, ([], [], []) runs all files for a domain.
-        files=([], [], []),
+            # Iterables for files name. Use [] to use all values.
+            # This runs all files adhering to format "2-*-[0 -> 10]"
+            # Thus, ([], [], []) runs all files for a domain.
+            files=set[1],
 
-        # Search algorithm to be used
-        search_algorithm=alg[0](10),
+            # Search algorithm to be used
+            search_algorithm=alg[0](1),
 
-        # Prints out result when a test case is finished
-        print_results=True,
+            # Prints out result when a test case is finished
+            print_results=True,
 
-        # Use multi core processing
-        multi_core=True,
+            # Use multi core processing
+            multi_core=True,
 
-        # Use file_name= to append to a file whenever a run got terminated
-        # Comment out argument to create new file.
-        #file_name="VLNS-20211213-162128.txt"
-    ).run()
+            # Use file_name= to append to a file whenever a run got terminated
+            # Comment out argument to create new file.
+            file_name=alg[1]
+            ).run()
 
     for res in results:
         print(res[0], res[1])
