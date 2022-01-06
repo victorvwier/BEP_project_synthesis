@@ -25,6 +25,9 @@ class Environment:
         """Returns the max amount of loop iterations based on the environment."""
         return 100
 
+    def to_formatted_string(self) -> str:
+        """Returns string for pretty printing"""
+        raise NotImplementedError()
 
 @dataclass(eq=True)
 class RobotEnvironment(Environment):
@@ -141,6 +144,8 @@ class StringEnvironment(Environment):
         """Creates new StringEnvironment given an initial string and starting position of the pointer, 0 by default."""
         super().__init__()
 
+        if isinstance(string_array, str):
+            string_array = list(string_array)
         # Manipulating strings as a list of characters is more efficient.
         self.string_array = string_array
         self.pos = pos
@@ -183,7 +188,7 @@ class StringEnvironment(Environment):
 
 
     @staticmethod
-    def _alignment(x, y):
+    def _alignment(x, y, return_mem=False):
         """
         Alternative to the Levenshtein distance
         @param x:
@@ -209,7 +214,61 @@ class StringEnvironment(Environment):
                 cases.append(1 + mem[i-1][j])
                 cases.append(float('inf'))
                 mem[i][j] = min(cases)
+        if return_mem:
+            return mem[m][n], mem
         return mem[m][n]
+
+    @staticmethod
+    def _alignment_loop_reduction(x, y):
+        cost, mem = StringEnvironment._alignment(x, y, return_mem=True)
+        i = len(x)
+        j = len(y)
+        case_history = []
+        while i > 0 and j > 0:
+            outcome = mem[i][j]
+            if outcome == float('inf'):
+                case_history.append(0)
+                # print("y unmatched")
+                j = j-1
+            elif outcome == 1 + mem[i-1][j]:
+                case_history.append(1)
+                # print(f"x: {x[i-1]} unmatched")
+                i = i-1
+            elif outcome == 1 + mem[i - 1][j - 1]:
+                case_history.append(2)
+                # print(f"({x[i-1]}, {y[j-1]}) match: not equal")
+                i = i - 1
+                j = j - 1
+            elif outcome == mem[i-1][j-1]:
+                case_history.append(3)
+                # print(f"({x[i-1]}, {y[j-1]}) match: equal")
+                i = i-1
+                j = j-1
+
+        while i > 0:
+            case_history.append(1)
+            # print(f"x: {x[i-1]} unmatched")
+            i = i-1
+        while j > 0:
+            case_history.append(0)
+            # print("y unmatched")
+            j = j-1
+
+        last_case = -1
+        streak_count = 0
+        reduction = 0
+        for case in case_history:
+            if case == last_case:
+                streak_count += 1
+                if streak_count > 1 and case in [1, 2]:
+                    reduction += 1
+            else:
+                last_case = case
+                streak_count = 0
+
+        # print(f"reduction: {reduction}")
+
+        return cost - reduction
 
     distance_map = {}
 
@@ -244,8 +303,10 @@ class StringEnvironment(Environment):
         s1 = "".join(self.string_array)
         s2 = "".join(other.string_array)
 
+        # return self._levenshtein(s1, s2)
+
         if (s1, s2) not in self.distance_map:
-            self.distance_map[(s1,s2)] = self._levenshtein_eff(s1, s2)
+            self.distance_map[(s1,s2)] = self._alignment(s1, s2)
 
         return self.distance_map[(s1,s2)]
 

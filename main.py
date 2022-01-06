@@ -10,14 +10,34 @@ from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import R
 from search.batch_run import BatchRun
 from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
 
+# if __name__ == '__main__':
+#     search = AStar(1000)
+#     env1 = StringEnvironment("abcdefgh", pos=1)
+#     # env1 = StringEnvironment("ABCDefgh", pos=3)
+#     env2 = StringEnvironment("ABCDEFGH")
+#
+#     result = search.quick_run((env1, env2))
+#     print()
+#     print(result.dictionary['program'].to_formatted_string())
+#     # program = result.dictionary['program']
+#     # program.interp(env1, debug=True, env2=env2)
+#
+#     # from common.tokens.string_tokens import *
+#     # from common.tokens.control_tokens import *
+#     # p2 = Program([MoveLeft(), MakeUppercase(), LoopWhile(NotAtEnd(), [MoveRight(), MakeUppercase()])])
+#     # p2.interp(env1, debug=True, env2=env2)
+
+
+
+
 if __name__ == "__main__":
     searchAlgos : List[Type[SearchAlgorithm]] = [
-        [MetropolisHasting, "metro"],
+        # [MetropolisHasting, "metro"],
         [Brute, "brute"],
-        [MCTS, "mcts"],
-        [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"],
-        [AStar, "Astar"]
+        # [MCTS, "mcts"],
+        # [VanillaGP, "gp"],
+        # [RemoveNInsertN, "VLNS"],
+        # [AStar, "Astar"]
     ]
 
 
@@ -25,15 +45,15 @@ if __name__ == "__main__":
     for alg in searchAlgos:
         result = BatchRun(
         # Task domain
-        domain="robot",
+        domain="string",
 
         # Iterables for files name. Use [] to use all values.
         # This runs all files adhering to format "2-*-[0 -> 10]"
         # Thus, ([], [], []) runs all files for a domain.
-        files=([], [], []),
+        files=([], range(0, 300, 15), [1,3,8]),
 
         # Search algorithm to be used
-        search_algorithm=alg[0](10),
+        search_algorithm=alg[0](60),
 
         # Prints out result when a test case is finished
         print_results=True,

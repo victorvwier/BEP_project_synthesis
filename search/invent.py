@@ -62,7 +62,8 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
     #     recurse_list.append(Recurse(None, [], [lb]))
     # out = out + recurse_list
     loop_list = []
-    bodies = inventTokens(tokenSet, max(1, int(maxLength / 2)))  # TODO Arbitrary length!!
+    # bodies = inventTokens(tokenSet, max(1, int(maxLength / 2)))  # TODO Arbitrary length!!
+    bodies = inventTokens(tokenSet, 2)  # TODO Arbitrary length!!
     for c in conditions:
         for lb in bodies:
             loop_list.append(LoopWhile(c, [lb]))
@@ -74,10 +75,16 @@ if __name__ == "__main__":
     # Test for string environment
     bool_tokens = {AtStart, AtEnd, IsLetter, IsNotLetter, IsUppercase, IsNotUppercase, IsLowercase, IsNotLowercase,
                    IsNumber, IsNotNumber, IsSpace, IsNotSpace}
-    normal_tokens = {MoveRight, MoveLeft, Drop, MakeLowercase, MakeUppercase}
+    normal_tokens = {MoveRight(), MoveLeft(), Drop(), MakeLowercase(), MakeUppercase()}
 
-    out = invent2(normal_tokens, bool_tokens, 5)
-    print(len(out))
-    for t in out:
-        if (not isinstance(t, Token)):
-            print(t)
+    tokens = inventTokens(normal_tokens, 4)
+    # print(len(tokens))
+    tokens = invent2(normal_tokens, bool_tokens, 2)
+    print("\n".join([str(t) for t in tokens]))
+    print(len(tokens))
+
+    # out = invent2(normal_tokens, bool_tokens, 5)
+    # print(len(out))
+    # for t in out:
+    #     if (not isinstance(t, Token)):
+    #         print(t)

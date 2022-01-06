@@ -3,8 +3,9 @@ import time
 from statistics import mean
 from typing import List
 
-from common.environment import StringEnvironment
+from common.environment import StringEnvironment, RobotEnvironment, PixelEnvironment
 from common.prorgam import Program
+from common.tokens import string_tokens, robot_tokens, pixel_tokens
 from common.tokens.abstract_tokens import Token, InvalidTransition, EnvToken
 from common.experiment import Example
 from common.tokens.control_tokens import LoopIterationLimitReached
@@ -31,6 +32,18 @@ class SearchAlgorithm:
         """
 
         raise NotImplementedError()
+
+    def quick_run(self, input_output_envs):
+        if not isinstance(input_output_envs, list):
+            input_output_envs = [input_output_envs]
+        env_tokens_map = {
+            StringEnvironment: (string_tokens.TransTokens, string_tokens.BoolTokens),
+            RobotEnvironment: (robot_tokens.TransTokens, robot_tokens.BoolTokens),
+            PixelEnvironment: (pixel_tokens.TransTokens, pixel_tokens.BoolTokens),
+        }
+        trans_tokens, bool_tokens = env_tokens_map[type(input_output_envs[0][0])]
+        training_examples = [Example(input_env, output_env) for input_env, output_env in input_output_envs]
+        return self.run(training_examples, trans_tokens, bool_tokens)
 
     def iteration(self, training_example: List[Example], trans_tokens: list[EnvToken], bool_tokens: list[EnvToken]) -> bool:
         """This method represents an iteration of the search algorithm. This method will get called over and over 

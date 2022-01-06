@@ -58,7 +58,7 @@ class BatchRun:
         if self.multi_core:
             with Pool(processes=os.cpu_count() - 1) as pool:
                 # collect results sorted and in chunks to minimize communication overhead on HPC
-                for i, d in enumerate(pool.imap(self._test_case, self.test_cases, chunksize=10)):
+                for i, d in enumerate(pool.imap(self._test_case, self.test_cases, chunksize=1)):
                     self.debug_print(f"{self.search_algorithm.__class__.__name__} {i}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
                     self._store_result(d)
                     results.append(d)
@@ -90,6 +90,7 @@ class BatchRun:
         self.debug_print("Average overall: {}".format(ave_res))
         self.debug_print("Average correct: {}".format(ave_cor))
         self.debug_print("Average not correct: {}".format(ave_ncor))
+        self.debug_print("Results written to:\n{}".format(self.file_name))
 
         final = {
             "domain": self.domain,

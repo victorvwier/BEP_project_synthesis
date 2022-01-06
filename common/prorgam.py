@@ -17,7 +17,7 @@ class Program:
         else:
             return False
 
-    def interp(self, env: Environment, top_level_program=True) -> Environment:
+    def interp(self, env: Environment, top_level_program=True, debug=False, env2=False) -> Environment:
         """Interprets this program on a given Environment, returns the resulting Environment."""
         nenv = copy.deepcopy(env)
 
@@ -25,10 +25,25 @@ class Program:
         if top_level_program:
             nenv.program = self
 
+        if debug:
+            print(nenv.to_formatted_string())
+            if env2:
+                print(f"dist: {nenv.distance(env2)}")
+
         for t in self.sequence:
             if(not isinstance(t, Token)):
                 print("NOOOO")
             nenv = t.apply(nenv)
+            if debug:
+                print('\n>> ' + t.to_formatted_string())
+                print(nenv.to_formatted_string())
+                if env2:
+                    print(f"dist: {nenv.distance(env2)}")
+
+        if debug:
+            print(f"length: {self.number_of_tokens()}")
+            if env2:
+                print(f"dist: {nenv.distance(env2)}")
 
         return nenv
 

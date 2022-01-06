@@ -202,4 +202,5 @@ class Drop(TransToken):
 
 BoolTokens = {AtEnd(), NotAtEnd(), AtStart(), NotAtStart(), IsLetter(), IsNotLetter(), IsUppercase(), IsNotUppercase(), IsLowercase(),
               IsNotLowercase(), IsNumber(), IsNotNumber(), IsSpace(), IsNotSpace()}
-TransTokens = {MoveRight(), MoveLeft(), MakeUppercase(), MakeLowercase(), Drop()}
+# TransTokens = {MoveRight(), MoveLeft(), MakeUppercase(), MakeLowercase(), Drop()}
+TransTokens = {MoveLeft(), MoveRight(), MakeUppercase(), MakeLowercase(), Drop()}

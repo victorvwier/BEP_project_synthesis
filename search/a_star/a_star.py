@@ -30,10 +30,12 @@ class AStar(SearchAlgorithm):
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
         self.loss_function = lambda g, h: self.weight * g + (1-self.weight) * h
-        self.heuristic = self._heuristic_mean
+        self.heuristic = self._heuristic_sum
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
+        # print("\n".join([str(t) for t in self.tokens]))
+        # print(f"amount of tokens: {len(self.tokens)}")
         self.number_of_iterations: int = 0
         self._best_cost = float('inf')
         self._best_f_cost = float('inf')
@@ -79,6 +81,10 @@ class AStar(SearchAlgorithm):
         return min(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
 
     @staticmethod
+    def _heuristic_max(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
+        return max(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+
+    @staticmethod
     def _heuristic_sum(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
         return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
 
@@ -111,8 +117,11 @@ class AStar(SearchAlgorithm):
         hcost = h(start_node, end_node)
         fcost = f(gcost, hcost)
         queue.insert(start_node, fcost)
+        self._best_program_node = start_node
+        self._best_f_program_node = start_node
         while queue:
             node, fcost = queue.pop()
+            # print(node[0].to_string())
             gcost, _, _ = self.reached[node]
             hcost = h(node, end_node)
             self.save_node_stats(node, fcost, gcost, hcost)
