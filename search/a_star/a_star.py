@@ -30,7 +30,7 @@ class AStar(SearchAlgorithm):
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
         self.loss_function = lambda g, h: self.weight * g + (1-self.weight) * h
-        self.heuristic = self._heuristic_sum
+        self.heuristic = self._heuristic_max
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
@@ -90,6 +90,8 @@ class AStar(SearchAlgorithm):
 
     @staticmethod
     def _find_program(node, reached):
+        if node is None:
+            return Program([])
         sequence = []
         while reached[node][1]:
             sequence.append(reached[node][2])
@@ -116,12 +118,11 @@ class AStar(SearchAlgorithm):
         gcost = 0
         hcost = h(start_node, end_node)
         fcost = f(gcost, hcost)
-        queue.insert(start_node, fcost)
+        queue.insert(start_node, fcost, 0)  # ignore tie break for now
         self._best_program_node = start_node
         self._best_f_program_node = start_node
         while queue:
-            node, fcost = queue.pop()
-            # print(node[0].to_string())
+            node, fcost, _ = queue.pop()
             gcost, _, _ = self.reached[node]
             hcost = h(node, end_node)
             self.save_node_stats(node, fcost, gcost, hcost)
@@ -140,7 +141,7 @@ class AStar(SearchAlgorithm):
                         self.reached[child] = gcost_child, node, token
                         hcost_child = h(child, end_node)
                         fcost_child = f(gcost_child, hcost_child)
-                        queue.insert(child, fcost_child)
+                        queue.insert(child, fcost_child, hcost_child)  # ignore tie break for now
                 except(InvalidTransition, LoopIterationLimitReached):
                     pass
         return

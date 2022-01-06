@@ -186,6 +186,29 @@ class StringEnvironment(Environment):
                                 d[i - 1][j - 1] + substitutionCost))
         return d[-1][-1]
 
+    @staticmethod
+    def _alignment_rec(x, y):
+        if len(x) == 0:
+            if len(y) == 0:
+                return 0
+            return float('inf')
+        if len(y) == 0:
+            return len(x)
+        cases = []
+        if x[0] == y[0]:
+            cases.append(StringEnvironment._alignment_eff(x[1:], y[1:]))
+        if x[0].lower() == y[0].lower():
+            cases.append(1 + StringEnvironment._alignment_eff(x[1:], y[1:]))
+        cases.append(1 + StringEnvironment._alignment_eff(x[1:], y))
+        cases.append(float('inf'))
+        return min(cases)
+
+    @staticmethod
+    def _alignment_eff(s1, s2):
+        if (s1, s2) not in StringEnvironment.distance_map:
+            StringEnvironment.distance_map[(s1, s2)] = StringEnvironment._alignment_rec(s1, s2)
+
+        return StringEnvironment.distance_map[(s1, s2)]
 
     @staticmethod
     def _alignment(x, y, return_mem=False):
@@ -291,19 +314,17 @@ class StringEnvironment(Environment):
             return m
 
         if s1[0] == s2[0]:
-            return StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+            return StringEnvironment._levenshtein_rec(s1[1:], s2[1:])
 
         return 1 + min(
-            StringEnvironment._levenshtein_eff(s1[1:], s2),
-            StringEnvironment._levenshtein_eff(s1, s2[1:]),
-            StringEnvironment._levenshtein_eff(s1[1:], s2[1:])
+            StringEnvironment._levenshtein_rec(s1[1:], s2),
+            StringEnvironment._levenshtein_rec(s1, s2[1:]),
+            StringEnvironment._levenshtein_rec(s1[1:], s2[1:])
         )
 
     def distance(self, other: "StringEnvironment") -> int:
         s1 = "".join(self.string_array)
         s2 = "".join(other.string_array)
-
-        # return self._levenshtein(s1, s2)
 
         if (s1, s2) not in self.distance_map:
             self.distance_map[(s1,s2)] = self._alignment(s1, s2)

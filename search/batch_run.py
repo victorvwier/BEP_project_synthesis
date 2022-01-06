@@ -100,7 +100,6 @@ class BatchRun:
             "average_failed": ave_ncor,
             "results": results,
         }
-
         return final
 
     def _test_case(self, test_case: TestCase) -> dict:
@@ -117,6 +116,10 @@ class BatchRun:
             "execution_time": result["execution_time"],
             "program_length": result["program_length"],
             "number_of_explored_programs": result["number_of_explored_programs"],
+            "train_amount_correct": SearchAlgorithm.amount_correct(test_case.training_examples, program),
+            "test_amount_correct": SearchAlgorithm.amount_correct(test_case.test_examples, program),
+            "train_amount": len(test_case.training_examples),
+            "test_amount": len(test_case.test_examples),
         }
 
         d.update(result)

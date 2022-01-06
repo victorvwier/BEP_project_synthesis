@@ -42,7 +42,8 @@ class Brute(SearchAlgorithm):
         self.number_of_iterations = 0
 
     def iteration(self, examples, trans_tokens, bool_tokens) -> bool:
-
+        if not self.programs:
+            return False
         (cost, solved, self.current_program) = heapq.heappop(self.programs)
 
         self.cost_per_iteration.append((self.number_of_iterations, cost))

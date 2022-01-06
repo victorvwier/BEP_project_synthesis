@@ -97,3 +97,13 @@ class SearchAlgorithm:
                 return float('inf')
 
         return mean([ex_cost(ex) for ex in exs])
+
+    @staticmethod
+    def amount_correct(exs: list[Example], p: Program):
+        def ex_correct(ex: Example):
+            try:
+                return bool(p.interp(ex.input_environment).correct(ex.output_environment))
+            except (InvalidTransition, LoopIterationLimitReached):
+                return 0
+
+        return sum([ex_correct(ex) for ex in exs])
