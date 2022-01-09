@@ -10,6 +10,7 @@ from search.search_result import SearchResult
 
 MAX_NUMBER_OF_ITERATIONS = 10
 MAX_TOKEN_FUNCTION_DEPTH = 3
+DISTANCE_OVERRIDE = 'levenshtein'
 
 
 class Brute(SearchAlgorithm):
@@ -91,7 +92,7 @@ def print_ps(ps):
 
 
 def loss(output_pairs):
-    return sum([p[0].distance(p[1]) for p in output_pairs])
+    return sum([p[0].distance(p[1], DISTANCE_OVERRIDE) for p in output_pairs])
 
 
 def problem_solved(output_pairs):

@@ -85,20 +85,20 @@ class AStar(SearchAlgorithm):
         return all(map(lambda tup: tup[0].correct(tup[1]), zip(from_states, to_states)))
 
     @staticmethod
-    def _heuristic_mean(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
-        return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states))) / len(from_states)
+    def _heuristic_mean(from_states: tuple[Environment], to_states: tuple[Environment], distance_override=False) -> float:
+        return sum(map(lambda tup: tup[0].distance(tup[1], override=distance_override), zip(from_states, to_states))) / len(from_states)
 
     @staticmethod
-    def _heuristic_min(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
-        return min(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+    def _heuristic_min(from_states: tuple[Environment], to_states: tuple[Environment], distance_override=False) -> float:
+        return min(map(lambda tup: tup[0].distance(tup[1], override=distance_override), zip(from_states, to_states)))
 
     @staticmethod
-    def _heuristic_max(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
-        return max(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+    def _heuristic_max(from_states: tuple[Environment], to_states: tuple[Environment], distance_override=False) -> float:
+        return max(map(lambda tup: tup[0].distance(tup[1], override=distance_override), zip(from_states, to_states)))
 
     @staticmethod
-    def _heuristic_sum(from_states: tuple[Environment], to_states: tuple[Environment]) -> float:
-        return sum(map(lambda tup: tup[0].distance(tup[1]), zip(from_states, to_states)))
+    def _heuristic_sum(from_states: tuple[Environment], to_states: tuple[Environment], distance_override=False) -> float:
+        return sum(map(lambda tup: tup[0].distance(tup[1], override=distance_override), zip(from_states, to_states)))
 
     @staticmethod
     def _find_program(node, reached):
@@ -128,7 +128,7 @@ class AStar(SearchAlgorithm):
         self.reached = {start_node: (0, False, False)}  # for each reached node: (path_cost, previous_node, token_used)
         queue = UniquePriorityQueue()
         gcost = 0
-        hcost = h(start_node, end_node)
+        hcost = h(start_node, end_node, self.distance_override)
         fcost = f(gcost, hcost)
         queue.insert(start_node, fcost, hcost)
         self._best_program_node = start_node
@@ -136,7 +136,7 @@ class AStar(SearchAlgorithm):
         while queue:
             node, fcost, _ = queue.pop()
             gcost, _, _ = self.reached[node]
-            hcost = h(node, end_node)
+            hcost = h(node, end_node, self.distance_override)
             self.save_node_stats(node, fcost, gcost, hcost)
             if self._correct(node, end_node):
                 self.best_program_node = node
@@ -151,7 +151,7 @@ class AStar(SearchAlgorithm):
                     # if child was not yet expanded or our new gcost is the smallest up until now
                     if child not in self.reached or gcost_child < self.reached[child][0]:
                         self.reached[child] = gcost_child, node, token
-                        hcost_child = h(child, end_node)
+                        hcost_child = h(child, end_node, self.distance_override)
                         fcost_child = f(gcost_child, hcost_child)
                         # in case of fcost tie: node with smallest hcost goes first
                         queue.insert(child, fcost_child, hcost_child)

@@ -31,7 +31,7 @@ from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import R
 
 
 if __name__ == "__main__":
-    BatchRun(domain="string", files=([],range(30),[1]), search_algorithm=AStar(60), outfile_suffix="brecht-desktop", print_results=True, multi_core=True).run()
+    BatchRun(domain="string", files=([],range(30),[1]), search_algorithm=Brute(60), outfile_suffix="brecht-desktop", print_results=True, multi_core=True).run()
 
     # searchAlgos : List[Type[SearchAlgorithm]] = [
     #     # [MetropolisHasting, "metro"],
