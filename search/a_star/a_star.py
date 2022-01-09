@@ -13,12 +13,14 @@ MAX_TOKEN_FUNCTION_DEPTH = 3
 
 
 class AStar(SearchAlgorithm):
-    def __init__(self, time_limit_sec: float, weight: int = False):
+    def __init__(self, time_limit_sec: float, weight: int = False, heuristic_override=False, distance_override=False):
         super().__init__(time_limit_sec)
         if weight is False:
             weight = 0.5
         assert 0 <= weight <= 1
         self.weight = weight
+        self.heuristic_override = heuristic_override
+        self.distance_override = distance_override
 
     @property
     def best_program(self) -> Program:
@@ -30,7 +32,19 @@ class AStar(SearchAlgorithm):
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
         self.loss_function = lambda g, h: self.weight * g + (1-self.weight) * h
+
         self.heuristic = self._heuristic_max
+        if self.heuristic_override == 'sum':
+            self.heuristic = self._heuristic_sum
+        elif self.heuristic_override == 'mean':
+            self.heuristic = self._heuristic_mean
+        elif self.heuristic_override == 'min':
+            self.heuristic = self._heuristic_min
+        elif self.heuristic_override == 'max':
+            self.heuristic = self._heuristic_max
+
+        print(f"using heuristic: {self.heuristic.__name__}")
+
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
@@ -118,7 +132,7 @@ class AStar(SearchAlgorithm):
         gcost = 0
         hcost = h(start_node, end_node)
         fcost = f(gcost, hcost)
-        queue.insert(start_node, fcost, 0)  # ignore tie break for now
+        queue.insert(start_node, fcost, hcost)
         self._best_program_node = start_node
         self._best_f_program_node = start_node
         while queue:
@@ -141,7 +155,8 @@ class AStar(SearchAlgorithm):
                         self.reached[child] = gcost_child, node, token
                         hcost_child = h(child, end_node)
                         fcost_child = f(gcost_child, hcost_child)
-                        queue.insert(child, fcost_child, hcost_child)  # ignore tie break for now
+                        # in case of fcost tie: node with smallest hcost goes first
+                        queue.insert(child, fcost_child, hcost_child)
                 except(InvalidTransition, LoopIterationLimitReached):
                     pass
         return

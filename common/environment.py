@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import copy
 import re
+from heapq import heappush
 
 
 @dataclass(eq=True, unsafe_hash=True)
@@ -10,7 +11,7 @@ class Environment:
     def __init__(self):
         self.program = None
 
-    def distance(self, other: "Environment") -> float:
+    def distance(self, other: "Environment", override=False) -> float:
         """Returns the distance from this Environment to some other object."""
         raise NotImplementedError()
 
@@ -87,7 +88,9 @@ class RobotEnvironment(Environment):
         + abs(self.rx - other.rx) + abs(self.ry - other.ry)\
         + abs(int(self.holding) - int(other.holding))
 
-    def distance(self, other: "RobotEnvironment") -> int:
+    def distance(self, other: "RobotEnvironment", override=False) -> int:
+        if override == 'manhattan':
+            return self.original_distance(other)
         assert self.size == other.size
 
         def d(xy1: 'tuple[int, int]', xy2: 'tuple[int, int]'):
@@ -283,7 +286,7 @@ class StringEnvironment(Environment):
         for case in case_history:
             if case == last_case:
                 streak_count += 1
-                if streak_count > 1 and case in [1, 2]:
+                if streak_count > 2 and case in [1, 2]:
                     reduction += 1
             else:
                 last_case = case
@@ -322,12 +325,16 @@ class StringEnvironment(Environment):
             StringEnvironment._levenshtein_rec(s1[1:], s2[1:])
         )
 
-    def distance(self, other: "StringEnvironment") -> int:
+    def distance(self, other: "StringEnvironment", override=False) -> int:
         s1 = "".join(self.string_array)
         s2 = "".join(other.string_array)
 
         if (s1, s2) not in self.distance_map:
-            self.distance_map[(s1,s2)] = self._alignment(s1, s2)
+            if override == "levenshtein":
+                self.distance_map[(s1,s2)] = self._levenshtein(s1, s2)
+            else:
+                self.distance_map[(s1,s2)] = self._alignment(s1, s2)
+
 
         return self.distance_map[(s1,s2)]
 
@@ -397,11 +404,103 @@ class PixelEnvironment(Environment):
         assert len(tup1) == len(tup2)
         return sum([e1 != e2 for (e1, e2) in zip(tup1, tup2)])
 
+    def furthest_distance(self, other: "PixelEnvironment"):
+        diff = self.difference(self.pixels, other.pixels)
+        nodes = [(self.x, self.y)]
+        for i, pixel in enumerate(diff):
+            if pixel:
+                px = py = 0
+                if i != 0:
+                    py, px = divmod(i, self.width)
+                nodes.append((px, py))
+        distances_from_0 = []
+        for x, y in nodes:
+            distances_from_0.append(abs(self.x - x) + abs(self.y - y))
+        node_a, max_dist = max(enumerate(distances_from_0), key=lambda tup: tup[1])
+        return max_dist
+
+        # max_dist = 0
+        # for i, pixel in enumerate(tup):
+        #     if pixel:
+        #         if i == 0:
+        #             py = px = 0
+        #         else:
+        #             py, px = divmod(i, self.width)
+        #         dist = abs(py - self.y) + abs(px - self.x)
+        #         if dist > max_dist:
+        #             max_dist = dist
+        # return max_dist
+
+    def largest_triangle(self, other: "PixelEnvironment"):
+        diff = self.difference(self.pixels, other.pixels)
+        nodes = [(self.x, self.y)]
+        for i, pixel in enumerate(diff):
+            if pixel:
+                px = py = 0
+                if i != 0:
+                    py, px = divmod(i, self.width)
+                nodes.append((px, py))
+
+        # print(f"nodes: {nodes}")
+
+        distances_from_0 = []
+        for x, y in nodes:
+            distances_from_0.append(abs(self.x - x) + abs(self.y - y))
+        node_a, max_dist = max(enumerate(distances_from_0), key=lambda tup: tup[1])
+
+        # print(f"distances_from_0: {distances_from_0}")
+
+        distances_from_a = []
+        for x, y in nodes:
+            a_x, a_y = nodes[node_a]
+            distances_from_a.append(abs(a_x - x) + abs(a_y - y))
+
+        # print(f"distances_from_a: {distances_from_a}")
+
+        # distances_from_0[node_a] = 0
+        # distances_from_a[0] = 0
+        combined_distances = [dist1+dist2 for dist1, dist2 in zip(distances_from_0, distances_from_a)]
+        # print(f"combined_distances: {combined_distances}")
+        node_b, max_combined_dist = max(enumerate(combined_distances), key=lambda tup: tup[1])
+
+        # print(f"node a: {nodes[node_a]}")
+        # print(f"node b: {nodes[node_b]}")
+        # print(f"combined dist: {max_combined_dist}")
+
+        # min(0->a + a->b, 0->b + b->a) = 0->b + a->b
+        return distances_from_0[node_b] + distances_from_a[node_b]
+
+    @staticmethod
+    def difference(tup1: tuple, tup2: tuple):
+        return tuple([e1 != e2 for (e1, e2) in zip(tup1, tup2)])
+
     def correct(self, other: "PixelEnvironment") -> bool:
         return self.pixels == other.pixels
 
-    def distance(self, other: "PixelEnvironment") -> int:
-        return self._hamming_distance(self.pixels, other.pixels)
+    def distance(self, other: "PixelEnvironment", override=False) -> int:
+        # print()
+        # print(self.to_formatted_string())
+        # print()
+        # print(other.to_formatted_string())
+        # print()
+        # difference = self.difference(self.pixels, other.pixels)
+        # diff_env = copy.deepcopy(self)
+        # diff_env.pixels = difference
+        # print()
+        # print(diff_env.to_formatted_string())
+
+        # dist = self.furthest_distance(self.difference(self.pixels, other.pixels))
+        # dist = self.largest_triangle(other)
+        # print(f"largest triangle dist: {dist}")
+        # hamming_distance = self._hamming_distance(self.pixels, other.pixels)
+        # dist += (2*hamming_distance - 3)
+        # dist = max(0, dist)
+        if override == 'hamming':
+            return self._hamming_distance(self.pixels, other.pixels)
+        return self.largest_triangle(other) + self._hamming_distance(self.pixels, other.pixels)
+        # return self.furthest_distance(other) + self._hamming_distance(self.pixels, other.pixels)
+        # return self._hamming_distance(self.pixels, other.pixels)
+
 
     def to_formatted_string(self):
         char_empty = chr(11034)  # ⬚

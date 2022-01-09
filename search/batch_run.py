@@ -27,6 +27,7 @@ class BatchRun:
                  files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
                  file_name: str = "",
+                 outfile_suffix: str = "",
                  multi_core: bool = True,
                  print_results: bool = False):
 
@@ -34,6 +35,7 @@ class BatchRun:
         self.search_algorithm = search_algorithm
         self.algorithm_name = self._get_algorithm_name(search_algorithm)
         self.file_name = file_name
+        self.outfile_suffix = outfile_suffix
         self.files = self._complement_iters(domain, files)
         self.multi_core = multi_core
         self.print_results = print_results
@@ -133,7 +135,7 @@ class BatchRun:
 
         timestr = time.strftime("%Y%m%d-%H%M%S")
         if self.file_name == "":
-            self.file_name = "{}-{}.txt".format(self.algorithm_name, timestr)
+            self.file_name = "{}-{}{}.txt".format(self.algorithm_name, timestr, f"-{self.outfile_suffix}" if self.outfile_suffix else "")
             self.last_stored = None
 
         self.path = "{}/{}".format(folder, self.file_name)

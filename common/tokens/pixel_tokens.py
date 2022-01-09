@@ -89,6 +89,13 @@ class MoveDown(TransToken):
 		env.y += 1
 		return env
 
+# class IsDrawn(BoolToken):
+# 	def apply(self, env:PixelEnvironment) -> bool:
+# 		return env.pixels[env.width * env.y + env.x]
+#
+# class IsNotDrawn(BoolToken):
+# 	def apply(self, env:PixelEnvironment) -> bool:
+# 		return not env.pixels[env.width * env.y + env.x]
 
 BoolTokens = {AtTop(), AtBottom(), AtLeft(), AtRight(), NotAtTop(), NotAtBottom(), NotAtLeft(), NotAtRight()}
 TransTokens = {MoveRight(), MoveDown(), MoveLeft(), MoveUp(), Draw()}

@@ -6,29 +6,15 @@ plt.rcParams["figure.dpi"] = plt.rcParamsDefault["figure.dpi"]
 plt.rcParams["figure.figsize"] = (3, 3)
 
 #%%
-# name_fname = {
-#     "0.5-30":  "/tmp/pycharm_project_46/results/hpc/string_1-50_30s/Astar0.5.txt",
-#     "0-30":  "/tmp/pycharm_project_46/results/hpc/string_1-50_30s/Astar0.txt",
-#     "0.5-10":  "/tmp/pycharm_project_46/results/hpc/Astar0.5.txt",
-#     "0-10":  "/tmp/pycharm_project_46/results/hpc/Astar0.txt",
-# }
-# name_fname = {
-#     "0.5":  "/tmp/pycharm_project_46/results/pixel/Astar0.5.txt",
-#     "0.4": "/tmp/pycharm_project_46/results/pixel/Astar0.4.txt",
-#     "0.3": "/tmp/pycharm_project_46/results/pixel/Astar0.3.txt",
-#     "0.2": "/tmp/pycharm_project_46/results/pixel/Astar0.2.txt",
-#     "0.1": "/tmp/pycharm_project_46/results/pixel/Astar0.1.txt",
-#     "0": "/tmp/pycharm_project_46/results/pixel/Astar0.txt",
-# }
 name_fname = {
-    "1": "/tmp/pycharm_project_46/results/string/astar0.5-levenshtein-nocache.txt",
-    "2": "/tmp/pycharm_project_46/results/string/astar0-levenshtein-nocache.txt",
-    "3": "/tmp/pycharm_project_46/results/string/astar0.5-levenshtein-nocache-tiebreak.txt",
-
+    "A*": "results/string/Astar-20220106-163811.txt",
+    "Brute": "results/string/Astar-20220106-183552.txt",
 }
+
 # name_fname = {
-#     "0.5":  "/tmp/pycharm_project_46/results/robot/Astar0.5.txt",
-#     "0": "/tmp/pycharm_project_46/results/robot/Astar0.txt",
+#     "1": "/tmp/pycharm_project_46/results/string/astar0.5-levenshtein-nocache.txt",
+#     "2": "/tmp/pycharm_project_46/results/string/astar0-levenshtein-nocache.txt",
+#     "3": "/tmp/pycharm_project_46/results/string/astar0.5-levenshtein-nocache-tiebreak.txt",
 # }
 
 name_data = {}
@@ -49,6 +35,7 @@ for name, data in name_data.items():
 name_aggregate = {}
 for name, data in name_data.items():
     accuracies = []
+    solutions_found = 0
     for i, case in enumerate(data):
         n_examples = case['train_amount'] + case['test_amount']
         n_correct = case['train_amount_correct'] + case['test_amount_correct']
@@ -62,6 +49,8 @@ for name, data in name_data.items():
         name_data[name][i]['n1'] = n1
         name_data[name][i]['n2'] = n2
         name_data[name][i]['n3'] = n3
+        if case['solution_found']:
+            solutions_found += 1
 
     n_cases = len(data)
     n_solved = sum([int(c['solution_found']) for c in data])
@@ -76,7 +65,13 @@ for name, data in name_data.items():
         'accuracy': accuracy,
     }
     name_aggregate[name] = aggregate_data
-    print(f"{name}: {n_solved}/{n_cases} {n_solved/n_cases*100} accuracy: {accuracy} exec_time: {exec_time} program_length: {program_length}")
+    print()
+    print(sum(accuracies)/len(accuracies))
+    print(solutions_found/n_cases)
+
+    # amount_fully_correct = len(list(filter(lambda a: a == 1.0, accuracies)))
+    # print(amount_fully_correct/len(accuracies) * 100)
+    # print(f"{name}: {n_solved}/{n_cases} {n_solved/n_cases*100} accuracy: {accuracy} exec_time: {exec_time} program_length: {program_length}")
 
 #%%
 
