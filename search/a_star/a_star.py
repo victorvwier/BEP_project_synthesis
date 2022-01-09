@@ -43,8 +43,6 @@ class AStar(SearchAlgorithm):
         elif self.heuristic_override == 'max':
             self.heuristic = self._heuristic_max
 
-        print(f"using heuristic: {self.heuristic.__name__}")
-
         self.input_envs: tuple[Environment] = tuple(e.input_environment for e in training_examples)
         self.output_envs: tuple[Environment] = tuple(e.output_environment for e in training_examples)
         self.tokens: list[Token] = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
