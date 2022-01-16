@@ -1,3 +1,4 @@
+import time
 from typing import Iterator, List, Union
 
 from common.experiment import Example
@@ -6,18 +7,23 @@ from common.tokens.control_tokens import LoopIterationLimitReached
 from common.tokens.pixel_tokens import *
 from search.a_star.unique_priority_queue import UniquePriorityQueue
 from search.abstract_search import SearchAlgorithm
-from search.invent import invent2
+from search.invent import invent2, invent3, invent4
 from search.search_result import SearchResult
 
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
 
 class AStar(SearchAlgorithm):
-    def __init__(self, time_limit_sec: float, weight: int = False, heuristic_override=False, distance_override=False):
+    def __init__(self, time_limit_sec: float, weight: Union[int, str] = False, heuristic_override=False, distance_override=False):
         super().__init__(time_limit_sec)
         if weight is False:
             weight = 0.5
-        assert 0 <= weight <= 1
+        if isinstance(weight, int):
+            assert 0 <= weight <= 1
+        self.dynamic_weight = False
+        if isinstance(weight, str):
+            assert weight == 'dynamic'
+            self.dynamic_weight = True
         self.weight = weight
         self.heuristic_override = heuristic_override
         self.distance_override = distance_override
@@ -31,8 +37,7 @@ class AStar(SearchAlgorithm):
         return self._find_program(self._best_f_program_node, self.reached)
 
     def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
-        self.loss_function = lambda g, h: self.weight * g + (1-self.weight) * h
-
+        self.loss_function = self._loss_function
         self.heuristic = self._heuristic_max
         if self.heuristic_override == 'sum':
             self.heuristic = self._heuristic_sum
@@ -49,6 +54,7 @@ class AStar(SearchAlgorithm):
         # print("\n".join([str(t) for t in self.tokens]))
         # print(f"amount of tokens: {len(self.tokens)}")
         self.number_of_iterations: int = 0
+        self.start_time = False
         self._best_cost = float('inf')
         self._best_f_cost = float('inf')
         self.reached = {}
@@ -61,6 +67,11 @@ class AStar(SearchAlgorithm):
             self.input_envs, self.output_envs, self.tokens, self.loss_function, self.heuristic)
 
     def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
+        if self.dynamic_weight:
+            if not self.start_time:
+                self.start_time = time.process_time()
+            self.weight = 1.0 - max(0.0, (time.process_time() - self.start_time)/self.time_limit_sec)
+            self.weight = self.weight * 0.5
         try:
             if node := next(self.program_generator):
                 # a solution was found: stop iterating
@@ -83,6 +94,9 @@ class AStar(SearchAlgorithm):
     @staticmethod
     def _correct(from_states: tuple[Environment], to_states: tuple[Environment]) -> bool:
         return all(map(lambda tup: tup[0].correct(tup[1]), zip(from_states, to_states)))
+
+    def _loss_function(self, g, h):
+        return self.weight * g + (1 - self.weight) * h
 
     @staticmethod
     def _heuristic_mean(from_states: tuple[Environment], to_states: tuple[Environment], distance_override=False) -> float:
@@ -153,8 +167,10 @@ class AStar(SearchAlgorithm):
                         self.reached[child] = gcost_child, node, token
                         hcost_child = h(child, end_node, self.distance_override)
                         fcost_child = f(gcost_child, hcost_child)
-                        # in case of fcost tie: node with smallest hcost goes first
-                        queue.insert(child, fcost_child, hcost_child)
+                        # If infinite reaching end_node is impossible
+                        if hcost_child != float('inf'):
+                            # in case of fcost tie: node with smallest hcost goes first
+                            queue.insert(child, fcost_child, hcost_child)
                 except(InvalidTransition, LoopIterationLimitReached):
                     pass
         return

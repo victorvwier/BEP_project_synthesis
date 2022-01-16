@@ -1,3 +1,4 @@
+import copy
 import heapq
 import json
 import os
@@ -29,7 +30,8 @@ class BatchRun:
                  file_name: str = "",
                  outfile_suffix: str = "",
                  multi_core: bool = True,
-                 print_results: bool = False):
+                 print_results: bool = False,
+                 case_ids: list[str] = None):
 
         self.domain = domain
         self.search_algorithm = search_algorithm
@@ -37,6 +39,7 @@ class BatchRun:
         self.file_name = file_name
         self.outfile_suffix = outfile_suffix
         self.files = self._complement_iters(domain, files)
+        self.case_ids = case_ids
         self.multi_core = multi_core
         self.print_results = print_results
 
@@ -49,13 +52,15 @@ class BatchRun:
         self.append_to_file = self.file_name != ""
         self._init_store_system()
 
-        self.test_cases = self._get_test_cases()
+        self.test_cases = self._get_test_cases() if not case_ids else self._get_test_cases_by_ids()
+        print(f"test cases: {len(self.test_cases)}")
 
     def run(self) -> dict:
         results = []
         correct_results = []
         not_correct_results = []
         correct = 0
+        accuracies = []
 
         if self.multi_core:
             with Pool(processes=os.cpu_count() - 1) as pool:
@@ -68,6 +73,7 @@ class BatchRun:
             for tc in self.test_cases:
                 res = self._test_case(tc)
                 results.append(res)
+                self._store_result(res)
 
                 self.debug_print(
                     f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
@@ -79,9 +85,13 @@ class BatchRun:
             else:
                 not_correct_results.append(res)
 
+        for res in results:
+            accuracies.append(float(res['test_amount_correct'])/res['test_amount'])
+
         s = len(self.test_cases)
         p = -1 if s == 0 else (100 * correct / s).__round__(1)
         self.debug_print("{} / {} ({}%) cases solved.".format(correct, s, p))
+        self.debug_print(f"Average accuracy: {sum(accuracies)/len(accuracies) * 100}")
 
         keys = ["test_cost", "train_cost", "execution_time", "program_length", "number_of_explored_programs",
                 "number_of_iterations"]
@@ -105,7 +115,8 @@ class BatchRun:
         return final
 
     def _test_case(self, test_case: TestCase) -> dict:
-        result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
+        search_algorithm = copy.deepcopy(self.search_algorithm)
+        result = search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
         program = result["program"]
         result["program"] = str(program)
 
@@ -144,6 +155,12 @@ class BatchRun:
         with open(self.path, "a") as file:
             file.write(json.dumps(res))
             file.write("\n")
+
+    def _get_test_cases_by_ids(self) -> list[TestCase]:
+        res = []
+        for case_id in self.case_ids:
+            res.append(self.parser.parse_file(f"{case_id}.pl"))
+        return res
 
     def _get_test_cases(self) -> list[TestCase]:
         all = self.parser.parse_specific_range(self.files[0], self.files[1], self.files[2])

@@ -497,6 +497,8 @@ class PixelEnvironment(Environment):
         # dist = max(0, dist)
         if override == 'hamming':
             return self._hamming_distance(self.pixels, other.pixels)
+        elif override == 'furthest':
+            return self.furthest_distance(other) + self._hamming_distance(self.pixels, other.pixels)
         return self.largest_triangle(other) + self._hamming_distance(self.pixels, other.pixels)
         # return self.furthest_distance(other) + self._hamming_distance(self.pixels, other.pixels)
         # return self._hamming_distance(self.pixels, other.pixels)
