@@ -27,8 +27,6 @@ def normalize_errors(errors):
 			continue
 		fin_values.append(err)
 
-	print(len(inf_values), len(fin_values))
-
 	# If all values are infinite, then pick some max_err (here, 0.5)
 	if(len(fin_values) == 0):
 		max_err = 0.5
@@ -266,8 +264,8 @@ class VanillaGP(SearchAlgorithm):
 		current_best_fitness, current_best_solved, current_best_program = self.current_gen_fitness[0]
 		self.cost_per_iteration.append((self.current_gen_num, current_best_fitness))
 
-		print("----Gen", self.current_gen_num)
-		print(current_best_fitness, current_best_solved, current_best_program)
+		# print("----Gen", self.current_gen_num)
+		# print(current_best_fitness, current_best_solved, current_best_program)
 
 		# fitness is actually the loss, hence the less-than sign. A bit unfortunate, but oh well
 		if (current_best_solved == 0 or current_best_fitness < self._best_fitness):
