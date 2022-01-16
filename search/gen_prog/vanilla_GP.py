@@ -1,6 +1,7 @@
 # VANILLA GENETIC PROGRAMMING ALGORITHM
 
 import math
+import sys
 import random, itertools
 from common.experiment import Example
 from common.prorgam import Program
@@ -10,7 +11,7 @@ from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
 from typing import List, Tuple
-from math import inf, modf
+from math import inf
 from heapq import *
 
 # Draw from a list of options randomly (no seed)
@@ -19,12 +20,22 @@ def draw_from(options, number_of_elems=1, weights=None):
 
 def normalize_errors(errors):
 	# Assumption: no negative errors
-	inf_values = [err for err, _, _ in errors if not(math.isinf(err))]
+	inf_values, fin_values = [], []
+	for err, _, _ in errors:
+		if (math.isinf(err)):
+			inf_values.append(err)
+			continue
+		fin_values.append(err)
+
+	print(len(inf_values), len(fin_values))
+
 	# If all values are infinite, then pick some max_err (here, 0.5)
-	if(len(inf_values)):
-		max_err = max(inf_values)
-	else:
+	if(len(fin_values) == 0):
 		max_err = 0.5
+	else:
+		max_err = max(fin_values)
+		if (math.isclose(max_err, 0, rel_tol=1e-05, abs_tol=1e-08)):
+			max_err = sys.float_info.max / (10 * len(inf_values)) # in order to maintain computable values (small)	
 
 	norm_errors = []
 	sum = 0.0

@@ -1,12 +1,13 @@
-from heapq import heapify, heappush
 import math
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.control_tokens import If
 from evaluation.experiment_procedure import extract_bool_tokens_from_domain_name, extract_trans_tokens_from_domain_name, test_performance_single_experiment
-from common.tokens.pixel_tokens import *
-from example_parser.string_parser import StringParser
+# from common.tokens.pixel_tokens import *
+from common.tokens.robot_tokens import *
+# from example_parser.string_parser import StringParser
 from search.batch_run import BatchRun
+from search.brute.brute import Brute, evaluate_program
 from search.gen_prog.vanilla_GP import VanillaGP, chose_with_prob, draw_from, normalize_errors
 
 def test_normalize_errors():
@@ -18,6 +19,36 @@ def test_chose_with_prob():
     chosen = True
     for i in range(0, 1000):
         print(chose_with_prob(0.5))
+
+def test_program_fitness_1():
+    # robot-2-1-9
+    start = RobotEnvironment(2, 1, 0, 1, 1, holding=False)
+    end = RobotEnvironment(2, 1, 1, 1, 1, holding=True)
+    program = Program([MoveDown(), Grab()])
+
+    vanillaGP = VanillaGP(10)
+    vanillaGP.setup([Example(start, end)], TransTokens, BoolTokens)
+    print(vanillaGP.program_fitness(program))
+
+    brute = Brute(10)
+    print(evaluate_program(program, [start], [end]))
+
+    # seem to be the same
+def test_program_fitness_2():
+    # robot-2-1-9
+    start = RobotEnvironment(2, 1, 0, 1, 1, holding=False)
+    end = RobotEnvironment(2, 1, 1, 1, 1, holding=True)
+    program = Program([If(AtLeft(), [MoveRight()], [MoveDown()])])
+
+    brute = Brute(10)
+    print(evaluate_program(program, [start], [end]))
+
+    vanillaGP = VanillaGP(10)
+    vanillaGP.setup([Example(start, end)], TransTokens, BoolTokens)
+    print(vanillaGP.program_fitness(program))
+
+    # seem to be the same
+
 
 def test_gen_fitness():
     start_state = PixelEnvironment(2, 2, 0, 0, (False, False, False, False))
@@ -108,13 +139,10 @@ def test_vanillaGP_robot():
     print(search_result.dictionary["program"])
 
 def test_on_actual_experiment():
-    # vanillaGP = VanillaGP
-    # experiment = StringParser().parse_specific_range(
-    #     range(0, 10), range(0, 10), range(0, 10))
-    # (ave_suc, ave_time, com_suc) = test_performance_single_experiment(
-    #     experiment, vanillaGP)
-    BatchRun(domain="robot", files=([6],[8],[3]), search_algorithm=VanillaGP(10), print_results=True, multi_core=False).run()
-
+    # BatchRun(domain="robot", files=([2],[1],[9]), search_algorithm=Brute(10), print_results=True, multi_core=False).run()
+    # vanillaGP.seed = 3
+    BatchRun(domain="robot", files=([2],[1],[9]), search_algorithm=VanillaGP(10), print_results=True, multi_core=False).run()
+    
 # test_normalize_errors()
 # test_chose_with_prob()
 
