@@ -1,6 +1,7 @@
 # VANILLA GENETIC PROGRAMMING ALGORITHM
 
-import random, itertools, heapq
+import math
+import random, itertools
 from common.experiment import Example
 from common.prorgam import Program
 from common.tokens.abstract_tokens import InvalidTransition, Token
@@ -13,32 +14,61 @@ from math import inf, modf
 from heapq import *
 
 # Draw from a list of options randomly (no seed)
-def draw_from(options, number_of_elems=1):
-    return random.choices(options, k=number_of_elems)
+def draw_from(options, number_of_elems=1, weights=None):
+    return random.choices(options, weights=weights, k=number_of_elems)
+
+def normalize_errors(errors):
+	# Assumption: no negative errors
+	inf_values = [err for err, _, _ in errors if not(math.isinf(err))]
+	# If all values are infinite, then pick some max_err (here, 0.5)
+	if(len(inf_values)):
+		max_err = max(inf_values)
+	else:
+		max_err = 0.5
+
+	norm_errors = []
+	sum = 0.0
+	for err, _, _ in errors:
+		if(math.isinf(err)):
+			inf_sub = max_err*2
+			norm_errors.append(inf_sub)
+			sum += inf_sub
+			continue
+		norm_errors.append(err)
+		sum += err
+
+	error_prob = [n_err/sum for n_err in norm_errors]
+	sorted(error_prob, reverse=True)
+	return error_prob
+
+def chose_with_prob(prob):
+	return draw_from([True, False], weights=[prob, 1.0-prob])[0]
+
+def pairs_from(items):
+	n = 2
+	args = [iter(items)] * n
+	return itertools.zip_longest(*args)
 
 class VanillaGP(SearchAlgorithm):
 	# Static fields
 	examples = [] # training examples
 	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
 	token_functions = []
-	MAX_NUMBER_OF_GENERATIONS = 50
+	MAX_NUMBER_OF_GENERATIONS = 200
 	mutation_chance = 35 # Chance of an individual gene(function) being mutated (may be changed to be random for each mutation(?))
 
 	# Dynamic fields
 	current_gen_num = 0
-	current_gen = []
+	# current_gen = []
 	current_gen_fitness = []
-	best_fitness = float("inf")
-	best_solved = 1
+	_best_fitness = float("inf")
+	_best_solved = 1
 
 	# Genetic Algorithm
 
 	def generate_rand_program(self, max_prog_length):
 		prog_length = random.randint(1, max_prog_length)
 		program_seq = []
-		# for i in range(prog_length):
-		# 	function = draw_from(self.token_functions)
-		# 	program_seq.append(function)
 		program_seq = draw_from(self.token_functions, number_of_elems=prog_length)
 		return Program(program_seq)
 
@@ -66,22 +96,27 @@ class VanillaGP(SearchAlgorithm):
 		except (InvalidTransition, LoopIterationLimitReached) as e:
 			return (float("inf"), 1, program)
 
-	def gen_fitness(self):
+	def gen_fitness(self, gen):
 		gen_fitness = []
-		for program in self.current_gen:
+		for program in gen:
 			program_data = self.program_fitness(program)
-			heapq.heappush(gen_fitness, program_data)
+			gen_fitness.append(program_data)
+		gen_fitness = sorted(gen_fitness)
 		return gen_fitness
 
 	# -- Crossover --
+	def pick_crossover_point(self, program):
+		indices = range(0, len(program.sequence))
+		chosen_index = draw_from(indices)[0]
+		return chosen_index
+
 	def one_point_crossover(self, program_x, program_y):
-		# Pick a crossover point (cut in half for now)
 		seq_x = program_x.sequence
 		seq_y = program_y.sequence
-		len_x = len(seq_x)
-		len_y = len(seq_y)
-		crossover_point_x = int(modf(len_x/2.0)[1])
-		crossover_point_y = int(modf(len_y/2.0)[1])
+		crossover_point_x = self.pick_crossover_point(program_x)
+		crossover_point_y = self.pick_crossover_point(program_y)
+		# print(crossover_point_x)
+		# print(crossover_point_y)
 		updated_seq_x = seq_x[:crossover_point_x + 1] + seq_y[crossover_point_y + 1:]
 		updated_seq_y = seq_y[:crossover_point_y + 1] + seq_x[crossover_point_x + 1:]
 
@@ -142,36 +177,51 @@ class VanillaGP(SearchAlgorithm):
 				mutated_seq.append(new_random_function)
 			else:
 				mutated_seq.append(function)
+
 		mutated_program = Program(program_seq)
+
 		return mutated_program
 
-		return mutated_genotype
+	def mutate_gen(self, gen):
+		mutated_gen = [self.mutate_program(program) for program in gen]
+		return mutated_gen
 
-	def mutate_gen(self):
-		for program in self.current_gen:
-			self.mutate_program(program)
-
+	# -- Intermediate Generation --
 	def intermediate_gen(self):
 		intermediate_gen = []
-		i = 0
-		while i < len(self.current_gen_fitness):
-			_, _, program_x = self.current_gen_fitness[i]
-			reproduction_decision = False # draw_from_bin_with_chance(50)
-			if(reproduction_decision or i == len(self.current_gen_fitness) - 1):
-				intermediate_gen.append(program_x)
-			else:
-				i = i + 1
-				_, _, program_y = self.current_gen_fitness[i]
-				child_x, child_y = self.one_point_crossover(program_x, program_y)
-				intermediate_gen.append(child_x)
-				intermediate_gen.append(child_y)
-			i = i + 1
-		self.current_gen = intermediate_gen
+		crossover_subset = []
+
+		probs = normalize_errors(self.current_gen_fitness)
+		for i in range(len(self.current_gen_fitness)):
+			_, _, program = self.current_gen_fitness[i]
+			prob = probs[i]
+			chosen = chose_with_prob(prob)
+			if(chosen):
+				intermediate_gen.append(program)
+				continue
+			crossover_subset.append(program)
+
+		# MAKE SURE THAT CROSSOVER SUBSET HAS EVEN NUMBER OF ELEMENTS
+		if(len(crossover_subset) % 2 != 0):
+			intermediate_gen.append(crossover_subset[0])
+			crossover_subset = crossover_subset[1:]
+
+		children = []
+		random.shuffle(crossover_subset)
+		for program_x, program_y in pairs_from(crossover_subset):
+			child_x, child_y = self.one_point_crossover(program_x, program_y)
+			children.append(child_x)
+			children.append(child_y)
+
+		intermediate_gen = intermediate_gen + children
+
+		return intermediate_gen
 
 	def breed_generation(self):
-		self.intermediate_gen()
-		# self.mutate_gen()
+		new_gen = self.intermediate_gen()
+		new_gen = self.mutate_gen(new_gen)
 		self.current_gen_num += 1
+		return new_gen
 
 	# General Interface
 
@@ -179,46 +229,48 @@ class VanillaGP(SearchAlgorithm):
 		super().__init__(time_limit_sec)
 
 	def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
-		self.token_functions = invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH) + [token for token in list(trans_tokens)]
+		self.token_functions =  [token for token in list(trans_tokens)] + invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH)
 		self.examples = training_examples
 
 		# Set the overall best results to the performance of the initial (empty) best program Program([])
-		self.best_fitness, self.best_solved, self._best_program = self.program_fitness(self._best_program)
+		self._best_fitness, self._best_solved, self._best_program = self.program_fitness(self._best_program)
 
 		# Parameters for the initial random population
-		self.initial_population_size = 100
-		self.max_prog_length = 10
+		self.initial_population_size = 200
+		self.max_prog_length = 20
 
 		# Set the seed
 		# random.seed(self.seed)
 
 		# The current generation is the initial random generation at the beginning
-		self.current_gen = self.generate_rand_population(self.initial_population_size, self.max_prog_length)
-		self.current_gen_fitness = self.gen_fitness()
+		initial_gen = self.generate_rand_population(self.initial_population_size, self.max_prog_length)
+		self.current_gen_fitness = self.gen_fitness(initial_gen)
 		self.current_gen_num = 0
+		self.number_of_iterations = 0
+		self.number_of_explored_programs = self.initial_population_size
 
 		self.cost_per_iteration = []
 
 	def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
-		# print("----Gen ", self.current_gen_num, "----")
-		# [print(f, s, p) for f, s, p in self.current_gen_fitness]
 		current_best_fitness, current_best_solved, current_best_program = self.current_gen_fitness[0]
 		self.cost_per_iteration.append((self.current_gen_num, current_best_fitness))
-		# print(current_best_fitness, current_best_solved, current_best_program)
+
+		print("----Gen", self.current_gen_num)
+		print(current_best_fitness, current_best_solved, current_best_program)
 
 		# fitness is actually the loss, hence the less-than sign. A bit unfortunate, but oh well
-		if (current_best_solved == 0 or current_best_fitness < self.best_fitness):
-			self.best_fitness = current_best_fitness
-			self.best_solved = current_best_solved
+		if (current_best_solved == 0 or current_best_fitness < self._best_fitness):
+			self._best_fitness = current_best_fitness
+			self._best_solved = current_best_solved
 			self._best_program = current_best_program
 
-		if (self.best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
-			#print(self.current_gen_num)
-			self.number_of_iterations = self.current_gen_num
-			self.number_of_explored_programs = self.number_of_iterations * self.initial_population_size
+		if (self._best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
 			return False
 
-		self.breed_generation()
-		self.current_gen_fitness = self.gen_fitness()
+		next_gen = self.breed_generation()
+		self.current_gen_fitness = self.gen_fitness(next_gen)
+
+		self.number_of_iterations += 1
+		self.number_of_explored_programs += len(self.current_gen_fitness)
 
 		return True
