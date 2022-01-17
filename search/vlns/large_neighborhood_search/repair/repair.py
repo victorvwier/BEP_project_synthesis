@@ -16,7 +16,7 @@ class Repair:
     def random_token(self, w_trans: float, w_if: float, w_loop: float) -> EnvToken:
         return self.invent.random_token(w_trans=w_trans, w_if=w_if, w_loop=w_loop)
 
-    def set_search_depth(self, n: int):
+    def reset(self):
         pass
 
     def increment_search_depth(self):

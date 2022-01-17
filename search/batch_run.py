@@ -17,7 +17,9 @@ from search.abstract_search import SearchAlgorithm
 from search.brute.brute import Brute
 from search.gen_prog.vanilla_GP import VanillaGP
 from search.metropolis_hastings.metropolis import MetropolisHasting
+from search.vlns.large_neighborhood_search.algorithms.flute_brute import FluteBrute
 from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
+from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n_vdi import RemoveNInsertNVDI
 
 
 class BatchRun:
@@ -26,14 +28,14 @@ class BatchRun:
                  domain: str,
                  files: (Iterable[int], Iterable[int], Iterable[int]),
                  search_algorithm: SearchAlgorithm,
-                 file_name: str = "",
+                 file_name: str,
                  multi_core: bool = True,
                  print_results: bool = False):
 
         self.domain = domain
         self.search_algorithm = search_algorithm
         self.algorithm_name = self._get_algorithm_name(search_algorithm)
-        self.file_name = file_name
+        self.file_name = "{}.txt".format(file_name)
         self.files = self._complement_iters(domain, files)
         self.multi_core = multi_core
         self.print_results = print_results
@@ -44,7 +46,6 @@ class BatchRun:
         self.bools = extract_bool_tokens_from_domain_name(domain)
 
         self.path = ""
-        self.append_to_file = self.file_name != ""
         self._init_store_system()
 
         self.test_cases = self._get_test_cases()
@@ -57,11 +58,11 @@ class BatchRun:
 
         if self.multi_core:
             with Pool(processes=os.cpu_count() - 1) as pool:
-                # collect results sorted and in chunks to minimize communication overhead on HPC
-                for i, d in enumerate(pool.imap(self._test_case, self.test_cases, chunksize=10)):
-                    self.debug_print(f"{self.search_algorithm.__class__.__name__} {i}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
-                    self._store_result(d)
-                    results.append(d)
+                for tc in self.test_cases:
+                    res = pool.apply_async(self._test_case, (tc,))
+                    results.append(res)
+
+                results = [r.get() for r in results]
         else:
             for tc in self.test_cases:
                 res = self._test_case(tc)
@@ -100,6 +101,12 @@ class BatchRun:
             "results": results,
         }
 
+        # Sort file
+        for res in results:
+            self._store_result(res)
+
+        self._sort_file()
+
         return final
 
     def _test_case(self, test_case: TestCase) -> dict:
@@ -120,6 +127,14 @@ class BatchRun:
         }
 
         d.update(result)
+
+        #self._store_result(d)
+        # queue_for_writing_to_file.put(d)
+
+        if self.multi_core:
+            self.debug_print(
+                f"{self.algorithm_name}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
+
         return d
 
     def _init_store_system(self):
@@ -128,12 +143,10 @@ class BatchRun:
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        if self.file_name == "":
-            self.file_name = "{}-{}.txt".format(self.algorithm_name, timestr)
-            self.last_stored = None
-
         self.path = "{}/{}".format(folder, self.file_name)
+
+        # Create file if does not exists
+        open(self.path, "a").close()
 
     def _store_result(self, res: dict):
         with open(self.path, "a") as file:
@@ -143,13 +156,12 @@ class BatchRun:
     def _get_test_cases(self) -> list[TestCase]:
         all = self.parser.parse_specific_range(self.files[0], self.files[1], self.files[2])
 
-        if not self.append_to_file:
-            return all
-
         seen = set()
 
         with open(self.path, "r") as file:
             for line in file.readlines():
+                if len(line) < 5:
+                    continue
                 obj = json.loads(line[:-1])
                 seen.add(self._get_file_index(obj))
 
@@ -235,7 +247,14 @@ class BatchRun:
             MCTS: "mcts",
             VanillaGP: "gp",
             RemoveNInsertN: "VLNS",
+            RemoveNInsertNVDI: "VLNS_vdi",
             AStar: "Astar",
         }
+
+        if isinstance(algo, RemoveNInsertNVDI):
+            return "VLNS_vdi{}".format(algo.increase_depth_after)
+
+        if isinstance(algo, FluteBrute):
+            return "FluteBrute{}".format(algo.increase_depth_after)
 
         return map[algo.__class__]
