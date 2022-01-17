@@ -5,7 +5,7 @@ import copy
 import heapq
 
 from search.abstract_search import SearchAlgorithm
-from search.brute.invent import invent2, Invent
+from search.brute.invent import Invent
 from search.search_result import SearchResult
 
 MAX_NUMBER_OF_ITERATIONS = 10
