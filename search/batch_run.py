@@ -151,13 +151,13 @@ class BatchRun:
 
         queue_for_writing_to_file.put(d)
 
-        BatchRun._write_results_to_separate_file_per_test_case(
-            test_case=test_case,
-            program=program,
-            execution_time=result["execution_time"],
-            resulting_dictionary=result,
-            algorithm_name=self.algorithm_name,
-        )
+        # BatchRun._write_results_to_separate_file_per_test_case(
+        #     test_case=test_case,
+        #     program=program,
+        #     execution_time=result["execution_time"],
+        #     resulting_dictionary=result,
+        #     algorithm_name=self.algorithm_name,
+        # )
 
         if self.multi_core:
             self.debug_print(
