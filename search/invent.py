@@ -41,7 +41,7 @@ def invent2(tokenSet, boolTokenSet, maxLength) -> list:
         for lb in bodies:
             for rb in bodies:
                 if_list.append(If(c, [lb], [rb]))
-        out = out + if_list
+    out = out + if_list
 
     # Generating recurse statements
     # recurse_list = []
