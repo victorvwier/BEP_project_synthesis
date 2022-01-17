@@ -5,7 +5,7 @@ import copy
 import heapq
 
 from search.abstract_search import SearchAlgorithm
-from search.invent import invent2
+from search.brute.invent import invent2, Invent
 from search.search_result import SearchResult
 
 MAX_NUMBER_OF_ITERATIONS = 10
@@ -28,7 +28,13 @@ class Brute(SearchAlgorithm):
     def setup(self, examples, trans_tokens, bool_tokens):
         self.programs = []
         self._best_program = Program([])
+
         # generate different token combinations
+        invent = Invent(trans_tokens, bool_tokens)
+        invent.permutations(up_to_length=3)
+        invent.ifs(max_branch_size=2)
+        invent.loops(max_body_size=2)
+        invent.loop_if(max_loop_body_size=2, max_branch_size=1)
         self.token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
 
         self.sample_inputs = [e.input_environment for e in examples]
