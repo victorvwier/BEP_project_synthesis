@@ -273,6 +273,19 @@ class StringEnvironment(Environment):
         args = re.search(regex, string_encoding).groupdict()
         return StringEnvironment(args['string'], int(args['pos']))
 
+    def can_reach(self, output: "StringEnvironment"):
+        out = output.string_array
+        inp_i = 0
+        out_i = 0
+
+        while out_i < len(out) and inp_i < len(self.string_array):
+            if self.string_array[inp_i].lower() == out[out_i].lower():
+                inp_i += 1
+                out_i += 1
+            else:
+                inp_i += 1
+
+        return out_i == len(out)
 
 @dataclass(eq=True, unsafe_hash=True)
 class PixelEnvironment(Environment):

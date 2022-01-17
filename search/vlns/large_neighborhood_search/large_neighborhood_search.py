@@ -65,6 +65,9 @@ class LNS(SearchAlgorithm):
         self.cost_per_iteration = []
 
     def iteration(self, test_case: list[Example], tokens: list[EnvToken], bt) -> bool:
+        if self.cost_best == 0:
+            return False
+
         self.debug_print("\n")
         self.debug_print("-=-=-=[Iteration {}]=-=-=-".format(self.number_of_iterations))
         self.debug_print("Program ({}): {}".format(self.cost_current, self.sol_current))
