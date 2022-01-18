@@ -1,6 +1,7 @@
 # VANILLA GENETIC PROGRAMMING ALGORITHM
 
 import math
+import statistics
 import sys
 import random, itertools
 from common.experiment import Example
@@ -15,8 +16,11 @@ from math import inf
 from heapq import *
 
 # Draw from a list of options randomly (no seed)
-def draw_from(options, number_of_elems=1, weights=None):
-    return random.choices(options, weights=weights, k=number_of_elems)
+def draw_from(options, number_of_elems=0, weights=None):
+	if (number_of_elems == 0):
+		res = random.choices(options, weights=weights, k=1)[0]
+		return res
+	return random.choices(options, weights=weights, k=number_of_elems)
 
 def normalize_errors(errors):
 	# Assumption: no negative errors
@@ -51,19 +55,27 @@ def normalize_errors(errors):
 	return error_prob
 
 def chose_with_prob(prob):
-	return draw_from([True, False], weights=[prob, 1.0-prob])[0]
+	return draw_from([True, False], weights=[prob, 1.0-prob])
 
 def pairs_from(items):
 	n = 2
 	args = [iter(items)] * n
 	return itertools.zip_longest(*args)
 
+def generation_stats(gen_fitness):
+	prog_lengths = [p.number_of_tokens()  for _, _, p in gen_fitness]
+	prog_tokens = [len(p.sequence) for _, _, p in gen_fitness]
+	std_dev_lengths = statistics.stdev(prog_lengths)
+	std_dev_token = statistics.stdev(prog_tokens)
+	print(std_dev_lengths, std_dev_token)
+	print(statistics.mean(prog_lengths), statistics.mean(prog_tokens))
+
 class VanillaGP(SearchAlgorithm):
 	# Static fields
 	examples = [] # training examples
 	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
 	token_functions = []
-	MAX_NUMBER_OF_GENERATIONS = 200
+	MAX_NUMBER_OF_GENERATIONS = 500
 	mutation_chance = 35 # Chance of an individual gene(function) being mutated (may be changed to be random for each mutation(?))
 
 	# Dynamic fields
@@ -116,12 +128,16 @@ class VanillaGP(SearchAlgorithm):
 	# -- Crossover --
 	def pick_crossover_point(self, program):
 		indices = range(0, len(program.sequence))
-		chosen_index = draw_from(indices)[0]
+		chosen_index = draw_from(indices)
 		return chosen_index
 
 	def one_point_crossover(self, program_x, program_y):
 		seq_x = program_x.sequence
 		seq_y = program_y.sequence
+
+		if (len(seq_x) == 0 or len(seq_y) == 0):
+			return program_x, program_y
+
 		crossover_point_x = self.pick_crossover_point(program_x)
 		crossover_point_y = self.pick_crossover_point(program_y)
 		# print(crossover_point_x)
@@ -187,12 +203,43 @@ class VanillaGP(SearchAlgorithm):
 			else:
 				mutated_seq.append(function)
 
-		mutated_program = Program(program_seq)
+		mutated_program = Program(mutated_seq)
 
 		return mutated_program
 
+	def UMAD(self, program):
+		genome_initial = program.sequence
+		genome_intermediate = []
+		genome_final = []
+
+		addRate = 0.15
+		delRate = addRate / (addRate + 1)
+
+		# Addition step
+		for gene in genome_initial:
+			if random.uniform(0, 1) < addRate:
+				new_gene = draw_from(self.token_functions)
+				if random.uniform(0, 1) < 0.5:
+					genome_intermediate.append(new_gene)
+					genome_intermediate.append(gene)
+				else:
+					genome_intermediate.append(gene)
+					genome_intermediate.append(new_gene)
+			else:
+				genome_intermediate.append(gene)
+
+		# Deletion step
+		for gene in genome_intermediate:
+			if random.uniform(0, 1) < delRate:
+				continue
+			else:
+				genome_final.append(gene)
+
+		new_program = Program(genome_final)
+		return new_program
+
 	def mutate_gen(self, gen):
-		mutated_gen = [self.mutate_program(program) for program in gen]
+		mutated_gen = [self.UMAD(program) for program in gen]
 		return mutated_gen
 
 	# -- Intermediate Generation --
@@ -237,6 +284,10 @@ class VanillaGP(SearchAlgorithm):
 	def __init__(self, time_limit_sec: float):
 		super().__init__(time_limit_sec)
 
+	def extend_result(self, search_result):
+		search_result.dictionary['initial_error'] = self.initial_error
+		return super().extend_result(search_result)
+
 	def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
 		self.token_functions =  [token for token in list(trans_tokens)] + invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH)
 		self.examples = training_examples
@@ -244,8 +295,11 @@ class VanillaGP(SearchAlgorithm):
 		# Set the overall best results to the performance of the initial (empty) best program Program([])
 		self._best_fitness, self._best_solved, self._best_program = self.program_fitness(self._best_program)
 
+		# Record the initial error (error of the empty program) in the SearchResult
+		self.initial_error = self._best_fitness
+
 		# Parameters for the initial random population
-		self.initial_population_size = 200
+		self.initial_population_size = 300
 		self.max_prog_length = 20
 
 		# Set the seed
@@ -261,6 +315,10 @@ class VanillaGP(SearchAlgorithm):
 		self.cost_per_iteration = []
 
 	def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
+		# Collect statistics about generation
+		# print("----Gen ", self.current_gen_num, "----")
+		# generation_stats(self.current_gen_fitness)
+
 		current_best_fitness, current_best_solved, current_best_program = self.current_gen_fitness[0]
 		self.cost_per_iteration.append((self.current_gen_num, current_best_fitness))
 

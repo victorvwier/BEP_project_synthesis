@@ -1,4 +1,5 @@
 import heapq
+import copy
 import json
 import os
 import time
@@ -68,7 +69,7 @@ class BatchRun:
                 results.append(res)
 
                 self.debug_print(
-                    f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}")
+                    f"{self.search_algorithm.__class__.__name__}: {res['file']}, test_cost: {res['test_cost']}, train_cost: {res['train_cost']}, time: {res['execution_time']}, length: {res['program_length']}, iterations: {res['number_of_iterations']}, initial error: {res['initial_error']}")
 
         for res in results:
             if res['test_cost'] == 0 and res['train_cost'] == 0:
