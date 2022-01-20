@@ -1,5 +1,5 @@
 import json
-import statistics
+import sys
 from typing import Callable, List
 
 from common.prorgam import Program
@@ -86,9 +86,9 @@ class ResultParser:
 
 
 # Initialization
-file_name_pixel = "gp-20220117-003706.txt"
-file_name_robot = "gp-20220116-235934.txt"
-file_name_string = "gp-20220117-000604.txt"
+file_name_pixel = sys.argv[1]
+file_name_robot = sys.argv[2]
+file_name_string = sys.argv[3]
 
 path_to_file_pixel = "./results/pixel/" + file_name_pixel
 path_to_file_robot = "./results/robot/" + file_name_robot
@@ -99,9 +99,22 @@ result_parser_robot = ResultParser(path_to_file_robot)
 result_parser_string = ResultParser(path_to_file_string)
 
 # Processing
-print(result_parser_pixel.get_percentage_solved())
-print(result_parser_robot.get_percentage_solved())
-print(result_parser_string.get_percentage_solved())
-print(result_parser_string.get_train_vs_test_cost())
+print("Pixel, solved: ", result_parser_pixel.get_percentage_solved())
+print("Robot, solved: ", result_parser_robot.get_percentage_solved())
+print("String, solved: ", result_parser_string.get_percentage_solved())
+# print(result_parser_string.get_train_vs_test_cost())
 
 # Visualization
+rel_imp_pixel = result_parser_pixel.relative_improvement()
+for file, imp in rel_imp_pixel:
+    print("Pixel example ", file, " improved by ", imp, "%")
+
+rel_imp_robot = result_parser_robot.relative_improvement()
+for file, imp in rel_imp_pixel:
+    print(" Robot example ", file, " improved by ", imp, "%")
+
+rel_imp_string = result_parser_string.relative_improvement()
+for file, imp in rel_imp_pixel:
+    print("String example ", file, " improved by ", imp, "%")
+
+
