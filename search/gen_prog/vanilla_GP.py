@@ -387,7 +387,7 @@ class VanillaGP(SearchAlgorithm):
 		self._best_error, self._best_program = self.evaluate_program(self._best_program)
 
 		# Record the initial error (error of the empty program) in the SearchResult
-		self.initial_error = self.evaluate_program(self._best_program)
+		self.initial_error = self._best_error
 
 		# Parameters for the initial random population
 		self.initial_population_size = 200
