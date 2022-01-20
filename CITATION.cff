@@ -1,0 +1,16 @@
+cff-version: 1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Azimzade
+    given-names: Farhad
+  - family-names: Jenneboer
+    given-names: Bas
+  - family-names: Matulewicz
+    given-names: Nadia
+  - family-names: Rasing
+    given-names: Stef
+  - family-names: Wieringen, van
+    given-names: Victor
+title: "BEP Program Synthesis Systems Code"
+version: 1.0
+date-released: 2022-20-01
