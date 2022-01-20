@@ -8,12 +8,12 @@ from common.tokens.robot_tokens import *
 # from example_parser.string_parser import StringParser
 from search.batch_run import BatchRun
 from search.brute.brute import Brute, evaluate_program
-from search.gen_prog.vanilla_GP import VanillaGP, chose_with_prob, draw_from, normalize_errors
+from search.gen_prog.vanilla_GP import VanillaGP, chose_with_prob, draw_from, normalize_fitness
 
 def test_normalize_errors():
     errors = [0.3, 0.25, 0.05, float('inf')]
     print(errors)
-    print(normalize_errors(errors))
+    print(normalize_fitness(errors))
 
 def test_chose_with_prob():
     chosen = True
@@ -63,7 +63,7 @@ def test_gen_fitness():
 
     search_method = VanillaGP(10.0)
     search_method.seed = 26
-    search_method.examples = [Example(start_state, end_state)]
+    search_method.training_examples = [Example(start_state, end_state)]
     search_method.current_gen = programs
 
     [print(f, s, p) for f, s, p in search_method.gen_fitness()]

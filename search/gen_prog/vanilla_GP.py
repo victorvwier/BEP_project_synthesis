@@ -13,7 +13,6 @@ from search.invent import invent2
 
 from typing import List, Tuple
 from math import inf
-from heapq import *
 
 # Draw from a list of options randomly (no seed)
 def draw_from(options, number_of_elems=0, weights=None):
@@ -22,36 +21,36 @@ def draw_from(options, number_of_elems=0, weights=None):
 		return res
 	return random.choices(options, weights=weights, k=number_of_elems)
 
-def normalize_errors(errors):
+def normalize_fitness(current_gen_fitness):
 	# Assumption: no negative errors
 	inf_values, fin_values = [], []
-	for err, _, _ in errors:
+	for err, _ in current_gen_fitness:
 		if (math.isinf(err)):
 			inf_values.append(err)
 			continue
 		fin_values.append(err)
 
-	# If all values are infinite, then pick some max_err (here, 0.5)
-	if(len(fin_values) == 0):
-		max_err = 0.5
-	else:
-		max_err = max(fin_values)
-		if (math.isclose(max_err, 0, rel_tol=1e-05, abs_tol=1e-08)):
-			max_err = sys.float_info.max / (10 * len(inf_values)) # in order to maintain computable values (small)	
+	shift = 0
+	max_fin_value = max(fin_values)
+	if (math.isclose(max_fin_value, 0, rel_tol=1e-05, abs_tol=1e-08)):
+		shift = 1
+		max_fin_value += shift
 
 	norm_errors = []
 	sum = 0.0
-	for err, _, _ in errors:
+	for err, program in current_gen_fitness:
 		if(math.isinf(err)):
-			inf_sub = max_err*2
-			norm_errors.append(inf_sub)
+			inf_sub = max_fin_value*len(current_gen_fitness)
+			norm_errors.append((inf_sub, program))
 			sum += inf_sub
-			continue
-		norm_errors.append(err)
-		sum += err
+		else:
+			shifted_error = err + shift
+			norm_errors.append((shifted_error, program))
+			sum += shifted_error
 
-	error_prob = [n_err/sum for n_err in norm_errors]
+	error_prob = [(n_err/sum, program) for n_err, program in norm_errors]
 	sorted(error_prob, reverse=True)
+	# current_gen_probabilities = list(zip(error_prob, 
 	return error_prob
 
 def chose_with_prob(prob):
@@ -70,18 +69,48 @@ def generation_stats(gen_fitness):
 	print(std_dev_lengths, std_dev_token)
 	print(statistics.mean(prog_lengths), statistics.mean(prog_tokens))
 
+def roulette_wheel(gen_probabilities):
+	wheel = []
+
+	cum_probability = 0
+	for probability, program in gen_probabilities:
+		wheel.append((cum_probability, cum_probability + probability, program))
+		cum_probability += probability
+	
+	return wheel
+
+def select_on_wheel(wheel, pointer):
+	# print("Wheel: ", wheel)
+	try:
+		for cum_probability, probability, program in wheel:
+			if (cum_probability <= pointer and cum_probability + probability >= pointer):
+				return program
+			# print("Program not on the wheel: ", program, " pointer: ", pointer)
+	except Exception as e:
+		print("Something went wrong: pointer not on the wheel")
+
+
+def select_N_on_wheel(wheel, N, stepsize, pointer):
+	selected = []
+	selected.append(select_on_wheel(wheel, pointer))
+	for i in range(0, N-1):
+		pointer += stepsize
+		pointer %= pointer
+		selected.append(select_on_wheel(wheel, pointer))
+	return selected
+
 class VanillaGP(SearchAlgorithm):
 	# Static fields
-	examples = [] # training examples
+	MAX_NUMBER_OF_GENERATIONS = 200
 	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
+	training_examples = [] # training examples
 	token_functions = []
-	MAX_NUMBER_OF_GENERATIONS = 500
-	mutation_chance = 35 # Chance of an individual gene(function) being mutated (may be changed to be random for each mutation(?))
+	mutation_chance = 2 # Chance of an individual gene(function) being mutated (may be changed to be random for each mutation(?))
 
 	# Dynamic fields
 	current_gen_num = 0
-	# current_gen = []
 	current_gen_fitness = []
+
 	_best_fitness = float("inf")
 	_best_solved = 1
 
@@ -100,30 +129,55 @@ class VanillaGP(SearchAlgorithm):
 			population.append(program)
 		return population
 		
-	# --Selection Process--
-	def program_fitness(self, program):
+	# -- Fitness --
+	def evaluate_program(self, program):
 		try:
 			cum_loss = 0.0
 			solved = True
-			for example in self.examples:
+			for example in self.training_examples:
 				input = example.input_environment
 				output = example.output_environment
 				program_output = program.interp(input)
 				cum_loss += program_output.distance(output)
 				solved = solved and program_output.correct(output)
 			if (solved):
-				return (cum_loss, 0, program)
-			return (cum_loss, 1, program)
+				error = 0
+				return (error, program)
+			else:
+				error = cum_loss
+				# print(solved)
+				return (error, program)
 		except (InvalidTransition, LoopIterationLimitReached) as e:
-			return (float("inf"), 1, program)
+			error = float("inf")
+			return (error, program)
 
-	def gen_fitness(self, gen):
-		gen_fitness = []
-		for program in gen:
-			program_data = self.program_fitness(program)
-			gen_fitness.append(program_data)
-		gen_fitness = sorted(gen_fitness)
-		return gen_fitness
+	def gen_error(self):
+		current_gen_error = []
+		for program in self.current_gen:
+			program_error = self.evaluate_program(program)
+			current_gen_error.append(program_error)
+		current_gen_error = sorted(current_gen_error)
+
+		return current_gen_error
+
+	def program_fitness(self, error):
+		if (str(error) == "0" or math.isclose(error, 0, rel_tol=1e-05, abs_tol=1e-08)):
+			return float("inf")
+		elif (str(error) == "inf"):
+			return 0
+		else:
+			return 1.0 / error
+
+	def gen_fitness(self, current_gen_error):
+		current_gen_fitness = []
+		for error, program in current_gen_error:
+			fitness = self.program_fitness(error)
+			current_gen_fitness.append((fitness, program))
+
+		# Sort [(error, program)] by error decreasingly
+		current_gen_fitness = sorted(current_gen_fitness, reverse=True)
+
+		return current_gen_fitness
 
 	# -- Crossover --
 	def pick_crossover_point(self, program):
@@ -192,12 +246,79 @@ class VanillaGP(SearchAlgorithm):
 
 		return child_x, child_y
 
+	def gen_crossover(self, gen):
+		children = []
+
+		# Iterate over the programs by 2 to pair them up
+		i = 0
+		while i < len(gen):
+			program_x, program_y = gen[i], gen[i+1]
+			child_x, child_y = self.one_point_crossover(program_x, program_y)
+			children.append(child_x)
+			children.append(child_y)
+			i += 2
+
+		return children
+
+	# --Selection Process--
+	def selection(self, current_gen_fitness):
+		intermediate_gen = []
+		crossover_subset = []
+
+		probs = normalize_fitness(current_gen_fitness)
+		for i in range(len(current_gen_fitness)):
+			_, program = current_gen_fitness[i]
+			prob = probs[i]
+			chosen = chose_with_prob(prob)
+			if(chosen):
+				intermediate_gen.append(program)
+				continue
+			crossover_subset.append(program)
+
+		# MAKE SURE THAT CROSSOVER SUBSET HAS EVEN NUMBER OF ELEMENTS
+		if(len(crossover_subset) % 2 != 0):
+			intermediate_gen.append(crossover_subset[0])
+			crossover_subset = crossover_subset[1:]
+
+		children = []
+		random.shuffle(crossover_subset)
+		for program_x, program_y in pairs_from(crossover_subset):
+			child_x, child_y = self.one_point_crossover(program_x, program_y)
+			children.append(child_x)
+			children.append(child_y)
+
+		intermediate_gen = intermediate_gen + children
+
+		return intermediate_gen
+	
+	def SUS(self, N, gen_probabilities):
+		stepsize = 1.0 / N
+		pointer = random.uniform(0, 1)
+
+		wheel = roulette_wheel(gen_probabilities)
+
+		selected_programs = select_N_on_wheel(wheel, N, stepsize, pointer)
+
+		return selected_programs
+
+	def selection_SUS(self, current_gen_fitness):
+		N = len(current_gen_fitness)
+		gen_probabilities = normalize_fitness(current_gen_fitness)
+
+		intermediate_gen = []
+		intermediate_gen = self.SUS(N, gen_probabilities)
+		random.shuffle(intermediate_gen) # for extra stochasticity
+
+		children = self.gen_crossover(intermediate_gen)
+
+		return children
+
 	# -- Mutation --
-	def mutate_program(self, program):
+	def classical_mutation(self, program):
 		program_seq = program.sequence
 		mutated_seq = []
 		for function in program_seq:
-			if(draw_from([True, False])):
+			if(draw_from([True, False], weights=[self.mutation_chance, 100 - self.mutation_chance])):
 				new_random_function = draw_from(self.token_functions)
 				mutated_seq.append(new_random_function)
 			else:
@@ -212,7 +333,7 @@ class VanillaGP(SearchAlgorithm):
 		genome_intermediate = []
 		genome_final = []
 
-		addRate = 0.15
+		addRate = 0.1
 		delRate = addRate / (addRate + 1)
 
 		# Addition step
@@ -242,39 +363,9 @@ class VanillaGP(SearchAlgorithm):
 		mutated_gen = [self.UMAD(program) for program in gen]
 		return mutated_gen
 
-	# -- Intermediate Generation --
-	def intermediate_gen(self):
-		intermediate_gen = []
-		crossover_subset = []
-
-		probs = normalize_errors(self.current_gen_fitness)
-		for i in range(len(self.current_gen_fitness)):
-			_, _, program = self.current_gen_fitness[i]
-			prob = probs[i]
-			chosen = chose_with_prob(prob)
-			if(chosen):
-				intermediate_gen.append(program)
-				continue
-			crossover_subset.append(program)
-
-		# MAKE SURE THAT CROSSOVER SUBSET HAS EVEN NUMBER OF ELEMENTS
-		if(len(crossover_subset) % 2 != 0):
-			intermediate_gen.append(crossover_subset[0])
-			crossover_subset = crossover_subset[1:]
-
-		children = []
-		random.shuffle(crossover_subset)
-		for program_x, program_y in pairs_from(crossover_subset):
-			child_x, child_y = self.one_point_crossover(program_x, program_y)
-			children.append(child_x)
-			children.append(child_y)
-
-		intermediate_gen = intermediate_gen + children
-
-		return intermediate_gen
-
-	def breed_generation(self):
-		new_gen = self.intermediate_gen()
+	# -- Breed Next Generation
+	def breed_generation(self, current_gen_fitness):
+		new_gen = self.selection_SUS(current_gen_fitness)
 		new_gen = self.mutate_gen(new_gen)
 		self.current_gen_num += 1
 		return new_gen
@@ -290,54 +381,53 @@ class VanillaGP(SearchAlgorithm):
 
 	def setup(self, training_examples: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]):
 		self.token_functions =  [token for token in list(trans_tokens)] + invent2(trans_tokens, bool_tokens, self.MAX_TOKEN_FUNCTION_DEPTH)
-		self.examples = training_examples
+		self.training_examples = training_examples
 
 		# Set the overall best results to the performance of the initial (empty) best program Program([])
-		self._best_fitness, self._best_solved, self._best_program = self.program_fitness(self._best_program)
+		self._best_error, self._best_program = self.evaluate_program(self._best_program)
 
 		# Record the initial error (error of the empty program) in the SearchResult
-		self.initial_error = self._best_fitness
+		self.initial_error = self.evaluate_program(self._best_program)
 
 		# Parameters for the initial random population
-		self.initial_population_size = 300
+		self.initial_population_size = 200
 		self.max_prog_length = 20
-
-		# Set the seed
-		# random.seed(self.seed)
 
 		# The current generation is the initial random generation at the beginning
 		initial_gen = self.generate_rand_population(self.initial_population_size, self.max_prog_length)
-		self.current_gen_fitness = self.gen_fitness(initial_gen)
+		self.current_gen = initial_gen
+
 		self.current_gen_num = 0
 		self.number_of_iterations = 0
 		self.number_of_explored_programs = self.initial_population_size
-
 		self.cost_per_iteration = []
 
 	def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
 		# Collect statistics about generation
 		# print("----Gen ", self.current_gen_num, "----")
-		# generation_stats(self.current_gen_fitness)
+		# generation_stats(self.current_gen)
 
-		current_best_fitness, current_best_solved, current_best_program = self.current_gen_fitness[0]
-		self.cost_per_iteration.append((self.current_gen_num, current_best_fitness))
+		# Calculate the error for each program in the current generation
+		current_gen_error = self.gen_error()
 
-		# print("----Gen", self.current_gen_num)
-		# print(current_best_fitness, current_best_solved, current_best_program)
+		self.number_of_explored_programs += len(self.current_gen)
 
-		# fitness is actually the loss, hence the less-than sign. A bit unfortunate, but oh well
-		if (current_best_solved == 0 or current_best_fitness < self._best_fitness):
-			self._best_fitness = current_best_fitness
-			self._best_solved = current_best_solved
+		# Get the program with the lowest error
+		current_best_error, current_best_program = current_gen_error[0]
+		self.cost_per_iteration.append((self.current_gen_num, current_best_error))
+
+		if (str(current_best_error) == "0" or current_best_error < self._best_error):
+			self._best_error = current_best_error
 			self._best_program = current_best_program
 
-		if (self._best_solved == 0 or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
+		if (str(current_best_error) == "0" or self.current_gen_num >= self.MAX_NUMBER_OF_GENERATIONS):
 			return False
 
-		next_gen = self.breed_generation()
-		self.current_gen_fitness = self.gen_fitness(next_gen)
+		current_gen_fitness = self.gen_fitness(current_gen_error)
+		#[print(f, p) for f, p in current_gen_fitness]
+		next_gen = self.breed_generation(current_gen_fitness)
+		self.current_gen = next_gen
 
 		self.number_of_iterations += 1
-		self.number_of_explored_programs += len(self.current_gen_fitness)
 
 		return True
