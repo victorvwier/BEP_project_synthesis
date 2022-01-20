@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/sh
 
 pixel_brute=$(ls -1 ./results/pixel/ | grep brute)
 robot_brute=$(ls -1 ./results/robot/ | grep brute)
@@ -8,6 +8,11 @@ pixel_gp=$(ls -1 ./results/pixel/ | grep gp)
 robot_gp=$(ls -1 ./results/robot/ | grep gp)
 string_gp=$(ls -1 ./results/string/ | grep gp)
 
-echo $(process_results_vanilla_GP.py $pixel_brute $robot_brute $string_brute) >> brute_stats.txt
+module use /opt/insy/modulefiles
+module load miniconda/3.9
 
-echo $(process_results_vanilla_GP.py $pixel_gp $robot_gp $string_gp) >> gp_stats.txt
+stats_brute=$(python process_results_vanilla_GP.py $pixel_brute $robot_brute $string_brute)
+echo "$stats_brute" >> brute_stats.txt
+
+stats_gp=$(python process_results_vanilla_GP.py $pixel_gp $robot_gp $string_gp)
+echo "$stats_gp" >> gp_stats.txt

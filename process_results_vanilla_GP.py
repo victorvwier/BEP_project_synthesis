@@ -1,6 +1,5 @@
 import json
 import sys
-from typing import Callable, List
 
 from common.prorgam import Program
 
@@ -44,9 +43,12 @@ class ResultParser:
                 data = json.JSONDecoder().decode(stripped_line)
 
                 file_name = data["file"]
-                initial_cost = data["initial_cost"]
+                initial_error = data["initial_error"]
                 final_cost = data["train_cost"]
-                rel_improvement = ((initial_cost - final_cost) / initial_cost) * 100.0
+                if (initial_cost == 0):
+	            rel_improvement = -100.0
+                else:
+                   rel_improvement = ((initial_error - final_cost) / initial_error) * 100.0
                 rel_improvement_all_files.append((file_name, rel_improvement))
         return rel_improvement_all_files
 
@@ -58,10 +60,10 @@ class ResultParser:
                 data = json.JSONDecoder().decode(stripped_line)
 
                 file_name = data["file"]
-                initial_cost = data["initial_cost"]
+                initial_error = data["initial_error"]
                 final_cost = data["train_cost"]
                 time = data["number_of_explored_programs"]
-                rel_improvement = ((initial_cost - final_cost) / initial_cost) * 100.0
+                rel_improvement = ((initial_error - final_cost) / initial_error) * 100.0
                 rate.append(rel_improvement / time)
                 rate.append((file_name, rate))
         return rate
@@ -105,16 +107,17 @@ print("String, solved: ", result_parser_string.get_percentage_solved())
 # print(result_parser_string.get_train_vs_test_cost())
 
 # Visualization
-rel_imp_pixel = result_parser_pixel.relative_improvement()
-for file, imp in rel_imp_pixel:
-    print("Pixel example ", file, " improved by ", imp, "%")
+if (file_name_pixel[0:2] == "gp"):
+	rel_imp_pixel = result_parser_pixel.relative_improvement()
+	for file, imp in rel_imp_pixel:
+	    print("Pixel example ", file, " improved by ", imp, "%")
 
-rel_imp_robot = result_parser_robot.relative_improvement()
-for file, imp in rel_imp_pixel:
-    print(" Robot example ", file, " improved by ", imp, "%")
+	rel_imp_robot = result_parser_robot.relative_improvement()
+	for file, imp in rel_imp_pixel:
+	    print(" Robot example ", file, " improved by ", imp, "%")
 
-rel_imp_string = result_parser_string.relative_improvement()
-for file, imp in rel_imp_pixel:
-    print("String example ", file, " improved by ", imp, "%")
+	rel_imp_string = result_parser_string.relative_improvement()
+	for file, imp in rel_imp_pixel:
+	    print("String example ", file, " improved by ", imp, "%")
 
 
