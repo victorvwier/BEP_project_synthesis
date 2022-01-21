@@ -83,7 +83,8 @@ class ResultParser:
                 initial_error = data["initial_error"]
                 final_cost = data["train_cost"]
                 if (initial_error == 0):
-                    rel_improvement = -100.0
+                    # rel_improvement = -100.0
+                    continue
                 else:
                    rel_improvement = ((initial_error - final_cost) / initial_error) * 100.0
                 rel_improvement_all_files.append((file_name, rel_improvement))
@@ -275,6 +276,28 @@ def plot_error_progression(domain, example_name):
     fig.clf()
     plt.close
 
+def plot_rel_improvement(domain):
+    gp_rel_improvement = []
+    if (domain == "pixel"):
+        gp_rel_improvement = gp_result_parser_pixel.relative_improvement()
+    elif (domain == "robot"):
+        gp_rel_improvement = gp_result_parser_robot.relative_improvement()
+    elif (domain == "string"):
+        gp_rel_improvement = gp_result_parser_string.relative_improvement()
+
+    fig, ax = plt.subplots()
+    fig.set_figwidth(12)
+    ax.plot(*zip(*gp_rel_improvement), label="VanillaGP", color="blue")
+    ax.set_xlabel("Examples (Increasing Complexity)")
+    ax.set_ylabel("Relative Improvement (%)")
+    ax.set_xticks([])
+    ax.legend()
+    ax.set_title("Relative Improvement over Iterations")
+
+    plt.savefig("Plots/rel_improvement.svg")
+    fig.clf()
+    plt.close
+
 plot_complexity_vs_solved()
 plot_error_progression("string", "strings/1-58-1.pl")
-
+plot_rel_improvement("robot")
