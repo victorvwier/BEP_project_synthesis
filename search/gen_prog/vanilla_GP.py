@@ -2,7 +2,6 @@
 
 import math
 import statistics
-import sys
 import random, itertools
 from common.experiment import Example
 from common.prorgam import Program
@@ -11,7 +10,7 @@ from common.tokens.control_tokens import LoopIterationLimitReached
 from search.abstract_search import SearchAlgorithm
 from search.invent import invent2
 
-from typing import List, Tuple
+from typing import List
 from math import inf
 
 # Draw from a list of options randomly (no seed)

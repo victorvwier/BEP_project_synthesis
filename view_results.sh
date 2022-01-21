@@ -11,8 +11,5 @@ string_gp=$(ls -1 ./results/string/ | grep gp)
 module use /opt/insy/modulefiles
 module load miniconda/3.9
 
-stats_brute=$(python process_results_vanilla_GP.py $pixel_brute $robot_brute $string_brute)
-echo "$stats_brute" >> brute_stats.txt
-
-stats_gp=$(python process_results_vanilla_GP.py $pixel_gp $robot_gp $string_gp)
-echo "$stats_gp" >> gp_stats.txt
+some_stats=$(python process_results_vanilla_GP.py $pixel_brute $robot_brute $string_brute $pixel_gp $robot_gp $string_gp)
+echo "$some_stats" >> ./Plots/some_stats.txt
