@@ -8,8 +8,7 @@ pixel_gp=$(ls -1 ./results/pixel/ | grep gp)
 robot_gp=$(ls -1 ./results/robot/ | grep gp)
 string_gp=$(ls -1 ./results/string/ | grep gp)
 
-module use /opt/insy/modulefiles
-module load miniconda/3.9
-
-some_stats=$(python process_results_vanilla_GP.py $pixel_brute $robot_brute $string_brute $pixel_gp $robot_gp $string_gp)
+rm -rf ./Plots
+mkdir ./Plots
+some_stats=$(/bin/python3 process_results_vanilla_GP.py $pixel_gp $robot_gp $string_gp $pixel_brute $robot_brute $string_brute)
 echo "$some_stats" >> ./Plots/some_stats.txt
