@@ -8,7 +8,7 @@ robot_brute=$(ls -1 ./results/robot/ | grep brute)
 robot_gp=$(ls -1 ./results/robot/ | grep gp)
 # string_gp=$(ls -1 ./results/string/ | grep gp)
 
-rm -rf ./Plots
-mkdir ./Plots
+rm -rf ./plots
+mkdir ./plots
 some_stats=$(/bin/python3 process_results_vanilla_GP.py $robot_gp $robot_brute)
-echo "$some_stats" >> ./Plots/some_stats.txt
+echo "$some_stats" >> ./plots/some_stats.txt

@@ -121,22 +121,6 @@ class ResultParser:
 
         return rel_imp_by_complexity
 
-    def rate_of_improvement(self):
-        rate = []
-        with open(self.file, "r") as a_file:
-            for line in a_file:
-                stripped_line = line.strip()
-                data = json.JSONDecoder().decode(stripped_line)
-
-                file_name = data["file"]
-                initial_error = data["initial_error"]
-                final_cost = data["train_cost"]
-                time = data["number_of_explored_programs"]
-                rel_improvement = ((initial_error - final_cost) / initial_error) * 100.0
-                rate.append(rel_improvement / time)
-                rate.append((file_name, rate))
-        return rate
-
     def get_train_vs_test_cost(self):
         return self.filter_result_fields(["train_cost", "test_cost"])
 
@@ -154,28 +138,28 @@ class ResultParser:
 
 # Initialization
 # VanillaGP
-# gp_file_name_pixel = sys.argv[1]
+gp_file_name_pixel = "" # sys.argv[1]
 gp_file_name_robot = sys.argv[1]
-# gp_file_name_string = sys.argv[3]
-# gp_path_to_file_pixel = "./results/pixel/" + gp_file_name_pixel
+gp_file_name_string = "" # sys.argv[3]
+gp_path_to_file_pixel = "./results/pixel/" + gp_file_name_pixel
 gp_path_to_file_robot = "./results/robot/" + gp_file_name_robot
-# gp_path_to_file_string = "./results/string/" + gp_file_name_string
+gp_path_to_file_string = "./results/string/" + gp_file_name_string
 
-# gp_result_parser_pixel = ResultParser(gp_path_to_file_pixel)
+gp_result_parser_pixel = ResultParser(gp_path_to_file_pixel)
 gp_result_parser_robot = ResultParser(gp_path_to_file_robot)
-# gp_result_parser_string = ResultParser(gp_path_to_file_string)
+gp_result_parser_string = ResultParser(gp_path_to_file_string)
 
 # Brute
-# brute_file_name_pixel = sys.argv[4]
+brute_file_name_pixel = "" # sys.argv[4]
 brute_file_name_robot = sys.argv[2]
-# brute_file_name_string = sys.argv[6]
-# brute_path_to_file_pixel = "./results/pixel/" + brute_file_name_pixel
+brute_file_name_string = "" # sys.argv[6]
+brute_path_to_file_pixel = "./results/pixel/" + brute_file_name_pixel
 brute_path_to_file_robot = "./results/robot/" + brute_file_name_robot
-# brute_path_to_file_string = "./results/string/" + brute_file_name_string
+brute_path_to_file_string = "./results/string/" + brute_file_name_string
 
-# brute_result_parser_pixel = ResultParser(brute_path_to_file_pixel)
+brute_result_parser_pixel = ResultParser(brute_path_to_file_pixel)
 brute_result_parser_robot = ResultParser(brute_path_to_file_robot)
-# brute_result_parser_string = ResultParser(brute_path_to_file_string)
+brute_result_parser_string = ResultParser(brute_path_to_file_string)
 
 # Processing
 # print("Pixel, VanillaGP solved: ", gp_result_parser_pixel.get_percentage_solved())
@@ -227,7 +211,7 @@ def plot_complexity_vs_solved():
     ax.legend()
     ax.set_title("Robot Domain")
 
-    plt.savefig("Plots/complexity_vs_solved_robot.svg")
+    plt.savefig("plots/complexity_vs_solved_robot.svg")
     fig.clf()
     plt.close
 
@@ -279,32 +263,39 @@ def plot_error_progression(domain, example_name):
     ax.legend()
     ax.set_title("Error Progression in Example {}".format(example_name))
 
-    plt.savefig("Plots/error_progression.svg")
+    plt.savefig("plots/error_progression.svg")
     fig.clf()
     plt.close
 
-def plot_rel_improvement(domain):
-    gp_rel_improvement = []
-    # if (domain == "pixel"):
-    #     gp_rel_improvement = gp_result_parser_pixel.relative_improvement()
-    if (domain == "robot"):
-        gp_rel_improvement = gp_result_parser_robot.rel_improvement_by_complexity(domain)
-    # elif (domain == "string"):
-    #     gp_rel_improvement = gp_result_parser_string.relative_improvement()
-
+def plot_rel_improvement(domains=["", "", ""]):
     fig, ax = plt.subplots()
-    fig.set_figwidth(12)
-    ax.plot(*zip(*gp_rel_improvement), label="VanillaGP", color="blue")
+    fig.set_figwidth(8)
+    fig.set_figheight(6)
+
+    gp_rel_improvement = []
+    if (domains[0] == "pixel"):
+        gp_rel_improvement = gp_result_parser_pixel.relative_improvement(domains[0])
+        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[0]), marker="o", color="limegreen")
+    if (domains[1] == "robot"):
+        gp_rel_improvement = gp_result_parser_robot.rel_improvement_by_complexity(domains[1])
+        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[1]), marker="o", color="dodgerblue")
+    if (domains[2] == "string"):
+        gp_rel_improvement = gp_result_parser_string.relative_improvement(domains[2])
+        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[2]), marker="o", color="crimson")
+
+    start, end = 0, 100
+    ax.yaxis.set_ticks(range(start, end, 5))
     ax.set_xlabel("Complexity")
-    ax.set_ylabel("Relative Improvement (%)")
+    ax.set_ylabel("Avg. Relative Improvement (%)")
+    ax.set_ylim(ymin=0)
     ax.set_xticks([])
     ax.legend()
-    ax.set_title("Relative Improvement  Grouped by Complexity")
+    ax.set_title("Average Relative Improvement Grouped by Complexity")
 
-    plt.savefig("Plots/rel_improvement.svg")
+    plt.savefig("plots/rel_improvement.svg")
     fig.clf()
     plt.close
 
 plot_complexity_vs_solved()
 # plot_error_progression("string", "strings/1-58-1.pl")
-plot_rel_improvement("robot")
+plot_rel_improvement(["", "robot", ""])

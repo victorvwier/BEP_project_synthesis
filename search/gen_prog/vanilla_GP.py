@@ -195,6 +195,7 @@ class VanillaGP(SearchAlgorithm):
 		crossover_point_y = self.pick_crossover_point(program_y)
 		# print(crossover_point_x)
 		# print(crossover_point_y)
+
 		updated_seq_x = seq_x[:crossover_point_x + 1] + seq_y[crossover_point_y + 1:]
 		updated_seq_y = seq_y[:crossover_point_y + 1] + seq_x[crossover_point_x + 1:]
 
@@ -213,14 +214,21 @@ class VanillaGP(SearchAlgorithm):
 		seq_x = program_x.sequence
 		seq_y = program_y.sequence
 
+		# print(len(seq_x))
+		# print(len(seq_y))
+
 		min_length = min(len(seq_x), len(seq_y))
 		if (min_length == 1):
 			return program_x, program_y
 
 		n = random.randint(1, int(min_length/2))
+		# print("n =", n)
 
-		x_points = random.sample(range(0, len(seq_x)), n)
-		y_points = random.sample(range(0, len(seq_y)), n)
+		x_points = sorted(random.sample(range(0, len(seq_x)), n))
+		y_points = sorted(random.sample(range(0, len(seq_y)), n))
+
+		# print("x_points =", x_points)
+		# print("y_points =", y_points)
 
 		cuts_x = []
 		cuts_y = []
@@ -241,14 +249,20 @@ class VanillaGP(SearchAlgorithm):
 		slice_tail = seq_y[start:]
 		cuts_y.append(slice_tail)
 
+		# print("cuts_x = ", cuts_x)
+		# print("cuts_y = ", cuts_y)
+
 		for i in range(0, n+1):
 			if (i % 2 != 0):
 				inter = cuts_x[i]
 				cuts_x[i] = cuts_y[i]
 				cuts_y[i] = inter
 
-		child_x_seq = itertools.chain.from_iterable(cuts_x)
-		child_y_seq = itertools.chain.from_iterable(cuts_y)
+		child_x_seq = list(itertools.chain.from_iterable(cuts_x))
+		child_y_seq = list(itertools.chain.from_iterable(cuts_y))
+
+		# print(len(child_x_seq))
+		# print(len(child_y_seq))
 
 		child_x = Program(child_x_seq)
 		child_y = Program(child_y_seq)
