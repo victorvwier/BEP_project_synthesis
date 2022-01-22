@@ -141,7 +141,8 @@ def test_vanillaGP_robot():
 def test_on_actual_experiment():
     # BatchRun(domain="robot", files=([2],[1],[9]), search_algorithm=Brute(10), print_results=True, multi_core=False).run()
     # vanillaGP.seed = 3
-    BatchRun(domain="robot", files=([2],[1],[9]), search_algorithm=VanillaGP(10), print_results=True, multi_core=False).run()
+    # BatchRun(domain="robot", files=([2],[1],[9]), search_algorithm=VanillaGP(10), print_results=True, multi_core=False).run()
+    BatchRun(domain="robot", files=([10],[2],[3]), search_algorithm=VanillaGP(60), print_results=True, multi_core=False).run()
     
 # test_normalize_errors()
 # test_chose_with_prob()

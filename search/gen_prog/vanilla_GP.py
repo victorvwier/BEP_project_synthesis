@@ -61,8 +61,8 @@ def pairs_from(items):
 	return itertools.zip_longest(*args)
 
 def generation_stats(gen_fitness):
-	prog_lengths = [p.number_of_tokens()  for _, _, p in gen_fitness]
-	prog_tokens = [len(p.sequence) for _, _, p in gen_fitness]
+	prog_lengths = [p.number_of_tokens()  for _, p in gen_fitness]
+	prog_tokens = [len(p.sequence) for _, p in gen_fitness]
 	std_dev_lengths = statistics.stdev(prog_lengths)
 	std_dev_token = statistics.stdev(prog_tokens)
 	print(std_dev_lengths, std_dev_token)
@@ -100,7 +100,7 @@ def select_N_on_wheel(wheel, N, stepsize, pointer):
 
 class VanillaGP(SearchAlgorithm):
 	# Static fields
-	MAX_NUMBER_OF_GENERATIONS = 200
+	MAX_NUMBER_OF_GENERATIONS = 300
 	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
 	training_examples = [] # training examples
 	token_functions = []
@@ -203,7 +203,7 @@ class VanillaGP(SearchAlgorithm):
 
 		return child_x, child_y
 
-	def n_point_crossover(self, n, program_x, program_y, x_points, y_points):
+	def n_point_crossover(self, program_x, program_y):
 		# Assumptions:
 		# - points are sorted increasingly
 		# - points are within range
@@ -213,6 +213,15 @@ class VanillaGP(SearchAlgorithm):
 		seq_x = program_x.sequence
 		seq_y = program_y.sequence
 
+		min_length = min(len(seq_x), len(seq_y))
+		if (min_length == 1):
+			return program_x, program_y
+
+		n = random.randint(1, int(min_length/2))
+
+		x_points = random.sample(range(0, len(seq_x)), n)
+		y_points = random.sample(range(0, len(seq_y)), n)
+
 		cuts_x = []
 		cuts_y = []
 
@@ -220,7 +229,7 @@ class VanillaGP(SearchAlgorithm):
 		for i in x_points:
 			slice_i = seq_x[start:i+1]
 			cuts_x.append(slice_i)
-			start = i
+			start = i+1
 		slice_tail = seq_x[start:]
 		cuts_x.append(slice_tail)
 
@@ -228,14 +237,15 @@ class VanillaGP(SearchAlgorithm):
 		for i in y_points:
 			slice_i = seq_y[start:i+1]
 			cuts_y.append(slice_i)
-			start = i
+			start = i+1
 		slice_tail = seq_y[start:]
 		cuts_y.append(slice_tail)
 
-		for i in range(1, n+1):
-			inter = cuts_x[i]
-			cuts_x[i] = cuts_y[i]
-			cuts_y[i] = inter
+		for i in range(0, n+1):
+			if (i % 2 != 0):
+				inter = cuts_x[i]
+				cuts_x[i] = cuts_y[i]
+				cuts_y[i] = inter
 
 		child_x_seq = itertools.chain.from_iterable(cuts_x)
 		child_y_seq = itertools.chain.from_iterable(cuts_y)
@@ -252,7 +262,7 @@ class VanillaGP(SearchAlgorithm):
 		i = 0
 		while i < len(gen):
 			program_x, program_y = gen[i], gen[i+1]
-			child_x, child_y = self.one_point_crossover(program_x, program_y)
+			child_x, child_y = self.n_point_crossover(program_x, program_y)
 			children.append(child_x)
 			children.append(child_y)
 			i += 2
@@ -332,7 +342,7 @@ class VanillaGP(SearchAlgorithm):
 		genome_intermediate = []
 		genome_final = []
 
-		addRate = 0.1
+		addRate = 0.09
 		delRate = addRate / (addRate + 1)
 
 		# Addition step
@@ -403,8 +413,6 @@ class VanillaGP(SearchAlgorithm):
 
 	def iteration(self, training_example: List[Example], trans_tokens: set[Token], bool_tokens: set[Token]) -> bool:
 		# Collect statistics about generation
-		# print("----Gen ", self.current_gen_num, "----")
-		# generation_stats(self.current_gen)
 
 		# Calculate the error for each program in the current generation
 		current_gen_error = self.gen_error()
@@ -423,7 +431,10 @@ class VanillaGP(SearchAlgorithm):
 			return False
 
 		current_gen_fitness = self.gen_fitness(current_gen_error)
-		#[print(f, p) for f, p in current_gen_fitness]
+
+		# print("----Gen ", self.current_gen_num, "----")
+		# generation_stats(current_gen_fitness)
+
 		next_gen = self.breed_generation(current_gen_fitness)
 		self.current_gen = next_gen
 
