@@ -256,8 +256,8 @@ def plot_complexity_vs_solved_percentage():
     domain = "pixel"
     brute_solved_percentage = brute_result_parser_pixel.solved_percentage_by_complexity(domain)
     gp_solved_percentage = gp_result_parser_pixel.solved_percentage_by_complexity(domain)
-    ax1.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
-    ax1.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax1.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red", marker="o")
+    ax1.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue", marker="o")
     ax1.set_xlabel("Task Complexity")
     ax1.set_ylabel("Tasks Solved (%)")
     ax1.legend()
@@ -267,8 +267,8 @@ def plot_complexity_vs_solved_percentage():
     domain = "robot"
     brute_solved_percentage = brute_result_parser_robot.solved_percentage_by_complexity(domain)
     gp_solved_percentage = gp_result_parser_robot.solved_percentage_by_complexity(domain)
-    ax2.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
-    ax2.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax2.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red", marker="o")
+    ax2.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue", marker="o")
     ax2.set_xlabel("Task Complexity")
     ax2.set_ylabel("Tasks Solved (%)")
     ax2.legend()
@@ -278,8 +278,8 @@ def plot_complexity_vs_solved_percentage():
     domain = "string"
     brute_solved_percentage = brute_result_parser_string.solved_percentage_by_complexity(domain)
     gp_solved_percentage = gp_result_parser_string.solved_percentage_by_complexity(domain)
-    ax3.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
-    ax3.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax3.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red", marker="o")
+    ax3.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue", marker="o")
     ax3.set_xlabel("Task Complexity")
     ax3.set_ylabel("Tasks Solved (%)")
     ax3.legend()
@@ -295,7 +295,7 @@ def plot_rel_improvement():
     # Pixel
     domain = "pixel"
     gp_avg_rel_improvement = gp_result_parser_pixel.rel_improvement_by_complexity(domain)
-    ax1.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax1.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue", marker="o")
     ax1.set_xlabel("Task Complexity")
     ax1.set_ylabel("Avg. Relative Improvement (%)")
     ax1.set_ylim(ymin=0)
@@ -305,7 +305,7 @@ def plot_rel_improvement():
     # Robot
     domain = "robot"
     gp_avg_rel_improvement = gp_result_parser_robot.rel_improvement_by_complexity(domain)
-    ax2.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax2.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue", marker="o")
     ax2.set_xlabel("Task Complexity")
     ax2.set_ylabel("Avg. Relative Improvement (%)")
     ax2.set_ylim(ymin=0)
@@ -315,7 +315,7 @@ def plot_rel_improvement():
     # String
     domain = "string"
     gp_avg_rel_improvement = gp_result_parser_string.rel_improvement_by_complexity(domain)
-    ax3.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax3.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue", marker="o")
     ax3.set_xlabel("Task Complexity")
     ax3.set_ylabel("Avg. Relative Improvement (%)")
     ax3.set_ylim(ymin=0)

@@ -68,33 +68,19 @@ def test_gen_fitness():
 
     [print(f, s, p) for f, s, p in search_method.gen_fitness()]
 
-def test_one_point_crossover_even():
-    p1 = Program([If(AtBottom(), [MoveLeft()], [MoveRight()]), If(AtBottom(), [MoveUp()], [MoveLeft()]), If(NotAtBottom(), [MoveDown()], [Draw()]), Draw()])
-    p2 = Program([If(AtLeft(), [MoveRight()], [MoveLeft()]), MoveDown(), Draw(), MoveLeft()])
-    print(p1)
-    print(p2)
+def test_one_point_crossover():
+    Px = Program([MoveLeft(), MoveRight(), MoveDown(), Grab(), MoveRight(), Drop()])
+    Py = Program([MoveRight(), Grab(), [MoveRight(), MoveDown()], MoveLeft(), Drop(), MoveDown()])
+    print(Px)
+    print(Py)
     print("-----------")
 
     search_method = VanillaGP(10.0)
 
-    child_1, child_2 = search_method.one_point_crossover(p1, p2)
+    child_x, child_y = search_method.one_point_crossover(Px, Py)
 
-    print(child_1)
-    print(child_2)
-    print("-----------")
-def test_one_point_crossover_odd():
-    p1 = Program([If(AtBottom(), [MoveLeft()], [MoveRight()]), If(AtBottom(), [MoveUp()], [MoveLeft()]), If(NotAtBottom(), [MoveDown()], [Draw()])])
-    p2 = Program([If(AtLeft(), [MoveRight()], [MoveLeft()]), MoveDown(), Draw(), MoveLeft(), MoveDown(), MoveUp()])
-    print(p1)
-    print(p2)
-    print("-----------")
-
-    search_method = VanillaGP(10.0)
-
-    child_1, child_2 = search_method.one_point_crossover(p1, p2)
-
-    print(child_1)
-    print(child_2)
+    print(child_x)
+    print(child_y)
     print("-----------")
 def test_n_point_crossover():
     Px = Program([MoveLeft(), MoveRight(), MoveDown(), Grab(), MoveRight(), Drop()])
@@ -149,10 +135,9 @@ def test_on_actual_experiment():
 
 # test_gen_fitness()
 
-# test_one_point_crossover_even()
-# test_one_point_crossover_odd()
-test_n_point_crossover()
+# test_one_point_crossover()
+# test_n_point_crossover()
 
 # test_vanillaGP()
 # test_vanillaGP_robot()
-# test_on_actual_experiment()
+test_on_actual_experiment()

@@ -30,7 +30,10 @@ def normalize_fitness(current_gen_fitness):
 		fin_values.append(err)
 
 	shift = 0
-	max_fin_value = max(fin_values)
+	max_fin_value = 0.5
+	if (len(fin_values) != 0):
+		max_fin_value = max(fin_values)
+
 	if (math.isclose(max_fin_value, 0, rel_tol=1e-05, abs_tol=1e-08)):
 		shift = 1
 		max_fin_value += shift
@@ -49,7 +52,6 @@ def normalize_fitness(current_gen_fitness):
 
 	error_prob = [(n_err/sum, program) for n_err, program in norm_errors]
 	sorted(error_prob, reverse=True)
-	# current_gen_probabilities = list(zip(error_prob, 
 	return error_prob
 
 def chose_with_prob(prob):
@@ -88,7 +90,6 @@ def select_on_wheel(wheel, pointer):
 	except Exception as e:
 		print("Something went wrong: pointer not on the wheel")
 
-
 def select_N_on_wheel(wheel, N, stepsize, pointer):
 	selected = []
 	selected.append(select_on_wheel(wheel, pointer))
@@ -100,7 +101,8 @@ def select_N_on_wheel(wheel, N, stepsize, pointer):
 
 class VanillaGP(SearchAlgorithm):
 	# Static fields
-	MAX_NUMBER_OF_GENERATIONS = 300
+	type = "UN"
+	MAX_NUMBER_OF_GENERATIONS = 200
 	MAX_TOKEN_FUNCTION_DEPTH = 5 # used in the invention of tokens
 	training_examples = [] # training examples
 	token_functions = []
@@ -193,6 +195,7 @@ class VanillaGP(SearchAlgorithm):
 
 		crossover_point_x = self.pick_crossover_point(program_x)
 		crossover_point_y = self.pick_crossover_point(program_y)
+
 		# print(crossover_point_x)
 		# print(crossover_point_y)
 
@@ -218,7 +221,7 @@ class VanillaGP(SearchAlgorithm):
 		# print(len(seq_y))
 
 		min_length = min(len(seq_x), len(seq_y))
-		if (min_length == 1):
+		if (min_length <= 1):
 			return program_x, program_y
 
 		n = random.randint(1, int(min_length/2))
@@ -276,7 +279,11 @@ class VanillaGP(SearchAlgorithm):
 		i = 0
 		while i < len(gen):
 			program_x, program_y = gen[i], gen[i+1]
-			child_x, child_y = self.n_point_crossover(program_x, program_y)
+			child_x, child_y = None, None
+			if (self.type == "O" or self.type == "U"):
+				child_x, child_y = self.one_point_crossover(program_x, program_y)
+			else:
+				child_x, child_y = self.n_point_crossover(program_x, program_y)
 			children.append(child_x)
 			children.append(child_y)
 			i += 2
@@ -383,7 +390,11 @@ class VanillaGP(SearchAlgorithm):
 		return new_program
 
 	def mutate_gen(self, gen):
-		mutated_gen = [self.UMAD(program) for program in gen]
+		mutated_gen = []
+		if (self.type == "O" or self.type == "N"):
+			mutated_gen = [self.classical_mutation(program) for program in gen]
+		else:
+			mutated_gen = [self.UMAD(program) for program in gen]
 		return mutated_gen
 
 	# -- Breed Next Generation
@@ -414,7 +425,12 @@ class VanillaGP(SearchAlgorithm):
 
 		# Parameters for the initial random population
 		self.initial_population_size = 200
-		self.max_prog_length = 20
+		self.max_prog_length = 10
+
+		# print("Type =", self.type)
+		# print("Max Number of Generations", self.MAX_NUMBER_OF_GENERATIONS)
+		# print("Population size =", self.initial_population_size)
+		# print("Max Program Length =", self.max_prog_length)
 
 		# The current generation is the initial random generation at the beginning
 		initial_gen = self.generate_rand_population(self.initial_population_size, self.max_prog_length)
