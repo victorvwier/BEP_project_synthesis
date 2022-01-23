@@ -151,3 +151,9 @@ cython_debug/
 results/*
 performance_results/*
 graphs/
+
+data_processing/Q12_final_paper/
+
+data_processing/Q12_final_poster/
+
+data_processing/Q3_final_paper/
