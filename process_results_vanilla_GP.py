@@ -33,6 +33,81 @@ class ResultParser:
                 cases += 1
         return solved, cases
 
+    def get_percentage_solved(self):
+        solved, cases = self.get_solved_count()
+        return str((solved / cases ) * 100) + "%"
+
+    def solved_percentage_by_complexity(self, domain):
+        solved_percentage = {}
+
+        if (domain == "robot"):
+            solved_percentage = {"2":[0, 0], "4":[0, 0], "6":[0, 0], "8":[0, 0], "10":[0, 0]}
+        elif (domain == "string"):
+            solved_percentage = {"1":[0, 0], "2":[0, 0], "3":[0, 0], "4":[0, 0], "5":[0, 0], "6":[0, 0], "7":[0, 0], "8":[0, 0], "9":[0, 0]}
+        else:
+            solved_percentage = {"1":[0, 0], "2":[0, 0], "3":[0, 0], "4":[0, 0], "5":[0, 0]}
+
+        with open(self.file, "r") as a_file:
+            for line in a_file:
+                stripped_line = line.strip()
+                data = json.JSONDecoder().decode(stripped_line)
+
+                file_name = data["file"][len(domain)+2:]
+                complexity = file_name.split('-')[0]
+
+                if(data["train_cost"] == 0 and data["test_cost"] == 0):
+                    solved_percentage[complexity][0] += 1
+                solved_percentage[complexity][1] += 1
+
+        for compl, (solved, total) in solved_percentage.items():
+            if (total == 0):
+                solved_percentage[compl] = 0
+            else:
+                solved_percentage[compl] = (solved / total) * 100
+
+        return solved_percentage
+
+    def rel_improvement_by_complexity(self, domain):
+        rel_improvement = {}
+
+        if (domain == "robot"):
+            rel_improvement = {"2":[0, 0], "4":[0, 0], "6":[0, 0], "8":[0, 0], "10":[0, 0]}
+        elif (domain == "string"):
+            rel_improvement = {"1":[0, 0], "2":[0, 0], "3":[0, 0], "4":[0, 0], "5":[0, 0], "6":[0, 0], "7":[0, 0], "8":[0, 0], "9":[0, 0]}
+        else:
+            rel_improvement = {"1":[0, 0], "2":[0, 0], "3":[0, 0], "4":[0, 0], "5":[0, 0]}
+
+
+        with open(self.file, "r") as a_file:
+            for line in a_file:
+                stripped_line = line.strip()
+                data = json.JSONDecoder().decode(stripped_line)
+
+                file_name = data["file"][len(domain)+2:]
+                complexity = file_name.split('-')[0]
+
+                initial_error = data["initial_error"]
+                final_cost = data["train_cost"]
+
+                if (initial_error == 0):
+                    percentage_imp = 1
+                else:
+                    percentage_imp = (initial_error - final_cost) / initial_error
+
+                rel_improvement[complexity][0] += percentage_imp
+                rel_improvement[complexity][1] += 1
+
+        for compl, [percent_sum, total_num] in rel_improvement.items():
+            if (total_num == 0):
+                rel_improvement[compl] = 0
+            else:
+                rel_improvement[compl] = (percent_sum / total_num) * 100
+
+        return rel_improvement
+
+#####################
+
+
     def get_solved_count_by_complexity(self, domain):
         solved_count = []
         with open(self.file, "r") as a_file:
@@ -55,9 +130,6 @@ class ResultParser:
 
         return solved_by_complexity
 
-    def get_percentage_solved(self):
-        solved, cases = self.get_solved_count()
-        return str((solved / cases ) * 100) + "%"
 
     def get_initial_error(self, example_name):
         with open(self.file, "r") as a_file:
@@ -90,37 +162,6 @@ class ResultParser:
                 rel_improvement_all_files.append((file_name, rel_improvement))
         return rel_improvement_all_files
 
-    def rel_improvement_by_complexity(self, domain):
-        rel_improvement = []
-        with open(self.file, "r") as a_file:
-            for line in a_file:
-                stripped_line = line.strip()
-                data = json.JSONDecoder().decode(stripped_line)
-
-                file_name = data["file"][len(domain)+2:]
-                complexity = file_name.split('-')[0]
-
-                initial_error = data["initial_error"]
-                final_cost = data["train_cost"]
-                if (initial_error == 0):
-                    rel_improvement_entry = 100.0
-                    rel_improvement.append((complexity, rel_improvement_entry))
-                else:
-                    rel_improvement_entry = ((initial_error - final_cost) / initial_error) * 100.0
-                    rel_improvement.append((complexity, rel_improvement_entry))
-
-        rel_imp_by_complexity = OrderedDict()
-        for k, *v in rel_improvement:
-            rel_imp_by_complexity.setdefault(k, []).append(v)
-
-        complexity_list = list(rel_imp_by_complexity.items())
-        rel_imp_by_complexity = []
-        for (c, l_s) in complexity_list:
-            l = sum(l_s, [])
-            rel_imp_by_complexity.append((c, sum(l)/len(l)))
-
-        return rel_imp_by_complexity
-
     def get_train_vs_test_cost(self):
         return self.filter_result_fields(["train_cost", "test_cost"])
 
@@ -138,9 +179,9 @@ class ResultParser:
 
 # Initialization
 # VanillaGP
-gp_file_name_pixel = "" # sys.argv[1]
-gp_file_name_robot = sys.argv[1]
-gp_file_name_string = "" # sys.argv[3]
+gp_file_name_pixel = sys.argv[1]
+gp_file_name_robot = sys.argv[2]
+gp_file_name_string = sys.argv[3]
 gp_path_to_file_pixel = "./results/pixel/" + gp_file_name_pixel
 gp_path_to_file_robot = "./results/robot/" + gp_file_name_robot
 gp_path_to_file_string = "./results/string/" + gp_file_name_string
@@ -150,9 +191,9 @@ gp_result_parser_robot = ResultParser(gp_path_to_file_robot)
 gp_result_parser_string = ResultParser(gp_path_to_file_string)
 
 # Brute
-brute_file_name_pixel = "" # sys.argv[4]
-brute_file_name_robot = sys.argv[2]
-brute_file_name_string = "" # sys.argv[6]
+brute_file_name_pixel = sys.argv[4]
+brute_file_name_robot = sys.argv[5]
+brute_file_name_string = sys.argv[6]
 brute_path_to_file_pixel = "./results/pixel/" + brute_file_name_pixel
 brute_path_to_file_robot = "./results/robot/" + brute_file_name_robot
 brute_path_to_file_string = "./results/string/" + brute_file_name_string
@@ -163,72 +204,12 @@ brute_result_parser_string = ResultParser(brute_path_to_file_string)
 
 # Processing
 # print("Pixel, VanillaGP solved: ", gp_result_parser_pixel.get_percentage_solved())
-print("Robot, VanillaGP solved: ", gp_result_parser_robot.get_percentage_solved())
+# print("Robot, VanillaGP solved: ", gp_result_parser_robot.get_percentage_solved())
 # print("String, VanillaGP solved: ", gp_result_parser_string.get_percentage_solved())
 
 # print("Pixel, Brute solved: ", brute_result_parser_pixel.get_percentage_solved())
-print("Robot, Brute solved: ", brute_result_parser_robot.get_percentage_solved())
+# print("Robot, Brute solved: ", brute_result_parser_robot.get_percentage_solved())
 # print("String, Brute solved: ", brute_result_parser_string.get_percentage_solved())
-
-# if (gp_file_name_pixel[0:2] == "gp"):
-#     rel_imp_pixel = gp_result_parser_pixel.relative_improvement()
-#     for file, imp in rel_imp_pixel:
-#         print("Pixel example ", file, " improved by ", imp, "%")
-    
-#     rel_imp_robot = gp_result_parser_robot.relative_improvement()
-#     for file, imp in rel_imp_pixel:
-#         print(" Robot example ", file, " improved by ", imp, "%")
-    
-#     rel_imp_string = gp_result_parser_string.relative_improvement()
-#     for file, imp in rel_imp_pixel:
-#         print("String example ", file, " improved by ", imp, "%")
-# Visualization
-
-def plot_complexity_vs_solved():
-    # # Pixel
-    # brute_solved_by_complexity = brute_result_parser_pixel.get_solved_count_by_complexity("pixel")
-    # gp_solved_by_complexity = gp_result_parser_pixel.get_solved_count_by_complexity("pixel")
-    # fig, ax = plt.subplots()
-    # ax.plot(*zip(*brute_solved_by_complexity), label="Brute", color="red")
-    # ax.plot(*zip(*gp_solved_by_complexity), label="VanillaGP", color="blue")
-    # ax.set_xlabel("Task Complexity")
-    # ax.set_ylabel("# Samples Solved")
-    # ax.legend()
-    # ax.set_title("Pixel Domain")
-
-    # plt.savefig("Plots/complexity_vs_solved_pixel.svg")
-    # fig.clf()
-    # plt.close
-
-    # Robot
-    brute_solved_by_complexity = brute_result_parser_robot.get_solved_count_by_complexity("robot")
-    gp_solved_by_complexity = gp_result_parser_robot.get_solved_count_by_complexity("robot")
-    fig, ax = plt.subplots()
-    ax.plot(*zip(*brute_solved_by_complexity), label="Brute", color="red")
-    ax.plot(*zip(*gp_solved_by_complexity), label="VanillaGP", color="blue")
-    ax.set_xlabel("Task Complexity")
-    ax.set_ylabel("# Samples Solved")
-    ax.legend()
-    ax.set_title("Robot Domain")
-
-    plt.savefig("plots/complexity_vs_solved_robot.svg")
-    fig.clf()
-    plt.close
-
-    # # String
-    # brute_solved_by_complexity = brute_result_parser_string.get_solved_count_by_complexity("string")
-    # gp_solved_by_complexity = gp_result_parser_string.get_solved_count_by_complexity("string")
-    # fig, ax = plt.subplots()
-    # ax.plot(*zip(*brute_solved_by_complexity), label="Brute", color="red")
-    # ax.plot(*zip(*gp_solved_by_complexity), label="VanillaGP", color="blue")
-    # ax.set_xlabel("Task Complexity")
-    # ax.set_ylabel("# Samples Solved")
-    # ax.legend()
-    # ax.set_title("String Domain")
-
-    # plt.savefig("Plots/complexity_vs_solved_string.svg")
-    # fig.clf()
-    # plt.close
 
 def plot_error_progression(domain, example_name):
     initial_error = 0.0
@@ -267,35 +248,84 @@ def plot_error_progression(domain, example_name):
     fig.clf()
     plt.close
 
-def plot_rel_improvement(domains=["", "", ""]):
-    fig, ax = plt.subplots()
-    fig.set_figwidth(8)
-    fig.set_figheight(6)
 
-    gp_rel_improvement = []
-    if (domains[0] == "pixel"):
-        gp_rel_improvement = gp_result_parser_pixel.relative_improvement(domains[0])
-        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[0]), marker="o", color="limegreen")
-    if (domains[1] == "robot"):
-        gp_rel_improvement = gp_result_parser_robot.rel_improvement_by_complexity(domains[1])
-        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[1]), marker="o", color="dodgerblue")
-    if (domains[2] == "string"):
-        gp_rel_improvement = gp_result_parser_string.relative_improvement(domains[2])
-        ax.plot(*zip(*gp_rel_improvement), label="VanillaGP {}".format(domains[2]), marker="o", color="crimson")
+def plot_complexity_vs_solved_percentage():
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(15,4))
 
-    start, end = 0, 100
-    ax.yaxis.set_ticks(range(start, end, 5))
-    ax.set_xlabel("Complexity")
-    ax.set_ylabel("Avg. Relative Improvement (%)")
-    ax.set_ylim(ymin=0)
-    ax.set_xticks([])
-    ax.legend()
-    ax.set_title("Average Relative Improvement Grouped by Complexity")
+    # Pixel
+    domain = "pixel"
+    brute_solved_percentage = brute_result_parser_pixel.solved_percentage_by_complexity(domain)
+    gp_solved_percentage = gp_result_parser_pixel.solved_percentage_by_complexity(domain)
+    ax1.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
+    ax1.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax1.set_xlabel("Task Complexity")
+    ax1.set_ylabel("Tasks Solved (%)")
+    ax1.legend()
+    ax1.set_title("Pixel Domain")
 
-    plt.savefig("plots/rel_improvement.svg")
+    # Robot
+    domain = "robot"
+    brute_solved_percentage = brute_result_parser_robot.solved_percentage_by_complexity(domain)
+    gp_solved_percentage = gp_result_parser_robot.solved_percentage_by_complexity(domain)
+    ax2.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
+    ax2.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax2.set_xlabel("Task Complexity")
+    ax2.set_ylabel("Tasks Solved (%)")
+    ax2.legend()
+    ax2.set_title("Robot Domain")
+
+    # String
+    domain = "string"
+    brute_solved_percentage = brute_result_parser_string.solved_percentage_by_complexity(domain)
+    gp_solved_percentage = gp_result_parser_string.solved_percentage_by_complexity(domain)
+    ax3.plot(brute_solved_percentage.keys(), brute_solved_percentage.values(), label="Brute", color="red")
+    ax3.plot(gp_solved_percentage.keys(), gp_solved_percentage.values(), label="VanillaGP", color="blue")
+    ax3.set_xlabel("Task Complexity")
+    ax3.set_ylabel("Tasks Solved (%)")
+    ax3.legend()
+    ax3.set_title("String Domain")
+
+    plt.savefig("plots/solved_percentage.svg")
     fig.clf()
     plt.close
 
-plot_complexity_vs_solved()
+def plot_rel_improvement():
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(15,4))
+
+    # Pixel
+    domain = "pixel"
+    gp_avg_rel_improvement = gp_result_parser_pixel.rel_improvement_by_complexity(domain)
+    ax1.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax1.set_xlabel("Task Complexity")
+    ax1.set_ylabel("Avg. Relative Improvement (%)")
+    ax1.set_ylim(ymin=0)
+    ax1.legend()
+    ax1.set_title("Pixel Domain")
+
+    # Robot
+    domain = "robot"
+    gp_avg_rel_improvement = gp_result_parser_robot.rel_improvement_by_complexity(domain)
+    ax2.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax2.set_xlabel("Task Complexity")
+    ax2.set_ylabel("Avg. Relative Improvement (%)")
+    ax2.set_ylim(ymin=0)
+    ax2.legend()
+    ax2.set_title("Robot Domain")
+
+    # String
+    domain = "string"
+    gp_avg_rel_improvement = gp_result_parser_string.rel_improvement_by_complexity(domain)
+    ax3.plot(gp_avg_rel_improvement.keys(), gp_avg_rel_improvement.values(), label="VanillaGP", color="blue")
+    ax3.set_xlabel("Task Complexity")
+    ax3.set_ylabel("Avg. Relative Improvement (%)")
+    ax3.set_ylim(ymin=0)
+    ax3.legend()
+    ax3.set_title("String Domain")
+
+    plt.savefig("plots/relative_improvement.svg")
+    fig.clf()
+    plt.close
+
+plot_rel_improvement()
+plot_complexity_vs_solved_percentage()
 # plot_error_progression("string", "strings/1-58-1.pl")
-plot_rel_improvement(["", "robot", ""])
