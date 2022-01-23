@@ -17,12 +17,11 @@ if __name__ == "__main__":
 
     # Settings
     time_limit = 10
-    domain = "string"
-    index = int(sys.argv[1])
+    domain = ["robot", "string", "pixel"][int(sys.argv[1])]
     index = 0
 
     algo = [
-        #(Brute(time_limit), "Brute_new_invent"),
+        (Brute(time_limit), "Brute_ifs"),
         #(RemoveNInsertN(time_limit), "LNS"),
         #(RemoveNInsertNVDI(1000, time_limit), "VDNS_1000"),
         #(RemoveNInsertNVDI(3000, time_limit), "VDNS_3000"),
@@ -30,9 +29,9 @@ if __name__ == "__main__":
         #(RemoveNInsertNVDI(10000, time_limit), "VDNS_10000"),
         #(RemoveNInsertNVDI(15000, time_limit), "VDNS_15000"),
         #(RemoveNInsertNVDI(30000, time_limit), "VDNS_30000"),
-        (FluteBrute(time_limit, time_limit), "Flute_Brute_inf"),
-        #(FluteBruteVDI(1000, time_limit, time_limit), "Flute_Brute_1000"),
-        #(FluteBruteVDI(10000, time_limit, time_limit), "Flute_Brute_10000"),
+        #(FluteBrute(time_limit, time_limit), "Flute_Brute_ni_inf"),
+        #(FluteBruteVDI(1000, time_limit, time_limit), "Flute_Brute_ni_1000"),
+        #(FluteBruteVDI(10000, time_limit, time_limit), "Flute_Brute_ni_10000"),
     ][index]
 
     ranges = {

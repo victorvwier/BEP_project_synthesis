@@ -11,6 +11,16 @@ from search.search_result import SearchResult
 MAX_NUMBER_OF_ITERATIONS = 10
 MAX_TOKEN_FUNCTION_DEPTH = 3
 
+class Entry:
+    def __init__(self, program: Program, cost: float):
+        self.program = program
+        self.cost = cost
+
+    def __lt__(self, other):
+        if self.cost == other.cost:
+            return self.program.number_of_tokens() > other.program.number_of_tokens()
+
+        return self.cost > other.cost
 
 class Brute(SearchAlgorithm):
 
@@ -31,15 +41,16 @@ class Brute(SearchAlgorithm):
 
         # generate different token combinations
         invent = Invent(trans_tokens, bool_tokens)
-        invent.permutations(up_to_length=3)
+        invent.loop_if(max_loop_body_size=1, max_branch_size=1)
         invent.ifs(max_branch_size=2)
         invent.loops(max_body_size=2)
-        invent.loop_if(max_loop_body_size=2, max_branch_size=1)
-        self.token_functions = invent2(trans_tokens, bool_tokens, MAX_TOKEN_FUNCTION_DEPTH)
+        invent.permutations(up_to_length=3)
+        self.token_functions = invent.tokens
 
         self.sample_inputs = [e.input_environment for e in examples]
         self.sample_outputs = [e.output_environment for e in examples]
-        self.programs = [(float('inf'), 1, self.current_program)]
+        prog = evaluate_program(Program([]), self.sample_inputs, self.sample_outputs)
+        self.programs = [prog]
         heapq.heapify(self.programs)
 
         self.number_of_explored_programs = 0
@@ -48,16 +59,16 @@ class Brute(SearchAlgorithm):
         self.number_of_iterations = 0
 
     def iteration(self, examples, trans_tokens, bool_tokens) -> bool:
-
-        (cost, solved, self.current_program) = heapq.heappop(self.programs)
+        cost, size, self.current_program = heapq.heappop(self.programs)
 
         self.cost_per_iteration.append((self.number_of_iterations, cost))
         self.program_length_per_iteration.append((self.number_of_iterations, self.current_program.number_of_tokens()))
+
         if cost < self.best_cost:
             self._best_program = self.current_program
             self.best_cost = cost
 
-        if solved == 0:
+        if cost == 0:
             # return False to indicate no more iterations are necessary
             return False
 
@@ -71,7 +82,7 @@ class Brute(SearchAlgorithm):
 
     def extend_program(self, best_program, programs, tokens: list[Token], sample_inputs, sample_outputs):
         for token in tokens:
-            potentially_better_program = Program(best_program.sequence + [copy.copy(token)])
+            potentially_better_program = Program(best_program.sequence + [token])
             program_new = evaluate_program(potentially_better_program, sample_inputs, sample_outputs)
             self.number_of_explored_programs += 1
             if program_new[0] != float('inf'):
@@ -112,12 +123,10 @@ def evaluate_program(program, sample_inputs, sample_outputs):
             program_outputs.append(program_output)
         output_pairs = list(zip(program_outputs, sample_outputs))
         cum_loss = loss(output_pairs)
-        solved = problem_solved(output_pairs)
-        if (solved):
-            return (cum_loss, 0, program)
-        return (cum_loss, 1, program)
+
+        return cum_loss, program.number_of_tokens(), program
     except (InvalidTransition, LoopIterationLimitReached) as e:
-        return (float("inf"), 1, program)
+        return float("inf"), program.number_of_tokens(), program
 
 
 

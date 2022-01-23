@@ -57,7 +57,7 @@ class BatchRun:
         correct = 0
 
         if self.multi_core:
-            with Pool(processes=os.cpu_count() - 1) as pool:
+            with Pool(os.cpu_count() - 1) as pool:
                 for tc in self.test_cases:
                     res = pool.apply_async(self._test_case, (tc,))
                     results.append(res)
@@ -110,8 +110,7 @@ class BatchRun:
         return final
 
     def _test_case(self, test_case: TestCase) -> dict:
-        search_algorithm = copy.deepcopy(self.search_algorithm)
-        result = search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
+        result = self.search_algorithm.run(test_case.training_examples, self.token_library, self.bools).dictionary
         program = result["program"]
         result["program"] = str(program)
 
@@ -132,8 +131,7 @@ class BatchRun:
         # queue_for_writing_to_file.put(d)
 
         if self.multi_core:
-            self.debug_print(
-                f"{self.algorithm_name}: {d['file']}, test_cost: {d['test_cost']}, train_cost: {d['train_cost']}, time: {d['execution_time']}, length: {d['program_length']}, iterations: {d['number_of_iterations']}")
+            self.debug_print(d)
 
         return d
 

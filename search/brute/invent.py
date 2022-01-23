@@ -1,3 +1,4 @@
+import heapq
 import itertools
 from common.tokens.control_tokens import If, LoopWhile
 from common.tokens.string_tokens import *
@@ -5,16 +6,28 @@ from common.tokens.string_tokens import *
 class Invent:
 
     def __init__(self, env_tokens: list[EnvToken], bool_tokens: list[BoolToken]):
-        self.env_tokens = env_tokens
-        self.bool_tokens = bool_tokens
+        self.env_tokens = list(env_tokens)
+        self.bool_tokens = list(bool_tokens)
 
         self.tokens = []
 
+    _env_perm_of_map = {}
+
     def _env_perm_of(self, n: int):
-        return itertools.permutations(self.env_tokens, n)
+        if n not in self._env_perm_of_map:
+            #self._env_perm_of_map[n] = itertools.permutations(self.env_tokens, n)
+            self._env_perm_of_map[n] = list(itertools.product(self.env_tokens, repeat=n))
+
+        return self._env_perm_of_map[n]
+
+    _env_perm_up_to_map = {}
 
     def _env_perm_up_to(self, n: int):
-        return [list(seq) for n1 in range(1, n+1) for seq in itertools.permutations(self.env_tokens, n1)]
+        if n not in self._env_perm_up_to_map:
+            res = [list(seq) for n1 in range(1, n+1) for seq in self._env_perm_of(n1)]
+            self._env_perm_up_to_map[n] = res
+
+        return self._env_perm_up_to_map[n]
 
     # Adds all permutations up to a specified length.
     def permutations(self, up_to_length: int):
@@ -46,6 +59,7 @@ class Invent:
                         continue
 
                     res.append(If(cond, list(b1), list(b2)))
+
         return res
 
     # Adds all loops containing an if token given maximum body and maximum branch size
@@ -54,7 +68,7 @@ class Invent:
 
         for body_size in range(1, max_loop_body_size + 1):
             for cond in self.bool_tokens:
-                for body in itertools.permutations(tokens, body_size):
+                for body in itertools.product(tokens, repeat=body_size):
                     # Only bodies containing an If token
                     if len([t for t in body if isinstance(t, If)]) == 0:
                         continue
@@ -75,3 +89,15 @@ if __name__ == "__main__":
     invent.loop_if(max_loop_body_size=1, max_branch_size=1)
 
     print(len(invent.tokens))
+
+
+if __name__ == "__main__":
+    heap = []
+    heapq.heapify(heap)
+
+    heapq.heappush(heap, (1, 2, "C"))
+    heapq.heappush(heap, (0, 6, "B"))
+    heapq.heappush(heap, (0, 3, "A"))
+
+    while heap:
+        print(heapq.heappop(heap))
