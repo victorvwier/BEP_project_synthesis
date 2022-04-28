@@ -1,7 +1,7 @@
 from typing import Union
 
 from common.tokens.abstract_tokens import *
-from common.prorgam import Program
+from common.program import Program
 
 
 class If(ControlToken):
@@ -25,9 +25,7 @@ class If(ControlToken):
         # Program(self.e2).interp(env, False)
 
     def number_of_tokens(self) -> int:
-        return 1 + \
-               sum([t.number_of_tokens() for t in self.e1]) + \
-               sum([t.number_of_tokens() for t in self.e2])
+        return len(self.e1) + len(self.e2)
 
     def __str__(self):
         return "If(%s [%s] [%s])" % (self.cond, ", ".join(list(map(str, self.e1))), ", ".join(list(map(str, self.e2))))
@@ -90,6 +88,51 @@ class LoopWhile(ControlToken):
             "\n\t".join([t.to_formatted_string().replace("\n", "\n\t") for t in self.loop_body])
         )
         return result
+
+
+class LoopWhileThen(ControlToken):
+    """LoopWhileThen ControlToken."""
+
+    def __init__(self, cond: BoolToken, loop_body: list[EnvToken], then_body: list[EnvToken]):
+        """Creates a new Loop ControlToken. 'loop_body' will run as long as 'cond' is true."""
+        self.cond = cond
+        self.loop_body = loop_body
+        self.then_body = then_body
+
+        self.input_map = {}
+
+    def apply(self, env: Environment) -> Environment:
+        # Raise exception if recursive call limit is reached
+        # if the condition is None or true, make recursive call
+        calls = 0
+        limit = env.loop_limit()
+
+        #for token in self.loop_body:
+        #    token.apply(env)
+
+        while self.cond.apply(env):
+            if calls > limit:
+                raise LoopIterationLimitReached()
+            calls += 1
+
+            for token in self.loop_body:
+                token.apply(env)
+
+        for token in self.then_body:
+            token.apply(env)
+
+        return env
+
+    def number_of_tokens(self) -> int:
+        return len(self.then_body) + len(self.loop_body)
+
+    def __str__(self):
+        return "LoopWhileThen(%s [%s], [%s])" % \
+               (self.cond, ", ".join(list(map(str, self.loop_body))), ", ".join(list(map(str, self.then_body))))
+
+    def __repr__(self):
+        return "LoopWhileThen(%s [%s], [%s])" % \
+               (self.cond, ", ".join(list(map(str, self.loop_body))), ", ".join(list(map(str, self.then_body))))
 
 
 class LoopIterationLimitReached(Exception):

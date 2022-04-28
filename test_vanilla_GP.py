@@ -1,10 +1,10 @@
 from common.experiment import Example
-from common.prorgam import Program
+from common.program import Program
 from common.tokens.control_tokens import If
 from evaluation.experiment_procedure import extract_bool_tokens_from_domain_name, extract_trans_tokens_from_domain_name, test_performance_single_experiment
 from common.tokens.pixel_tokens import *
 from example_parser.string_parser import StringParser
-from search.gen_prog.vanilla_GP import VanillaGP
+from solver.search.implementations.gen_prog import VanillaGP
 
 def test_gen_fitness():
     start_state = PixelEnvironment(2, 2, 0, 0, (False, False, False, False))

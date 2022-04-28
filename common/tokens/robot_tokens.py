@@ -20,9 +20,8 @@ Grab
 		  -	MoveUp (robots/pixels)
 		  -	MoveDown (robots/pixels)
 """
-
+from common.environment.robot_environment import RobotEnvironment
 from common.tokens.abstract_tokens import *
-from common.environment import *
 
 
 class AtTop(BoolToken):

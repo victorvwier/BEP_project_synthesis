@@ -1,4 +1,5 @@
 from common.environment import *
+from common.environment.environment import Environment
 
 
 class Token:
@@ -66,7 +67,7 @@ class InventedToken(EnvToken):
         return env
 
     def number_of_tokens(self) -> int:
-        return sum([t.number_of_tokens() for t in self.tokens])
+        return len(self.tokens)
 
     def __str__(self):
         return "[%s]" % ", ".join([str(t) for t in self.tokens])

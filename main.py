@@ -1,50 +1,36 @@
-from typing import List
-from evaluation.experiment_procedure import *
-from example_parser.string_parser import StringParser
-from search.MCTS.mcts import MCTS
-from search.a_star.a_star import AStar
-from search.abstract_search import SearchAlgorithm
-from search.gen_prog.vanilla_GP import VanillaGP
-from search.metropolis_hastings.metropolis import MetropolisHasting
-from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
-from search.batch_run import BatchRun
-from search.vlns.large_neighborhood_search.algorithms.remove_n_insert_n import RemoveNInsertN
+from solver.runner.main_runner import run
 
 if __name__ == "__main__":
-    searchAlgos : List[Type[SearchAlgorithm]] = [
-        [MetropolisHasting, "metro"],
-        [Brute, "brute"],
-        [MCTS, "mcts"],
-        [VanillaGP, "gp"],
-        [RemoveNInsertN, "VLNS"],
-        [AStar, "Astar"]
-    ]
 
+    # Time limit per test case (in seconds).
+    time_limit = 1
 
-    results = []
-    for alg in searchAlgos:
-        result = BatchRun(
-        # Task domain
-        domain="robot",
+    # Search algorithm to be used:
+    # All search algorithms will use the same set of invented tokens
+    #   - Brute     Brute
+    #   - AS        AStar
+    #   - MH        Metropolis Hasting
+    #   - LNS       Large Neighborhood Search
+    #   - MCTS      Monte Carlo Tree Search
+    #   - GP        Genetic Programming
+    algorithm = "AS"
 
-        # Iterables for files name. Use [] to use all values.
-        # This runs all files adhering to format "2-*-[0 -> 10]"
-        # Thus, ([], [], []) runs all files for a domain.
-        files=([], [], []),
+    # Problem domain:
+    #   - R         Robot planning
+    #   - S         String transformations
+    #   - P         Drawing ASCII pixel art
+    domain = "P"
 
-        # Search algorithm to be used
-        search_algorithm=alg[0](10),
+    # Search heuristic/distance:
+    # A cost measure used by the search algorithm to guide its search.
+    #   - E         Entailment          cost = 0 if case solved else 1
+    #   - G         Greedy              domain specific greedy heuristic
+    #   - O         Optimized           domain specific optimized heuristic
+    heuristic = "O"
 
-        # Prints out result when a test case is finished
-        print_results=True,
+    # Runs all test cases for this number of trials.
+    # The more trials, the longer it takes to run.
+    # Note: robots and pixels run way faster than strings
+    number_of_trials = 1
 
-        # Use multi core processing
-        multi_core=True,
-
-        # Use file_name= to append to a file whenever a run got terminated
-        # Comment out argument to create new file.
-        #file_name="VLNS-20211213-162128.txt"
-    ).run()
-
-    for res in results:
-        print(res[0], res[1])
+    run(time_limit, algorithm, domain, heuristic, number_of_trials)

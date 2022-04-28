@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from common.tokens.control_tokens import *
-from common.prorgam import Program
+from common.program import Program
 from common.tokens.string_tokens import *
 from common.environment import StringEnvironment
 

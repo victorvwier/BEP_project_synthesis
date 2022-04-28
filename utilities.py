@@ -1,6 +1,6 @@
 import networkx as nx
 
-from common.prorgam import Program
+from common.program import Program
 from common.tokens.robot_tokens import *
 
 

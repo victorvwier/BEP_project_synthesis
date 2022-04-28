@@ -1,3 +1,4 @@
+from common.environment.string_environment import StringEnvironment
 from common.tokens.abstract_tokens import *
 from common.environment import *
 
@@ -200,6 +201,8 @@ class Drop(TransToken):
         return env
 
 
-BoolTokens = {AtEnd(), NotAtEnd(), AtStart(), NotAtStart(), IsLetter(), IsNotLetter(), IsUppercase(), IsNotUppercase(), IsLowercase(),
+BoolTokens_old = {AtEnd(), NotAtEnd(), AtStart(), NotAtStart(), IsLetter(), IsNotLetter(), IsUppercase(), IsNotUppercase(), IsLowercase(),
+              IsNotLowercase(), IsNumber(), IsNotNumber(), IsSpace(), IsNotSpace()}
+BoolTokens = {NotAtEnd(), NotAtStart(), IsLetter(), IsNotLetter(), IsUppercase(), IsNotUppercase(), IsLowercase(),
               IsNotLowercase(), IsNumber(), IsNotNumber(), IsSpace(), IsNotSpace()}
 TransTokens = {MoveRight(), MoveLeft(), MakeUppercase(), MakeLowercase(), Drop()}

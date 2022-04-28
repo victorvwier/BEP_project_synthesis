@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from common.prorgam import Program
+from common.program import Program
 from common.tokens.robot_tokens import *
 
 
