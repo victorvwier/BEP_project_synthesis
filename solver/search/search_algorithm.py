@@ -156,9 +156,9 @@ class SearchAlgorithm:
 
         return cost
 
-    def normalized_reward(self, state: tuple):
+    def normalized_cost(self, state: tuple):
         costs = []
-        rewards = []
+        n_costs = []
 
         for out, desired, inp in zip(state, self.training_examples, self.input_state):
             cost = self.settings.distance(out, desired.output_environment)
@@ -166,15 +166,21 @@ class SearchAlgorithm:
 
             if self.settings.domain == "string":
                 div = len(desired.input_environment.string_array) + len(inp.string_array)
-                reward = 1 - cost / div
             elif self.settings.domain == "robot":
-                reward = cost / (6 * desired.input_environment.size)
+                div = 6 * desired.input_environment.size
             else:
-                reward = 0
+                div = desired.input_environment.width * desired.input_environment.height
 
-            rewards.append(reward)
+            if cost == float("inf"):
+                n_cost = 1
+            else:
+                n_cost = cost / div
 
-        reward = mean(rewards)
+            assert 0 <= n_cost <= 1
+
+            n_costs.append(n_cost)
+
+        n_cost = mean(n_costs)
         cost = mean(costs)
 
         if cost < self.best_cost:
@@ -182,6 +188,4 @@ class SearchAlgorithm:
 
             self.statistics["best_cost_per_iteration"].append((self.statistics["no._iterations"], self.best_cost))
 
-        assert 0 <= reward <= 1
-
-        return reward#, self.best_cost == cost
+        return n_cost#, self.best_cost == cost

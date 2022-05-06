@@ -1,0 +1,30 @@
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/opt/insy/miniconda/3.9/lib/python3.9/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+  File "/opt/insy/miniconda/3.9/lib/python3.9/multiprocessing/pool.py", line 48, in mapstar
+    return list(map(*args))
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/solver/runner/runner.py", line 75, in execute_test_case
+    return self.algorithm.run(self.settings, self.time_limit_sec, self.debug, test_case)
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/solver/search/search_algorithm.py", line 90, in run
+    while self.iteration():
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/solver/search/implementations/metropolis.py", line 42, in iteration
+    ratio = math.exp(-self.alpha * new_cost) / math.exp(-self.alpha * self.current_cost)
+ZeroDivisionError: float division by zero
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/main.py", line 30, in <module>
+    run(algorithm, domain, distance)
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/main.py", line 19, in run
+    Runner(dicts(0), algorithm, "{}{}".format(domain, distance), "eval", time_limit_sec, False, True, suffix).run()
+  File "/home/nfs/smrasing/smrasing/BEP_project_synthesis/solver/runner/runner.py", line 61, in run
+    for program, stats in results.get():
+  File "/opt/insy/miniconda/3.9/lib/python3.9/multiprocessing/pool.py", line 771, in get
+    raise self._value
+ZeroDivisionError: float division by zero
+srun: error: influ4: task 0: Exited with exit code 1
+srun: Terminating job step 7277207.0

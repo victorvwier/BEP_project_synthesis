@@ -3,6 +3,7 @@ import heapq
 from math import exp
 
 from common.program import Program, InvalidTransition
+from common.settings.pixel_hamming_pointer_distance import PixelHammingPointerDistance
 from common.settings.settings import Settings
 from common.tokens.control_tokens import LoopIterationLimitReached
 from solver.search.search_algorithm import SearchAlgorithm
@@ -53,11 +54,13 @@ class AStar(SearchAlgorithm):
 
             # Path is shorter
             if self.g_score[state] + 1 < self.g_score.get(new_state, float("inf")):
-            #if new_state not in self.f_score:
+                if self.weight == 0 and new_state in self.f_score:
+                    continue
+
                 self.came_from[new_state] = state
                 self.token[new_state] = token
                 self.g_score[new_state] = self.g_score[state] + 1 - exp(- 0.3 * token.number_of_tokens())
-                self.f_score[new_state] = self.evaluate_state(new_state)
+                self.f_score[new_state] = self.normalized_cost(new_state)
 
                 new_cost = self.g_score[new_state] * self.weight + self.f_score[new_state] * (1 - self.weight)
 

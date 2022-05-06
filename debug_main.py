@@ -5,7 +5,7 @@ from solver.runner.runner import Runner
 
 if __name__ == "__main__":
     # Time limit per test case (in seconds).
-    time_limit = 1
+    time_limit = 10
 
     # Search algorithm to be used:
     # All search algorithms will use the same set of invented tokens
@@ -15,13 +15,13 @@ if __name__ == "__main__":
     #   - LNS       Large Neighborhood Search
     #   - MCTS      Monte Carlo Tree Search
     #   - GP        Genetic Programming
-    algorithm = "AS"
+    algorithm = "MH"
 
     # Problem domain:
     #   - R         Robot planning
     #   - S         String transformations
     #   - P         Drawing ASCII pixel art
-    domain = "P"
+    domain = "S"
 
     # Search heuristic/distance:
     # A cost measure used by the search algorithm to guide its search.

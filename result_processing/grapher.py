@@ -12,7 +12,9 @@ def run(domain, setting, graph):
     }
 
     algorithms = ["Brute", "AS", "GP", "LNS", "MCTS", "MH"]
-    #algorithms = ["Brute", "AS"]
+    algorithms = ["Brute", "AS"]
+    #algorithms = ["Brute", "AS", "GP", "LNS"]
+    #algorithms = ["Brute", "AS", "LNS"]
     data = []
     for a in algorithms:
         data.append({"name": a, "file": "../results/{}/{}-{}{}-PC.txt".format(a, a, domain, setting)})
@@ -54,10 +56,29 @@ def run(domain, setting, graph):
         )
         results.save(1, domain, "complexity_vs_execution_time_correct_{}-{}".format(domain, setting))
 
+    if graph == "exe_vs_size":
+        results = Results(data, colors)
+        results.filter("correct", lambda v: v == 1)
+        # results.filter_all("file", "correct", lambda v: v == 1)
+        results.filter_fields(["execution_time", "program_length"])
+        results.aggregate("execution_time")
+        results.scatter_plot(
+            x=lambda t: t[0],
+            y=lambda t: t[1]["program_length"],
+            label=lambda t: None,
+            title="Execution time vs program length",
+            x_axis="Execution time (sec)",
+            y_axis="Program length",
+        )
+        results.save(1, domain, "execution_time_vs_program_length_correct_{}-{}".format(domain, setting))
+
 if __name__ == "__main__":
 
-    run("P", "G", "compl_vs_acc")
-    run("P", "G", "compl_vs_exe")
+    #run("P", "G", "compl_vs_acc")
+    #run("P", "G", "compl_vs_exe")
+    run("S", "O", "exe_vs_size")
+    run("S", "G", "exe_vs_size")
+    run("S", "E", "exe_vs_size")
 
 
     """

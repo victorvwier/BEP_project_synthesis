@@ -20,7 +20,7 @@ from solver.search.implementations.metropolis import MetropolisHasting
 def dicts(param):
     return {
         "algorithms": {
-            "Brute": defaultdict(Brute),
+            "Brute": defaultdict(lambda: AStar(0)),
             "AS": {
                 "SG": AStar(0.01),
                 "SO": AStar(0.06),
@@ -29,20 +29,20 @@ def dicts(param):
                 "RO": AStar(0),
                 "RE": AStar(0.1),
                 "PG": AStar(0),
-                "PO": AStar(0),
+                "PO": AStar(0.01),
                 "PE": AStar(0.1),
             },
             "MCTS": {
-                "SG": MCTS(c_exploration=param, rollout_depth=0),
-                "SO": MCTS(c_exploration=param, rollout_depth=0),
-                "SE": MCTS(c_exploration=param, rollout_depth=0),
+                "SG": MCTS(c_exploration=0.03, rollout_depth=0),
+                "SO": MCTS(c_exploration=0.05, rollout_depth=1),
+                "SE": MCTS(c_exploration=0.03, rollout_depth=0),
 
-                "RG": MCTS(c_exploration=param, rollout_depth=0),
-                "RO": MCTS(c_exploration=param, rollout_depth=0),
-                "RE": MCTS(c_exploration=param, rollout_depth=0),
+                "RG": MCTS(c_exploration=0, rollout_depth=0),
+                "RO": MCTS(c_exploration=0, rollout_depth=0),
+                "RE": MCTS(c_exploration=0, rollout_depth=0),
 
-                "PG": MCTS(c_exploration=param, rollout_depth=0),
-                "PO": MCTS(c_exploration=param, rollout_depth=0),
+                "PG": MCTS(c_exploration=0, rollout_depth=0),
+                "PO": MCTS(c_exploration=0, rollout_depth=0),
                 "PE": MCTS(c_exploration=param, rollout_depth=0),
 
                 #"SG": MCTS(c_exploration=0, max_token_try=9),
@@ -107,7 +107,7 @@ def dicts(param):
                 "S": (
                     [1,3,5],
                     range(1, 327, 20),
-                    [1, 2, 3]
+                    [1, 2, 3, 4, 5]
                 ),
 
                 "R": (
@@ -118,7 +118,7 @@ def dicts(param):
 
                 "P": (
                     [],
-                    [],
+                    [1, 2, 3, 4, 5],
                     [1],
                 )
             },
@@ -147,7 +147,7 @@ def dicts(param):
                 "S": (
                     # Runs all string tasks with 3 given input/output pairs
                     [3],
-                    range(1, 327, 20),
+                    range(1, 327,),# 20),
                     [1],
                 ),
 
@@ -162,7 +162,8 @@ def dicts(param):
                     # Runs all pixel tasks except the first trial
                     [],
                     [],
-                    range(2, 11),
+                    #range(2, 11),
+                    range(2, 4),
                 )
             },
             "all": defaultdict(lambda: ([], [], []))

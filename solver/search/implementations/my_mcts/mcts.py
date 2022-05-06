@@ -24,7 +24,7 @@ class MCTSNode:
         self.uct = 0
 
         self.unexplored = [t for t in search_algorithm.tokens]
-        self.reward = self.search_algorithm.normalized_reward(self.state)
+        self.reward = 1 - self.search_algorithm.normalized_cost(self.state)
         self.terminal = None
 
         if self.reward == self.search_algorithm.best_cost:
@@ -82,6 +82,9 @@ class MCTSNode:
         self.children.append(child)
         self.visited.add(child.state)
 
+        if child.reward == 0:
+            return self.expand()
+
         return child
 
     def rollout(self, max_token_tries: int) -> float:
@@ -97,7 +100,7 @@ class MCTSNode:
             except (InvalidTransition, LoopIterationLimitReached):
                 continue
 
-        reward = self.search_algorithm.normalized_reward(state)
+        reward = 1 - self.search_algorithm.normalized_cost(state)
 
         if reward == 1:
             self.search_algorithm.best_program = Program(self.rebuild_program() + tokens)
