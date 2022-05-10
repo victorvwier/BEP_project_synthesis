@@ -34,6 +34,9 @@ class MetropolisHasting(SearchAlgorithm):
         self.current_cost, _, _ = self.evaluate(self.current_program)
 
     def iteration(self) -> bool:
+        if self.current_cost == float('inf'):
+            return False
+
         mutation = random.choices(self.mutations, weights=self.weights, k=1)[0]
 
         new_program = mutation(self.current_program)

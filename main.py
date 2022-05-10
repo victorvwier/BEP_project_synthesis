@@ -13,7 +13,7 @@ if __name__ == "__main__":
     #   - LNS       Large Neighborhood Search
     #   - MCTS      Monte Carlo Tree Search
     #   - GP        Genetic Programming
-    algorithm = "MCTS"
+    algorithm = "MH"
 
     # Problem domain:
     #   - R         Robot planning

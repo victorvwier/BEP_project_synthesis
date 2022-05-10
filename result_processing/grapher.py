@@ -12,12 +12,11 @@ def run(domain, setting, graph):
     }
 
     algorithms = ["Brute", "AS", "GP", "LNS", "MCTS", "MH"]
-    algorithms = ["Brute", "AS"]
-    #algorithms = ["Brute", "AS", "GP", "LNS"]
-    #algorithms = ["Brute", "AS", "LNS"]
+    algorithms = ["Brute", "AS", "GP", "LNS", "MH"]
+
     data = []
     for a in algorithms:
-        data.append({"name": a, "file": "../results/{}/{}-{}{}-PC.txt".format(a, a, domain, setting)})
+        data.append({"name": a, "file": "../results/{}/{}-{}{}-HPC.txt".format(a, a, domain, setting)})
 
     complexity = {
         "R": "Grid size",
@@ -74,19 +73,16 @@ def run(domain, setting, graph):
 
 if __name__ == "__main__":
 
-    #run("P", "G", "compl_vs_acc")
-    #run("P", "G", "compl_vs_exe")
+    run("S", "O", "compl_vs_acc")
+    run("S", "O", "compl_vs_exe")
     run("S", "O", "exe_vs_size")
-    run("S", "G", "exe_vs_size")
-    run("S", "E", "exe_vs_size")
 
 
-    """
-    for domain in ["R", "P", "S"]:
-        for setting in ["E", "G", "O"]:
-            for graph in ["compl_vs_acc", "compl_vs_exe"]:
-                try:
-                    run(domain, setting, graph)
-                except FileNotFoundError:
-                    print(domain, setting)
-    """
+    if False:
+        for domain in ["R", "P", "S"]:
+            for setting in ["E", "G", "O"]:
+                for graph in ["compl_vs_acc", "compl_vs_exe", "exe_vs_size"]:
+                    try:
+                        run(domain, setting, graph)
+                    except FileNotFoundError:
+                        print(domain, setting)

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     #   - R         Robot planning
     #   - S         String transformations
     #   - P         Drawing ASCII pixel art
-    domain = "S"
+    domain = "P"
 
     # Search heuristic/distance:
     # A cost measure used by the search algorithm to guide its search.
