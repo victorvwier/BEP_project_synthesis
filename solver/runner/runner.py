@@ -51,7 +51,6 @@ class Runner:
                 solved_examples[i] = -1
                 continue
 
-            #with Pool(processes=1) as pool:
             with Pool(processes=os.cpu_count() - 1) as pool:
                 results = pool.map_async(self.execute_test_case, cases)
             #if True:
@@ -76,13 +75,15 @@ class Runner:
 
 
 if __name__ == "__main__":
-    time_limit = 5
+    time_limit = 30
     debug = False
     store = False
-    setting = "SG"
+    setting = "PG"
     algo = "MCTS"
     test_cases = "param"
     params = [0, 0.1, 0.5, 1, 1.5, 2]
+    #params = [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3]
+    #0.05
 
     params = params if test_cases == "param" else [0]
     store = False if test_cases == "param" else store
@@ -93,4 +94,4 @@ if __name__ == "__main__":
 
         mean1 = Runner(dicts(param), algo, setting, test_cases, time_limit, debug, store).run()
 
-        print("Solved {} ± {}".format((100*mean1).__round__(1)))
+        print("Solved {}".format((100*mean1).__round__(1)))

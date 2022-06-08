@@ -79,6 +79,7 @@ class Results:
 
         plt.savefig("{}/{}.pdf".format(folder, name), bbox_inches='tight')
 
+
 class Result:
     def __init__(self, file_name, name, color):
         self.name = name
@@ -98,12 +99,22 @@ class Result:
 
     @staticmethod
     def _field_parser(obj, field):
+
+        if field == "program_length":
+            return sum([1 if c == "," else 0 for c in obj["best_program"]])
+
         if field == "file_tuple":
             a = obj["file"].split("/")[1][:-3].split("-")
             return int(a[0]), int(a[1]), int(a[2])
 
         if field == "correct":
             return 1 if obj["test_cost"] == obj["train_cost"] == 0 else 0
+
+        if field == "test_acc":
+            #if obj["test_total"] == 0:
+                #return -1
+
+            return float(obj["test_correct"]) / obj["test_total"]
 
         if field == "zero_train_cost":
             return 1 if obj["train_cost"] == 0 else 0
@@ -172,19 +183,22 @@ class Result:
         ys = [y(r) for r in self.results.items()]
         xrs =  [x.__round__(5) for x in xs]
         yrs =  [y.__round__(5) for y in ys]
-        print(self.name, list(zip(xrs, yrs)))
+        #print(self.name, list(zip(xrs, yrs)))
 
         ax.scatter(
                 xs, ys,
                 label=self.name,
+                s=2,
                 marker='o',
                 color=self.color,
         )
 
         labels = [label(r) for r in self.results.items()]
 
+
         for x, y, l in zip(xs, ys, labels):
-            ax.annotate(l, (x, y))
+            if l is not None:
+                ax.annotate(l, (x, y))
 
     def histogram(self, x: Callable, bins, title: str = "", x_axis: str = "", y_axis: str = ""):
         xs = [x(r) for r in self.results]

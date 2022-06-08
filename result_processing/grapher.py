@@ -12,10 +12,11 @@ def run(domain, setting, graph):
     }
 
     algorithms = ["Brute", "AS", "GP", "LNS", "MCTS", "MH"]
-    #algorithms = ["Brute", "AS"]
+    algorithms = ["Brute", "AS", "GP", "LNS", "MH"]
+
     data = []
     for a in algorithms:
-        data.append({"name": a, "file": "../results/{}/{}-{}{}-PC.txt".format(a, a, domain, setting)})
+        data.append({"name": a, "file": "../results/{}/{}-{}{}-HPC.txt".format(a, a, domain, setting)})
 
     complexity = {
         "R": "Grid size",
@@ -54,18 +55,34 @@ def run(domain, setting, graph):
         )
         results.save(1, domain, "complexity_vs_execution_time_correct_{}-{}".format(domain, setting))
 
+    if graph == "exe_vs_size":
+        results = Results(data, colors)
+        results.filter("correct", lambda v: v == 1)
+        # results.filter_all("file", "correct", lambda v: v == 1)
+        results.filter_fields(["execution_time", "program_length"])
+        results.aggregate("execution_time")
+        results.scatter_plot(
+            x=lambda t: t[0],
+            y=lambda t: t[1]["program_length"],
+            label=lambda t: None,
+            title="Execution time vs program length",
+            x_axis="Execution time (sec)",
+            y_axis="Program length",
+        )
+        results.save(1, domain, "execution_time_vs_program_length_correct_{}-{}".format(domain, setting))
+
 if __name__ == "__main__":
 
-    run("P", "G", "compl_vs_acc")
-    run("P", "G", "compl_vs_exe")
+    run("S", "O", "compl_vs_acc")
+    run("S", "O", "compl_vs_exe")
+    run("S", "O", "exe_vs_size")
 
 
-    """
-    for domain in ["R", "P", "S"]:
-        for setting in ["E", "G", "O"]:
-            for graph in ["compl_vs_acc", "compl_vs_exe"]:
-                try:
-                    run(domain, setting, graph)
-                except FileNotFoundError:
-                    print(domain, setting)
-    """
+    if False:
+        for domain in ["R", "P", "S"]:
+            for setting in ["E", "G", "O"]:
+                for graph in ["compl_vs_acc", "compl_vs_exe", "exe_vs_size"]:
+                    try:
+                        run(domain, setting, graph)
+                    except FileNotFoundError:
+                        print(domain, setting)
