@@ -1,5 +1,6 @@
 import copy
 import random
+import sys
 from math import sqrt, log
 from typing import Union
 
@@ -128,12 +129,15 @@ class MCTSNode:
 class MCTS(SearchAlgorithm):
 
     def __init__(self, c_exploration: float, rollout_depth: int):
+        sys.setrecursionlimit(10000)
+
         self.c_exploration = c_exploration
         self.rollout_depth = rollout_depth
         self.root = None
 
     def setup(self):
         #print(self.c_exploration)
+        del self.root
         self.root = MCTSNode.root(self)
 
     def iteration(self):

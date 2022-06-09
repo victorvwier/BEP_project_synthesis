@@ -135,7 +135,7 @@ class SearchAlgorithm:
             self.best_cost = cost
             self.best_program = p
 
-            self.statistics.get("best_cost_per_iteration", []).append((self.statistics.get("no._iterations", 1), self.best_cost))
+            #self.statistics.get("best_cost_per_iteration", []).append((self.statistics.get("no._iterations", 1), self.best_cost))
 
         return cost, tuple(results), correct_examples
 
@@ -152,7 +152,7 @@ class SearchAlgorithm:
         if cost < self.best_cost:
             self.best_cost = cost
 
-            self.statistics["best_cost_per_iteration"].append((self.statistics["no._iterations"], self.best_cost))
+            #self.statistics["best_cost_per_iteration"].append((self.statistics["no._iterations"], self.best_cost))
 
         return cost
 
@@ -186,6 +186,6 @@ class SearchAlgorithm:
         if cost < self.best_cost:
             self.best_cost = cost
 
-            self.statistics["best_cost_per_iteration"].append((self.statistics["no._iterations"], self.best_cost))
+            #self.statistics["best_cost_per_iteration"].append((self.statistics["no._iterations"], self.best_cost))
 
         return n_cost#, self.best_cost == cost
